@@ -4,27 +4,27 @@ options {
   tokenVocab=WaccLexer;
 }
 
-//comment?
+//comment? how to ignore comments
 
-indent: VARIABLE;
+ident: VARIABLE;
 
-pair-liter: NULL;
+pair_liter: NUL;
 
-array-liter: OPEN_SQUARE_BRACKET (expr (COMMA expr)?) CLOSE_SQUARE_BRACKET;
+array_liter: OPEN_SQUARE_BRACKET (expr (COMMA expr)?) CLOSE_SQUARE_BRACKET;
 
-str-liter: DOUBLE_QUOTATION (CHARACTER)* DOUBLE_QUOTATION ;
+str_liter: DOUBLE_QUOTATION (CHARACTER)* DOUBLE_QUOTATION ;
 
-char-liter: SINGLE_QUOTATION CHARACTER SINGLE_QUOTATION ;
+char_liter: SINGLE_QUOTATION CHARACTER SINGLE_QUOTATION ;
 
-bool-liter: TRUE | FALSE ;
+bool_liter: TRUE | FALSE ;
 
-int-sign: PLUS | MINUS ;
+int_sign: PLUS | MINUS ;
 
-int-liter: (int-sign)? (DIGIT)+ ;
+int_liter: (int_sign)? (INTEGER)+ ;
 
-array-elem: indent (OPEN_SQUARE_BRACKET expr CLOSE_SQUARE_BRACKET)+ ;
+array_elem: ident (OPEN_SQUARE_BRACKET expr CLOSE_SQUARE_BRACKET)+ ;
 
-binary-oper:
+binary_oper:
 | MULTIPLY
 | DIVIDE
 | MOD
@@ -40,7 +40,7 @@ binary-oper:
 | OR
 ;
 
-unary-oper:
+unary_oper:
 | NOT
 | MINUS
 | LEN
@@ -49,33 +49,33 @@ unary-oper:
 ;
 
 expr:
-| int-liter
-| bool-liter
-| char-liter
-| str-liter
-| pair-liter
+| int_liter
+| bool_liter
+| char_liter
+| str_liter
+| pair_liter
 | ident
-| array-elem
-| unary-open expr
-| expr binary-oper expr
+| array_elem
+| unary_oper expr
+| expr binary_oper expr
 | OPEN_PARENTHESES expr CLOSE_PARENTHESES
 ;
 
-pair-elem-type:
-| base-type
-| array-type
+pair_elem_type:
+| base_type
+| array_type
 | PAIR
 ;
 
-pair-type:
-| PAIR OPEN_PARENTHESES pair-elem-type COMMA pair-elem-type CLOSE_PARENTHESES
+pair_type:
+| PAIR OPEN_PARENTHESES pair_elem_type COMMA pair_elem_type CLOSE_PARENTHESES
 ;
 
-array-type:
+array_type:
 | type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
 ;
 
-base-type:
+base_type:
 | INT 
 | BOOL
 | CHAR 
@@ -83,37 +83,37 @@ base-type:
 ;
 
 type:
-| base-type
-| array-type
-| pair-type
+| base_type
+| array_type
+| pair_type
 ;
 
-pair-elem:
+pair_elem:
 | FST expr
 | SND expr
 ;
 
-arg-list: expr (COMMA expr)* ;
+arg_list: expr (COMMA expr)* ;
 
-assign-rhs:
+assign_rhs:
 | expr
-| array-liter
+| array_liter
 | NEWPAIR OPEN_PARENTHESES expr COMMA expr CLOSE_PARENTHESES
-| pair-elem
-| CALL ident OPEN_PARENTHESES (arg-list)? CLOSE_PARENTHESES
+| pair_elem
+| CALL ident OPEN_PARENTHESES (arg_list)? CLOSE_PARENTHESES
 ;
 
-assign-lhs:
+assign_lhs:
 | ident 
-| array-elem
-| pair-elem
+| array_elem
+| pair_elem
 ;
 
 stat: 
 | SKIP
-| type indent EQUAL_ASSIGN assign-rhs
-| assign-lhs EQUAL_ASSIGN assign-rhs
-| READ assign-lhs 
+| type ident EQUAL_ASSIGN assign_rhs
+| assign_lhs EQUAL_ASSIGN assign_rhs
+| READ assign_lhs 
 | FREE expr
 | RETURN expr
 | EXIT expr 
@@ -127,9 +127,9 @@ stat:
 
 param: type ident ;
 
-param-list: param (COMMA param)* ;
+param_list: param (COMMA param)* ;
 
-func: type ident OPEN_PARENTHESES (param-list)? CLOSE_PARENTHESES IS stat END ;
+func: type ident OPEN_PARENTHESES (param_list)? CLOSE_PARENTHESES IS stat END ;
 
 // EOF indicates that the program must consume to the end of the input.
 program: BEGIN (func)* stat END EOF;
