@@ -4,8 +4,6 @@ options {
   tokenVocab=WaccLexer;
 }
 
-//comment? how to ignore comments
-
 ident: VARIABLE;
 
 pair_liter: NUL;
@@ -71,8 +69,14 @@ pair_type:
 | PAIR OPEN_PARENTHESES pair_elem_type COMMA pair_elem_type CLOSE_PARENTHESES
 ;
 
+//array_type:
+//| type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
+//;
+// fixing mutually recursive (this below is 'direct left recursive')
 array_type:
-| type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
+| array_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
+| base_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET 
+| pair_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
 ;
 
 base_type:
