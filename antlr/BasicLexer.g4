@@ -3,6 +3,7 @@ lexer grammar BasicLexer;
 //operators
 PLUS: '+' ;
 MINUS: '-' ;
+PLUSPLUS: '++';
 
 //brackets
 OPEN_PARENTHESES : '(' ;
