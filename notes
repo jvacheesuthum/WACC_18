@@ -1,0 +1,3 @@
+1. NULL not implemented properly in lexer
+2. parser line 108 -> hacky fix 
+3. problem at parser line 57-59

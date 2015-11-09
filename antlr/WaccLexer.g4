@@ -96,6 +96,8 @@ CR: '\r' ;  // carriage return
 SINGLE_QUOTATION: '\'' ;
 DOUBLE_QUOTATION: '\"' ;
 
+EMPTY: '';
+
 WS: [LF CR] -> skip ;
 
 BACK_SLASH: '\\';

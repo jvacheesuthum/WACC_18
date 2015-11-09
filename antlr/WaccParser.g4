@@ -22,8 +22,7 @@ int_liter: (int_sign)? (INTEGER)+ ;
 
 array_elem: ident (OPEN_SQUARE_BRACKET expr CLOSE_SQUARE_BRACKET)+ ;
 
-binary_oper:
-| MULTIPLY
+binary_oper: MULTIPLY
 | DIVIDE
 | MOD
 | PLUS
@@ -38,16 +37,14 @@ binary_oper:
 | OR
 ;
 
-unary_oper:
-| NOT
+unary_oper: NOT
 | MINUS
 | LEN
 | ORD
 | CHR
 ;
 
-expr:
-| int_liter
+expr: int_liter
 | bool_liter
 | char_liter
 | str_liter
@@ -59,62 +56,54 @@ expr:
 | OPEN_PARENTHESES expr CLOSE_PARENTHESES
 ;
 
-pair_elem_type:
-| base_type
+pair_elem_type: base_type
 | array_type
 | PAIR
 ;
 
-pair_type:
-| PAIR OPEN_PARENTHESES pair_elem_type COMMA pair_elem_type CLOSE_PARENTHESES
+pair_type: PAIR OPEN_PARENTHESES pair_elem_type COMMA pair_elem_type CLOSE_PARENTHESES
 ;
 
 //array_type:
 //| type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
 //;
 // fixing mutually recursive (this below is 'direct left recursive')
-array_type:
-| array_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
+array_type: array_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
 | base_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET 
 | pair_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
 ;
 
-base_type:
-| INT 
+base_type: INT 
 | BOOL
 | CHAR 
 | STRING
 ;
 
-type:
-| base_type
+type: base_type
 | array_type
 | pair_type
 ;
 
-pair_elem:
-| FST expr
+pair_elem: FST expr
 | SND expr
 ;
 
 arg_list: expr (COMMA expr)* ;
 
-assign_rhs:
-| expr
+assign_rhs: expr
 | array_liter
 | NEWPAIR OPEN_PARENTHESES expr COMMA expr CLOSE_PARENTHESES
 | pair_elem
-| CALL ident OPEN_PARENTHESES (arg_list)? CLOSE_PARENTHESES
+| CALL ident OPEN_PARENTHESES arg_list CLOSE_PARENTHESES
+| CALL ident OPEN_PARENTHESES CLOSE_PARENTHESES
 ;
 
-assign_lhs:
-| ident 
+assign_lhs: ident 
 | array_elem
 | pair_elem
 ;
 
-stat: 
-| SKIP
+stat: SKIP
 | type ident EQUAL_ASSIGN assign_rhs
 | assign_lhs EQUAL_ASSIGN assign_rhs
 | READ assign_lhs 
