@@ -1,3 +1,7 @@
-1. NULL not implemented properly in lexer
-2. parser line 108 -> hacky fix 
-3. problem at parser line 57-59
+> NULL not implemented properly in lexer
+
+> problem at parser line 57-59
+solved by removing first guard ..
+
+> look at basic error listener antlr for overriding errors
+
