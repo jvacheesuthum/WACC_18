@@ -5,7 +5,7 @@ public class SymbolTable {
 	SymbolTable encSymTable;
 	Dictionary dict;
 	
-	SymbolTable(SymbolTable encSymTable) {
+	public SymbolTable(SymbolTable encSymTable) {
 		dict = new Dictionary();
 		this.encSymTable = encSymTable;
 	}
