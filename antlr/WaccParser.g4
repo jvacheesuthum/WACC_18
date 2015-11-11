@@ -103,20 +103,21 @@ assign_lhs: ident
 | pair_elem
 ;
 
-stat: SKIP
-| type ident EQUAL_ASSIGN assign_rhs
-| assign_lhs EQUAL_ASSIGN assign_rhs
-| READ assign_lhs 
-| FREE expr
-| RETURN expr
-| EXIT expr 
-| PRINT expr
-| PRINTLN expr 
-| IF expr THEN stat ELSE stat FI
-| WHILE expr DO stat DONE 
-| BEGIN stat END 
-| stat SEMI_COLON stat
+stat: SKIP				#stat_skip
+| type ident EQUAL_ASSIGN assign_rhs	#stat_declare
+| assign_lhs EQUAL_ASSIGN assign_rhs	#stat_assign
+| READ assign_lhs 			#stat_read
+| FREE expr				#stat_free
+| RETURN expr				#stat_return
+| EXIT expr 				#stat_exit
+| PRINT expr				#stat_print
+| PRINTLN expr 				#stat_println
+| IF expr THEN stat ELSE stat FI	#stat_if
+| WHILE expr DO stat DONE 		#stat_while
+| BEGIN stat END 			#stat_begin_end
+| stat SEMI_COLON stat			#stat_stat
 ;
+
 
 param: type ident ;
 
