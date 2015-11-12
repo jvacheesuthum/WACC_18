@@ -1,5 +1,6 @@
 // Generated from ./WaccParser.g4 by ANTLR 4.4
 package antlr;
+import SemanticAnalyser.*;
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -74,6 +75,7 @@ public class WaccParser extends Parser {
 		_interp = new ParserATNSimulator(this,_ATN,_decisionToDFA,_sharedContextCache);
 	}
 	public static class IdentContext extends ParserRuleContext {
+		public TYPE typename;
 		public TerminalNode VARIABLE() { return getToken(WaccParser.VARIABLE, 0); }
 		public IdentContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
@@ -1158,36 +1160,97 @@ public class WaccParser extends Parser {
 	}
 
 	public static class Assign_rhsContext extends ParserRuleContext {
-		public TerminalNode CALL() { return getToken(WaccParser.CALL, 0); }
-		public Pair_elemContext pair_elem() {
-			return getRuleContext(Pair_elemContext.class,0);
-		}
-		public List<ExprContext> expr() {
-			return getRuleContexts(ExprContext.class);
-		}
-		public Arg_listContext arg_list() {
-			return getRuleContext(Arg_listContext.class,0);
-		}
-		public TerminalNode CLOSE_PARENTHESES() { return getToken(WaccParser.CLOSE_PARENTHESES, 0); }
-		public TerminalNode COMMA() { return getToken(WaccParser.COMMA, 0); }
-		public TerminalNode OPEN_PARENTHESES() { return getToken(WaccParser.OPEN_PARENTHESES, 0); }
-		public ExprContext expr(int i) {
-			return getRuleContext(ExprContext.class,i);
-		}
-		public TerminalNode NEWPAIR() { return getToken(WaccParser.NEWPAIR, 0); }
-		public Array_literContext array_liter() {
-			return getRuleContext(Array_literContext.class,0);
-		}
-		public IdentContext ident() {
-			return getRuleContext(IdentContext.class,0);
-		}
+		public TYPE typename;
 		public Assign_rhsContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_assign_rhs; }
+	 
+		public Assign_rhsContext() { }
+		public void copyFrom(Assign_rhsContext ctx) {
+			super.copyFrom(ctx);
+			this.typename = ctx.typename;
+		}
+	}
+	public static class Assign_rhs_call_emptyContext extends Assign_rhsContext {
+		public TerminalNode CALL() { return getToken(WaccParser.CALL, 0); }
+		public TerminalNode CLOSE_PARENTHESES() { return getToken(WaccParser.CLOSE_PARENTHESES, 0); }
+		public TerminalNode OPEN_PARENTHESES() { return getToken(WaccParser.OPEN_PARENTHESES, 0); }
+		public IdentContext ident() {
+			return getRuleContext(IdentContext.class,0);
+		}
+		public Assign_rhs_call_emptyContext(Assign_rhsContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitAssign_rhs(this);
+			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitAssign_rhs_call_empty(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	public static class Assign_rhs_newpairContext extends Assign_rhsContext {
+		public List<ExprContext> expr() {
+			return getRuleContexts(ExprContext.class);
+		}
+		public TerminalNode CLOSE_PARENTHESES() { return getToken(WaccParser.CLOSE_PARENTHESES, 0); }
+		public TerminalNode COMMA() { return getToken(WaccParser.COMMA, 0); }
+		public ExprContext expr(int i) {
+			return getRuleContext(ExprContext.class,i);
+		}
+		public TerminalNode OPEN_PARENTHESES() { return getToken(WaccParser.OPEN_PARENTHESES, 0); }
+		public TerminalNode NEWPAIR() { return getToken(WaccParser.NEWPAIR, 0); }
+		public Assign_rhs_newpairContext(Assign_rhsContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitAssign_rhs_newpair(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	public static class Assign_rhs_exprContext extends Assign_rhsContext {
+		public ExprContext expr() {
+			return getRuleContext(ExprContext.class,0);
+		}
+		public Assign_rhs_exprContext(Assign_rhsContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitAssign_rhs_expr(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	public static class Assign_rhs_ar_literContext extends Assign_rhsContext {
+		public Array_literContext array_liter() {
+			return getRuleContext(Array_literContext.class,0);
+		}
+		public Assign_rhs_ar_literContext(Assign_rhsContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitAssign_rhs_ar_liter(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	public static class Assign_rhs_callContext extends Assign_rhsContext {
+		public TerminalNode CALL() { return getToken(WaccParser.CALL, 0); }
+		public TerminalNode CLOSE_PARENTHESES() { return getToken(WaccParser.CLOSE_PARENTHESES, 0); }
+		public Arg_listContext arg_list() {
+			return getRuleContext(Arg_listContext.class,0);
+		}
+		public TerminalNode OPEN_PARENTHESES() { return getToken(WaccParser.OPEN_PARENTHESES, 0); }
+		public IdentContext ident() {
+			return getRuleContext(IdentContext.class,0);
+		}
+		public Assign_rhs_callContext(Assign_rhsContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitAssign_rhs_call(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	public static class Assign_rhs_pair_elemContext extends Assign_rhsContext {
+		public Pair_elemContext pair_elem() {
+			return getRuleContext(Pair_elemContext.class,0);
+		}
+		public Assign_rhs_pair_elemContext(Assign_rhsContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitAssign_rhs_pair_elem(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -1199,18 +1262,21 @@ public class WaccParser extends Parser {
 			setState(201);
 			switch ( getInterpreter().adaptivePredict(_input,13,_ctx) ) {
 			case 1:
+				_localctx = new Assign_rhs_exprContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(180); expr(0);
 				}
 				break;
 			case 2:
+				_localctx = new Assign_rhs_ar_literContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(181); array_liter();
 				}
 				break;
 			case 3:
+				_localctx = new Assign_rhs_newpairContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(182); match(NEWPAIR);
@@ -1222,12 +1288,14 @@ public class WaccParser extends Parser {
 				}
 				break;
 			case 4:
+				_localctx = new Assign_rhs_pair_elemContext(_localctx);
 				enterOuterAlt(_localctx, 4);
 				{
 				setState(189); pair_elem();
 				}
 				break;
 			case 5:
+				_localctx = new Assign_rhs_callContext(_localctx);
 				enterOuterAlt(_localctx, 5);
 				{
 				setState(190); match(CALL);
@@ -1238,6 +1306,7 @@ public class WaccParser extends Parser {
 				}
 				break;
 			case 6:
+				_localctx = new Assign_rhs_call_emptyContext(_localctx);
 				enterOuterAlt(_localctx, 6);
 				{
 				setState(196); match(CALL);
@@ -1260,22 +1329,48 @@ public class WaccParser extends Parser {
 	}
 
 	public static class Assign_lhsContext extends ParserRuleContext {
-		public Pair_elemContext pair_elem() {
-			return getRuleContext(Pair_elemContext.class,0);
-		}
-		public IdentContext ident() {
-			return getRuleContext(IdentContext.class,0);
-		}
-		public Array_elemContext array_elem() {
-			return getRuleContext(Array_elemContext.class,0);
-		}
+		public TYPE typename;
 		public Assign_lhsContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_assign_lhs; }
+	 
+		public Assign_lhsContext() { }
+		public void copyFrom(Assign_lhsContext ctx) {
+			super.copyFrom(ctx);
+			this.typename = ctx.typename;
+		}
+	}
+	public static class Assign_lhs_identContext extends Assign_lhsContext {
+		public IdentContext ident() {
+			return getRuleContext(IdentContext.class,0);
+		}
+		public Assign_lhs_identContext(Assign_lhsContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitAssign_lhs(this);
+			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitAssign_lhs_ident(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	public static class Assign_lhs_pairContext extends Assign_lhsContext {
+		public Pair_elemContext pair_elem() {
+			return getRuleContext(Pair_elemContext.class,0);
+		}
+		public Assign_lhs_pairContext(Assign_lhsContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitAssign_lhs_pair(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	public static class Assign_lhs_arrayContext extends Assign_lhsContext {
+		public Array_elemContext array_elem() {
+			return getRuleContext(Array_elemContext.class,0);
+		}
+		public Assign_lhs_arrayContext(Assign_lhsContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitAssign_lhs_array(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -1287,18 +1382,21 @@ public class WaccParser extends Parser {
 			setState(206);
 			switch ( getInterpreter().adaptivePredict(_input,14,_ctx) ) {
 			case 1:
+				_localctx = new Assign_lhs_identContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(203); ident();
 				}
 				break;
 			case 2:
+				_localctx = new Assign_lhs_arrayContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(204); array_elem();
 				}
 				break;
 			case 3:
+				_localctx = new Assign_lhs_pairContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(205); pair_elem();

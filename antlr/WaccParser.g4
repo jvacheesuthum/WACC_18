@@ -1,10 +1,14 @@
 parser grammar WaccParser;
+@parser::header{import SemanticAnalyser.*;}
+
 
 options {
   tokenVocab=WaccLexer;
 }
 
-ident: VARIABLE;
+ident
+locals[TYPE typename]
+: VARIABLE;
 
 pair_liter: NUL;
 
@@ -90,17 +94,21 @@ pair_elem: FST expr
 
 arg_list: expr (COMMA expr)* ;
 
-assign_rhs: expr
-| array_liter
-| NEWPAIR OPEN_PARENTHESES expr COMMA expr CLOSE_PARENTHESES
-| pair_elem
-| CALL ident OPEN_PARENTHESES arg_list CLOSE_PARENTHESES
-| CALL ident OPEN_PARENTHESES CLOSE_PARENTHESES
+assign_rhs
+locals[TYPE typename]
+: expr	#assign_rhs_expr
+| array_liter	#assign_rhs_ar_liter
+| NEWPAIR OPEN_PARENTHESES expr COMMA expr CLOSE_PARENTHESES	#assign_rhs_newpair
+| pair_elem		#assign_rhs_pair_elem
+| CALL ident OPEN_PARENTHESES arg_list CLOSE_PARENTHESES	#assign_rhs_call
+| CALL ident OPEN_PARENTHESES CLOSE_PARENTHESES				#assign_rhs_call_empty
 ;
 
-assign_lhs: ident 
-| array_elem
-| pair_elem
+assign_lhs
+locals[TYPE typename]
+: ident #assign_lhs_ident
+| array_elem	#assign_lhs_array
+| pair_elem		#assign_lhs_pair
 ;
 
 stat: SKIP				#stat_skip

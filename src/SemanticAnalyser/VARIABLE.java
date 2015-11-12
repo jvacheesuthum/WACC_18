@@ -6,4 +6,8 @@ public class VARIABLE extends IDENTIFIER {
 	public VARIABLE(TYPE t) {
 		type = t;
 	}
+	
+	public TYPE TYPE(){
+		return type;
+	}
 }
