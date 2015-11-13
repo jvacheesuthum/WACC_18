@@ -1,8 +1,7 @@
 import SemanticAnalyser.*;
-import SemanticAnalyser.SymbolTable;
-import SemanticAnalyser.VARIABLE;
 import antlr.WaccParser;
 import antlr.WaccParserBaseVisitor;
+
 import com.sun.istack.internal.NotNull;
 
 import java.util.List;
@@ -77,13 +76,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 	@Override public T visitStat_read(@NotNull WaccParser.Stat_readContext ctx) { return visitChildren(ctx); }
 
-	@Override public T visitExpr(@NotNull WaccParser.ExprContext ctx) { return visitChildren(ctx); }
-
 	@Override public T visitType(@NotNull WaccParser.TypeContext ctx) { return visitChildren(ctx); }
 
 	@Override public T visitStat_exit(@NotNull WaccParser.Stat_exitContext ctx) { return visitChildren(ctx); }
-
-	@Override public T visitUnary_oper(@NotNull WaccParser.Unary_operContext ctx) { return visitChildren(ctx); }
 
 	@Override public T visitStat_while(@NotNull WaccParser.Stat_whileContext ctx) { return visitChildren(ctx); }
 
@@ -134,8 +129,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 	@Override public T visitProgram(@NotNull WaccParser.ProgramContext ctx) { return visitChildren(ctx); }
 
-	@Override public T visitBinary_oper(@NotNull WaccParser.Binary_operContext ctx) { return visitChildren(ctx); }
-
 	@Override public T visitChar_liter(@NotNull WaccParser.Char_literContext ctx) { return visitChildren(ctx); }
 
 	@Override public T visitPair_elem_type(@NotNull WaccParser.Pair_elem_typeContext ctx) { return visitChildren(ctx); }
@@ -147,7 +140,79 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitInt_liter(@NotNull WaccParser.Int_literContext ctx) { return visitChildren(ctx); }
 
 	@Override public T visitStat_println(@NotNull WaccParser.Stat_printlnContext ctx) { return visitChildren(ctx); }
+	
+	@Override public T visitExpr_int(@NotNull WaccParser.Expr_intContext ctx) { ctx.typename = new INT(); return null; }
+	
+	@Override public T visitExpr_bool(@NotNull WaccParser.Expr_boolContext ctx) { ctx.typename = new BOOL(); return null; }
+	
+	@Override public T visitExpr_char(@NotNull WaccParser.Expr_charContext ctx) { ctx.typename = new CHAR(); return null; }
+	
+	@Override public T visitExpr_str(@NotNull WaccParser.Expr_strContext ctx) { ctx.typename = new STRING(); return null; }
+	
+	@Override public T visitExpr_ident(@NotNull WaccParser.Expr_identContext ctx) {
+		visit(ctx.ident());
+		ctx.typename = ctx.ident().typename;
+		return null;
+	}
+	
+	@Override public T visitExpr_pair(@NotNull WaccParser.Expr_pairContext ctx) { 
+		// unimplemented
+		return visitChildren(ctx); }
+	
+	@Override public T visitExpr_array_elem(@NotNull WaccParser.Expr_array_elemContext ctx) {
+		visit(ctx.array_elem().ident());
+		ctx.typename = ctx.array_elem().ident().typename;
+		return null;
+	}
+	
+	@Override public T visitExpr_binary(@NotNull WaccParser.Expr_binaryContext ctx) { 
+		visit(ctx.expr(0));
+		visit(ctx.expr(1));
+		visit(ctx.binary_oper());
+		//assignCompat(ctx.expr(0).typename, ctx.expr(1).typename);
+		assert ctx.binary_oper().getClass().isAssignableFrom(ctx.expr(0).typename.getClass());
+		return null;
+	}
+	
+	@Override public T visitBin_bool(@NotNull WaccParser.Bin_boolContext ctx) { 
+		ctx.argtype = new EQUALITY(); ctx.returntype = new BOOL(); return null; }
+	
+	@Override public T visitBin_math(@NotNull WaccParser.Bin_mathContext ctx) { 
+		ctx.argtype = new INT(); ctx.returntype = new INT(); return null; }
+	
+	@Override public T visitBin_compare(@NotNull WaccParser.Bin_compareContext ctx) { 
+		ctx.argtype = new INT(); ctx.returntype = new BOOL(); return null; }
+	
+	@Override public T visitBin_logic(@NotNull WaccParser.Bin_logicContext ctx) { 
+		ctx.argtype = new BOOL(); ctx.returntype = new BOOL(); return null; }
+	
+	@Override public T visitExpr_unary(@NotNull WaccParser.Expr_unaryContext ctx) { 
+		visit(ctx.unary_oper());
+		visit(ctx.expr());
+		//assignCompat(ctx.unary_oper().argtype, ctx.expr().typename);
+		ctx.typename = ctx.unary_oper().returntype;
+		return null;
+	}
+	
+	@Override public T visitUnary_not(@NotNull WaccParser.Unary_notContext ctx) { 
+		ctx.argtype = new BOOL(); ctx.returntype = new BOOL(); return null; }
+	
+	@Override public T visitUnary_minus(@NotNull WaccParser.Unary_minusContext ctx) { 
+		ctx.argtype = new INT(); ctx.returntype = new INT(); return null; }
+	
+	@Override public T visitUnary_len(@NotNull WaccParser.Unary_lenContext ctx) { 
+		ctx.argtype = new ARRAY_TYPE(); ctx.returntype = new INT(); return null; }
+	
+	@Override public T visitUnary_chr(@NotNull WaccParser.Unary_chrContext ctx) { 
+		ctx.argtype = new INT(); ctx.returntype = new CHAR(); return null; }
+	
+	@Override public T visitUnary_ord(@NotNull WaccParser.Unary_ordContext ctx) { 
+		ctx.argtype = new CHAR(); ctx.returntype = new INT(); return null; }
 
-
+	@Override public T visitExpr_brackets(@NotNull WaccParser.Expr_bracketsContext ctx) {
+		visit(ctx.expr());
+		ctx.typename = ctx.expr().typename;
+		return null;
+	}
 
 }
