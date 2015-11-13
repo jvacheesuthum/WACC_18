@@ -48,7 +48,9 @@ unary_oper: NOT
 | CHR
 ;
 
-expr: int_liter
+expr
+locals[TYPE typename]
+: int_liter
 | bool_liter
 | char_liter
 | str_liter
@@ -60,7 +62,9 @@ expr: int_liter
 | OPEN_PARENTHESES expr CLOSE_PARENTHESES
 ;
 
-pair_elem_type: base_type
+pair_elem_type
+locals[TYPE typename]
+: base_type
 | array_type
 | PAIR
 ;
@@ -77,7 +81,9 @@ array_type: array_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
 | pair_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
 ;
 
-base_type: INT 
+base_type
+locals[TYPE typename]
+: INT 
 | BOOL
 | CHAR 
 | STRING
@@ -111,7 +117,9 @@ locals[TYPE typename]
 | pair_elem		#assign_lhs_pair
 ;
 
-stat: SKIP				#stat_skip
+stat
+locals[TYPE typename]
+: SKIP				#stat_skip
 | type ident EQUAL_ASSIGN assign_rhs	#stat_declare
 | assign_lhs EQUAL_ASSIGN assign_rhs	#stat_assign
 | READ assign_lhs 			#stat_read
@@ -127,7 +135,9 @@ stat: SKIP				#stat_skip
 ;
 
 
-param: type ident ;
+param
+locals[TYPE typename]
+: type ident ;
 
 param_list: param (COMMA param)* ;
 
