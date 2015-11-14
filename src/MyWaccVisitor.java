@@ -1,8 +1,8 @@
 import SemanticAnalyser.*;
 import antlr.WaccParser;
 import antlr.WaccParserBaseVisitor;
+import org.antlr.v4.runtime.misc.NotNull;
 
-import com.sun.istack.internal.NotNull;
 
 import java.util.List;
 
