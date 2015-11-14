@@ -5,3 +5,14 @@ solved by removing first guard ..
 
 > look at basic error listener antlr for overriding errors
 
+====== SATURDAY MEETING ==========
+
+TO DO BY TMR:
+
+1. array-liter check all elements have same type => nop
+2. arg-list visit => nop
+3. types visit => felix
+4. todo: assign_rhs calls => vasin
+5. parser: comments, newlines => felix
+6. lexer: null =>felix
+7. modify error messages from syntax checks => derek (google: basic error listener antlr) 

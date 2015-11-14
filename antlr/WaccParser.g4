@@ -1,5 +1,7 @@
 parser grammar WaccParser;
-@parser::header{import SemanticAnalyser.*;}
+@parser::header{
+  import SemanticAnalyser.*;
+ }
 
 
 options {
@@ -70,19 +72,23 @@ locals[TYPE typename]
 
 pair_elem_type
 locals[TYPE typename]
-: base_type
-| array_type
-| PAIR
+: base_type   #pair_elem_base_type
+| array_type  #pair_elem_array_type
+| PAIR        #pair
 ;
 
-pair_type: PAIR OPEN_PARENTHESES pair_elem_type COMMA pair_elem_type CLOSE_PARENTHESES
+pair_type
+locals[TYPE typename]
+: PAIR OPEN_PARENTHESES pair_elem_type COMMA pair_elem_type CLOSE_PARENTHESES
 ;
 
 //array_type:
 //| type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
 //;
 // fixing mutually recursive (this below is 'direct left recursive')
-array_type: array_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
+array_type
+locals[TYPE typename]
+: array_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
 | base_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET 
 | pair_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
 ;
@@ -146,12 +152,14 @@ locals[TYPE typename]
 
 
 param
-locals[TYPE typename]
+locals[PARAM paramObj]
 : type ident ;
 
 param_list: param (COMMA param)* ;
 
-func: type ident OPEN_PARENTHESES (param_list)? CLOSE_PARENTHESES IS stat END ;
+func
+locals[FUNCTION funObj]
+: type ident OPEN_PARENTHESES (param_list)? CLOSE_PARENTHESES IS stat END ;
 
 // EOF indicates that the program must consume to the end of the input.
 program: BEGIN (func)* stat END EOF;

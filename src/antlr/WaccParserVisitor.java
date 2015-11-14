@@ -1,6 +1,8 @@
 // Generated from ./WaccParser.g4 by ANTLR 4.4
 package antlr;
-import SemanticAnalyser.*;
+
+  import SemanticAnalyser.*;
+ 
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -173,12 +175,6 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitChar_liter(@NotNull WaccParser.Char_literContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link WaccParser#pair_elem_type}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitPair_elem_type(@NotNull WaccParser.Pair_elem_typeContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code stat_print}
 	 * labeled alternative in {@link WaccParser#stat}.
 	 * @param ctx the parse tree
@@ -227,6 +223,13 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpr_int(@NotNull WaccParser.Expr_intContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code pair_elem_base_type}
+	 * labeled alternative in {@link WaccParser#pair_elem_type}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPair_elem_base_type(@NotNull WaccParser.Pair_elem_base_typeContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link WaccParser#pair_liter}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -238,6 +241,13 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitParam(@NotNull WaccParser.ParamContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code pair}
+	 * labeled alternative in {@link WaccParser#pair_elem_type}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPair(@NotNull WaccParser.PairContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code assign_lhs_pair}
 	 * labeled alternative in {@link WaccParser#assign_lhs}.
@@ -259,6 +269,13 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitUnary_len(@NotNull WaccParser.Unary_lenContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code pair_elem_array_type}
+	 * labeled alternative in {@link WaccParser#pair_elem_type}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPair_elem_array_type(@NotNull WaccParser.Pair_elem_array_typeContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code assign_lhs_ident}
 	 * labeled alternative in {@link WaccParser#assign_lhs}.

@@ -1,6 +1,8 @@
 // Generated from ./WaccParser.g4 by ANTLR 4.4
 package antlr;
-import SemanticAnalyser.*;
+
+  import SemanticAnalyser.*;
+ 
 import org.antlr.v4.runtime.atn.*;
 import org.antlr.v4.runtime.dfa.DFA;
 import org.antlr.v4.runtime.*;
@@ -1066,20 +1068,45 @@ public class WaccParser extends Parser {
 
 	public static class Pair_elem_typeContext extends ParserRuleContext {
 		public TYPE typename;
-		public Array_typeContext array_type() {
-			return getRuleContext(Array_typeContext.class,0);
-		}
-		public Base_typeContext base_type() {
-			return getRuleContext(Base_typeContext.class,0);
-		}
-		public TerminalNode PAIR() { return getToken(WaccParser.PAIR, 0); }
 		public Pair_elem_typeContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_pair_elem_type; }
+	 
+		public Pair_elem_typeContext() { }
+		public void copyFrom(Pair_elem_typeContext ctx) {
+			super.copyFrom(ctx);
+			this.typename = ctx.typename;
+		}
+	}
+	public static class Pair_elem_base_typeContext extends Pair_elem_typeContext {
+		public Base_typeContext base_type() {
+			return getRuleContext(Base_typeContext.class,0);
+		}
+		public Pair_elem_base_typeContext(Pair_elem_typeContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitPair_elem_type(this);
+			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitPair_elem_base_type(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	public static class PairContext extends Pair_elem_typeContext {
+		public TerminalNode PAIR() { return getToken(WaccParser.PAIR, 0); }
+		public PairContext(Pair_elem_typeContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitPair(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	public static class Pair_elem_array_typeContext extends Pair_elem_typeContext {
+		public Array_typeContext array_type() {
+			return getRuleContext(Array_typeContext.class,0);
+		}
+		public Pair_elem_array_typeContext(Pair_elem_typeContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitPair_elem_array_type(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -1091,18 +1118,21 @@ public class WaccParser extends Parser {
 			setState(149);
 			switch ( getInterpreter().adaptivePredict(_input,9,_ctx) ) {
 			case 1:
+				_localctx = new Pair_elem_base_typeContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(146); base_type();
 				}
 				break;
 			case 2:
+				_localctx = new Pair_elem_array_typeContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(147); array_type(0);
 				}
 				break;
 			case 3:
+				_localctx = new PairContext(_localctx);
 				enterOuterAlt(_localctx, 3);
 				{
 				setState(148); match(PAIR);
@@ -1122,6 +1152,7 @@ public class WaccParser extends Parser {
 	}
 
 	public static class Pair_typeContext extends ParserRuleContext {
+		public TYPE typename;
 		public List<Pair_elem_typeContext> pair_elem_type() {
 			return getRuleContexts(Pair_elem_typeContext.class);
 		}
@@ -1169,6 +1200,7 @@ public class WaccParser extends Parser {
 	}
 
 	public static class Array_typeContext extends ParserRuleContext {
+		public TYPE typename;
 		public TerminalNode OPEN_SQUARE_BRACKET() { return getToken(WaccParser.OPEN_SQUARE_BRACKET, 0); }
 		public Array_typeContext array_type() {
 			return getRuleContext(Array_typeContext.class,0);
@@ -2109,7 +2141,7 @@ public class WaccParser extends Parser {
 	}
 
 	public static class ParamContext extends ParserRuleContext {
-		public TYPE typename;
+		public PARAM paramObj;
 		public TypeContext type() {
 			return getRuleContext(TypeContext.class,0);
 		}
@@ -2206,6 +2238,7 @@ public class WaccParser extends Parser {
 	}
 
 	public static class FuncContext extends ParserRuleContext {
+		public FUNCTION funObj;
 		public Param_listContext param_list() {
 			return getRuleContext(Param_listContext.class,0);
 		}

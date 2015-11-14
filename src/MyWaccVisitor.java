@@ -5,6 +5,7 @@ import antlr.WaccParser.ParamContext;
 import antlr.WaccParser.StatContext;
 import antlr.WaccParserBaseVisitor;
 import org.antlr.v4.runtime.misc.NotNull;
+//import sun.jvm.hotspot.debugger.cdbg.Sym;
 
 
 import java.util.List;
@@ -44,13 +45,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         
     	return null;
     }
-    
-    @Override public T visitAssign_rhs_call(@NotNull WaccParser.Assign_rhs_callContext ctx) { 
-    	visit(ctx.ident());
-    	//ctx.typename = ctx.ident().typename;
-    	
-    	return visitChildren(ctx); 
-    }
 
     @Override 
     public T visitStat_declare(@NotNull WaccParser.Stat_declareContext ctx) {
@@ -76,9 +70,42 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
     @Override
     public T visitFunc(@NotNull WaccParser.FuncContext ctx) {
-        return visitChildren(ctx);
+
+		IDENTIFIER id = currentTable.lookup(ctx.ident().getText());
+		if(id != null) throw new Error();
+
+		visit(ctx.type());
+		TYPE returntypename = ctx.type().typename;
+
+		SymbolTable newST = new SymbolTable(currentTable);
+		currentTable = newST;
+		ctx.funObj = new FUNCTION(returntypename);
+		currentTable.add(ctx.ident().getText(), ctx.funObj);
+
+		ctx.funObj.symtab = newST;
+		visit(ctx.param_list());
+
+		List <ParamContext> params = ctx.param_list().param();
+		for(ParamContext p : params){
+			ctx.funObj.formals.add(p.paramObj);
+		}
+
+		visit(ctx.stat());
+		if(returntypename != ctx.stat().typename) throw new Error("statement return type not match function return type");
+
+		currentTable = currentTable.encSymTable;
+
+		return null;
     }
-    
+
+	@Override public T visitAssign_rhs_call(@NotNull WaccParser.Assign_rhs_callContext ctx) {
+		//visit(ctx.ident());
+		//ctx.typename = ctx.ident().typename;
+
+		return visitChildren(ctx);
+	}
+
+
 	@Override public T visitPair_liter(@NotNull WaccParser.Pair_literContext ctx) { 
 		//ctx.typename = null;
 		return null;
@@ -86,8 +113,11 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 	@Override public T visitParam(@NotNull WaccParser.ParamContext ctx) {
 		visit(ctx.type());
-		visit(ctx.ident());
-		ctx.typename = ctx.type().typename;
+		String param_name = ctx.ident().getText();
+		PARAM p = new PARAM(ctx.type().typename);
+		currentTable.add(param_name, p);
+		ctx.paramObj = p;
+
 		return null;
 	}
 
@@ -114,7 +144,12 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		return null;
 	}
 
-	@Override public T visitType(@NotNull WaccParser.TypeContext ctx) { return visitChildren(ctx); }
+	@Override public T visitType(@NotNull WaccParser.TypeContext ctx) {
+		// setting the typename for this node
+		visitChildren(ctx);
+		ctx.typename = ctx.getChild(0).typename;
+		return null;
+	}
 
 	@Override public T visitStat_exit(@NotNull WaccParser.Stat_exitContext ctx) {
 		visit(ctx.expr());
@@ -130,6 +165,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		return null; 
 	}
 
+	//put type into ident according to the symbol table
 	@Override public T visitIdent(@NotNull WaccParser.IdentContext ctx) {
 		IDENTIFIER type = currentTable.lookup(ctx.getText());
 		VARIABLE var = (VARIABLE) type;
@@ -221,7 +257,13 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		return null;
 	}
 
-	@Override public T visitPair_type(@NotNull WaccParser.Pair_typeContext ctx) { return visitChildren(ctx); }
+	@Override public T visitPair_type(@NotNull WaccParser.Pair_typeContext ctx) {
+		visit(ctx.pair_elem_type(0));
+		visit(ctx.pair_elem_type(1));
+
+		ctx.typename = new PAIR_TYPE(ctx.pair_elem_type(0).typename, ctx.pair_elem_type(1).typename);
+		return null;
+	}
 
 	@Override public T visitInt_sign(@NotNull WaccParser.Int_signContext ctx) { return visitChildren(ctx); }
 
@@ -260,8 +302,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 	@Override public T visitChar_liter(@NotNull WaccParser.Char_literContext ctx) { return visitChildren(ctx); }
 
+
 	@Override public T visitPair_elem_type(@NotNull WaccParser.Pair_elem_typeContext ctx) {
-		ctx.typename = ctx.base_type().typename;
+	asdfasdfasfd	ctx.typename = ctx.base_type().typename;
 		return null;
 	}
 

@@ -1,6 +1,8 @@
 // Generated from ./WaccParser.g4 by ANTLR 4.4
 package antlr;
-import SemanticAnalyser.*;
+
+  import SemanticAnalyser.*;
+ 
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
@@ -187,13 +189,6 @@ public class WaccParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitPair_elem_type(@NotNull WaccParser.Pair_elem_typeContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
 	@Override public T visitStat_print(@NotNull WaccParser.Stat_printContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
@@ -243,6 +238,13 @@ public class WaccParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public T visitPair_elem_base_type(@NotNull WaccParser.Pair_elem_base_typeContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public T visitPair_liter(@NotNull WaccParser.Pair_literContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
@@ -251,6 +253,13 @@ public class WaccParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitParam(@NotNull WaccParser.ParamContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitPair(@NotNull WaccParser.PairContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -272,6 +281,13 @@ public class WaccParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitUnary_len(@NotNull WaccParser.Unary_lenContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitPair_elem_array_type(@NotNull WaccParser.Pair_elem_array_typeContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
