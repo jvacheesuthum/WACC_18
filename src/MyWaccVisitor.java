@@ -184,7 +184,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	public T visitAssign_rhs_newpair(@NotNull WaccParser.Assign_rhs_newpairContext ctx) { 
 		visit(ctx.expr(0));
 		visit(ctx.expr(1));
-		ctx.typename = new PAIR(ctx.expr(0).typename, ctx.expr(1).typename);
+		ctx.typename = new PAIR_TYPE(ctx.expr(0).typename, ctx.expr(1).typename);
 				
 		return null;
 	}
