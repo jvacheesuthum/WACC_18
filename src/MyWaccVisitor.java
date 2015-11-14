@@ -1,5 +1,8 @@
 import SemanticAnalyser.*;
 import antlr.WaccParser;
+import antlr.WaccParser.ExprContext;
+import antlr.WaccParser.ParamContext;
+import antlr.WaccParser.StatContext;
 import antlr.WaccParserBaseVisitor;
 import org.antlr.v4.runtime.misc.NotNull;
 
@@ -19,11 +22,14 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         //visit(second); //but we need to return
 
         //or
-        //List<WaccParser.StatContext> stats = ctx.stat();
-        //return visit(stats); // assuming visit can take in list
-
+        List<WaccParser.StatContext> stats = ctx.stat();
+    	for (StatContext s : stats){
+    		visit(s);
+    	}
+    	
+    	return null;
         //or
-        return visitChildren(ctx);
+        //return visitChildren(ctx);
     }
 
     @Override 
@@ -48,19 +54,24 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
     @Override 
     public T visitStat_declare(@NotNull WaccParser.Stat_declareContext ctx) {
-//        WaccParser.TypeContext type = ctx.type();
-//        WaccParser.IdentContext id  = ctx.ident();
-//        WaccParser.Assign_rhsContext rhs = ctx.assign_rhs();
+//      WaccParser.TypeContext type = ctx.type();
+//      WaccParser.IdentContext id  = ctx.ident();
+//      WaccParser.Assign_rhsContext rhs = ctx.assign_rhs();
 //
-//        DeclarationAST D = new DeclarationAST(currentTable);
-//        D.check();
-    	System.out.println("HELLO I AM HERE");
-        //check for assign because we in wacc we do declare and assign at the same time
-    	
-    	
-    	
-    	return visitChildren(ctx);
-
+//      DeclarationAST D = new DeclarationAST(currentTable);
+//      D.check();
+  	
+      //check for assign because we in wacc we do declare and assign at the same time
+  	
+      WaccParser.Assign_rhsContext rhs = ctx.assign_rhs();
+      visit(rhs);
+      //assignCompat(ctx.type().typename, rhs.typename);
+  	
+      currentTable.add(ctx.ident().getText(), rhs.typename);
+     
+      
+  	
+  	return null;
     }
 
     @Override
@@ -68,19 +79,53 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         return visitChildren(ctx);
     }
     
-	@Override public T visitPair_liter(@NotNull WaccParser.Pair_literContext ctx) { return visitChildren(ctx); }
+	@Override public T visitPair_liter(@NotNull WaccParser.Pair_literContext ctx) { 
+		//ctx.typename = null;
+		return null;
+	}
 
-	@Override public T visitParam(@NotNull WaccParser.ParamContext ctx) { return visitChildren(ctx); }
+	@Override public T visitParam(@NotNull WaccParser.ParamContext ctx) {
+		visit(ctx.type());
+		visit(ctx.ident());
+		ctx.typename = ctx.type().typename;
+		return null;
+	}
 
-	@Override public T visitStat_if(@NotNull WaccParser.Stat_ifContext ctx) { return visitChildren(ctx); }
+	@Override public T visitStat_if(@NotNull WaccParser.Stat_ifContext ctx) { 
+		ExprContext ifcont = ctx.expr();
+		List<StatContext> stats = ctx.stat();
+		visit(ifcont);
+		for (StatContext s : stats){
+			visit(s);
+		}
+		return null;
+	}
 
-	@Override public T visitStat_read(@NotNull WaccParser.Stat_readContext ctx) { return visitChildren(ctx); }
+	@Override public T visitStat_read(@NotNull WaccParser.Stat_readContext ctx) { 
+		//a read statement can only target a program variable, an array element or a pair element
+		//the above shoudve been checked in parser ?
+		visit(ctx.assign_lhs());
+		//check std input that its only char / int input
+		//if !(ctx.READ().getClass() instanceof char / int) throw Error("input has to be only char/int")
+		//check if the types of 2 sides match
+		return null;
+	}
 
 	@Override public T visitType(@NotNull WaccParser.TypeContext ctx) { return visitChildren(ctx); }
 
-	@Override public T visitStat_exit(@NotNull WaccParser.Stat_exitContext ctx) { return visitChildren(ctx); }
+	@Override public T visitStat_exit(@NotNull WaccParser.Stat_exitContext ctx) {
+		visit(ctx.expr());
+		ctx.typename = ctx.expr().typename;
+		return null; 
+	}
 
-	@Override public T visitStat_while(@NotNull WaccParser.Stat_whileContext ctx) { return visitChildren(ctx); }
+	public T visitUnary_oper(@NotNull WaccParser.Unary_operContext ctx) { return visitChildren(ctx); }
+
+	@Override public T visitStat_while(@NotNull WaccParser.Stat_whileContext ctx) { 
+		visit(ctx.expr());
+		visit(ctx.stat());
+		return null; 
+	}
 
 	@Override public T visitIdent(@NotNull WaccParser.IdentContext ctx) {
 		IDENTIFIER type = currentTable.lookup(ctx.getText());
@@ -88,6 +133,13 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		ctx.typename = var.TYPE();
 		return null;
 	}
+	
+	@Override public T visitAssign_lhs_ident(@NotNull WaccParser.Assign_lhs_identContext ctx) { 
+		IDENTIFIER type = currentTable.lookup(ctx.getText());
+		VARIABLE var = (VARIABLE) type;
+		ctx.typename = var.TYPE();
+		return null;
+}
 	
 	@Override public T visitAssign_lhs_array(@NotNull WaccParser.Assign_lhs_arrayContext ctx) {
 		visit(ctx.array_elem().ident());
@@ -98,16 +150,73 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		//ctx.typename = xx.TYPE();
 		return null;
 	}
+	
+	@Override 
+	public T visitAssign_lhs_pair(@NotNull WaccParser.Assign_lhs_pairContext ctx) { 
+		visit(ctx.pair_elem());
+		ctx.typename = ctx.pair_elem().typename;
+		return null;
+	}
 
-	@Override public T visitStat_return(@NotNull WaccParser.Stat_returnContext ctx) { return visitChildren(ctx); }
+	@Override public T visitStat_return(@NotNull WaccParser.Stat_returnContext ctx) { 
+		visit(ctx.expr());
+		ctx.typename = ctx.expr().typename;
+		//check if type is returnable -> check with function type
+		IDENTIFIER returntype = currentTable.lookup(ctx.getText()); //not sure
+		//assignCompat(returntype, ctx.typename);
+		return null; 
+		
+	}
 
 	@Override public T visitArray_type(@NotNull WaccParser.Array_typeContext ctx) { return visitChildren(ctx); }
 
-	@Override public T visitPair_elem(@NotNull WaccParser.Pair_elemContext ctx) { return visitChildren(ctx); }
+	@Override 
+	public T visitPair_elem(@NotNull WaccParser.Pair_elemContext ctx) {
+		visit(ctx.expr());
+		ctx.typename = ctx.expr().typename;
+		
+		return null;
+	}
+	
+	//assign rhs ------------------------
+	
+	@Override 
+	public T visitAssign_rhs_newpair(@NotNull WaccParser.Assign_rhs_newpairContext ctx) { 
+		visit(ctx.expr(0));
+		visit(ctx.expr(1));
+		ctx.typename = new PAIR(ctx.expr(0).typename, ctx.expr(1).typename);
+				
+		return null;
+	}
+	
+	@Override public T visitAssign_rhs_expr(@NotNull WaccParser.Assign_rhs_exprContext ctx) { 
+		visit(ctx.expr());
+		ctx.typename = ctx.expr().typename;
+		return null;
+	}
+	
+	@Override public T visitAssign_rhs_ar_liter(@NotNull WaccParser.Assign_rhs_ar_literContext ctx) { 
+		visit(ctx.array_liter());
+		//ctx.typename = ctx.array_liter().typename;
+		return null;
+	}
+	
+	@Override public T visitAssign_rhs_pair_elem(@NotNull WaccParser.Assign_rhs_pair_elemContext ctx) { 
+		visit(ctx.pair_elem());
+		ctx.typename = ctx.pair_elem().typename;
+		return null;
+	}
+	
+	//-------------------------------------------------
+	@Override public T visitStat_skip(@NotNull WaccParser.Stat_skipContext ctx) {
+		ctx.typename = null;
+		return null; 
+	}
 
-	@Override public T visitStat_skip(@NotNull WaccParser.Stat_skipContext ctx) { return visitChildren(ctx); }
-
-	@Override public T visitBase_type(@NotNull WaccParser.Base_typeContext ctx) { System.out.println("HELLO THIS IS BASE"); return visitChildren(ctx); }
+	@Override public T visitBase_type(@NotNull WaccParser.Base_typeContext ctx) {
+		//make typename = what's in the context
+		return null;
+	}
 
 	@Override public T visitPair_type(@NotNull WaccParser.Pair_typeContext ctx) { return visitChildren(ctx); }
 
@@ -117,11 +226,28 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 	@Override public T visitBool_liter(@NotNull WaccParser.Bool_literContext ctx) { return visitChildren(ctx); }
 
-	@Override public T visitParam_list(@NotNull WaccParser.Param_listContext ctx) { return visitChildren(ctx); }
+	@Override public T visitParam_list(@NotNull WaccParser.Param_listContext ctx) { 
+		List<ParamContext> pctx = ctx.param();
+		for (ParamContext p : pctx){
+			visit(p);
+		}
+		//what about typename for paramlist??
+		return null;
+	}
 
-	@Override public T visitStat_begin_end(@NotNull WaccParser.Stat_begin_endContext ctx) { return visitChildren(ctx); }
+	@Override public T visitStat_begin_end(@NotNull WaccParser.Stat_begin_endContext ctx) {
+		//new scope created so maybe new symboltable?
+		visit(ctx.stat());
+		return null; 
+	}
 
-	@Override public T visitStat_free(@NotNull WaccParser.Stat_freeContext ctx) { return visitChildren(ctx); }
+	@Override public T visitStat_free(@NotNull WaccParser.Stat_freeContext ctx) {
+		visit(ctx.expr());
+		ctx.typename = ctx.expr().typename;
+		if (!(ctx.typename instanceof PAIR_TYPE) || !(ctx.typename instanceof ARRAY_TYPE))
+			throw new Error("Cannot free TYPE " + ctx.typename.toString() + ", ARRAY_TYPE or PAIR_TYPE expected.");
+		return null; 
+	}
 
 	@Override public T visitArg_list(@NotNull WaccParser.Arg_listContext ctx) { return visitChildren(ctx); }
 
@@ -131,15 +257,30 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 	@Override public T visitChar_liter(@NotNull WaccParser.Char_literContext ctx) { return visitChildren(ctx); }
 
-	@Override public T visitPair_elem_type(@NotNull WaccParser.Pair_elem_typeContext ctx) { return visitChildren(ctx); }
+	@Override public T visitPair_elem_type(@NotNull WaccParser.Pair_elem_typeContext ctx) {
+		ctx.typename = ctx.base_type().typename;
+		return null;
+	}
 
 	@Override public T visitArray_liter(@NotNull WaccParser.Array_literContext ctx) { return visitChildren(ctx); }
 
-	@Override public T visitStat_print(@NotNull WaccParser.Stat_printContext ctx) { return visitChildren(ctx); }
+	@Override public T visitStat_print(@NotNull WaccParser.Stat_printContext ctx) {
+		visit(ctx.expr());
+//		if !(ctx.typename.instanceof(string,char,array,int,bool,pair)) throw 
+//		new Error("Cannot print Expression of type" + ctx.typename.toString());
+		//have to override tostring in TYPE class
+		return null; 
+	}
 
 	@Override public T visitInt_liter(@NotNull WaccParser.Int_literContext ctx) { return visitChildren(ctx); }
 
-	@Override public T visitStat_println(@NotNull WaccParser.Stat_printlnContext ctx) { return visitChildren(ctx); }
+	@Override public T visitStat_println(@NotNull WaccParser.Stat_printlnContext ctx) {
+		visit(ctx.expr());
+//		if !(ctx.typename.instanceof(string,char,array,int,bool,pair)) throw 
+//		new Error("Cannot print Expression of type" + ctx.typename.toString());
+		//have to override tostring in TYPE class
+		return null;
+	}
 	
 	@Override public T visitExpr_int(@NotNull WaccParser.Expr_intContext ctx) { ctx.typename = new INT(); return null; }
 	
