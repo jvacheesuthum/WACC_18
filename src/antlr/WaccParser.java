@@ -36,7 +36,7 @@ public class WaccParser extends Parser {
 		"'='", "'read'", "'free'", "'return'", "'exit'", "'print'", "'println'", 
 		"'if'", "'then'", "'else'", "'fi'", "'while'", "'do'", "'done'", "'begin'", 
 		"'end'", "';'", "'is'", "INTEGER", "VARIABLE", "CHARACTER", "ESCAPED_CHAR", 
-		"COMMENT", "NUL", "'\b'", "'\t'", "'\n'", "'\f'", "'\r'", "'''", "'\"'", 
+		"COMMENT", "NUL", "'\b'", "'\t'", "LF", "'\f'", "'\r'", "'''", "'\"'", 
 		"EMPTY", "WS", "'\\'"
 	};
 	public static final int

@@ -62,7 +62,7 @@ WHILE: 'while' ;
 DO: 'do' ;
 DONE: 'done' ;
 BEGIN: 'begin' ;
-END: 'end' ;
+END: 'end';
 SEMI_COLON: ';' ;
 
 IS: 'is' ;
@@ -89,15 +89,16 @@ fragment EOL: (CR)? LF | CR;
 NUL: ''; // <------------------------------------ how?
 BS: '\b' ;  // backspace
 HT: '\t' ;  // horizontal tab
-LF: '\n' ;  // newline
+LF: '\r'? '\n' | '\n' ;  // newline
 FF: '\f' ;  // newpage 
 CR: '\r' ;  // carriage return
+
 //quotations
 SINGLE_QUOTATION: '\'' ;
 DOUBLE_QUOTATION: '\"' ;
 
 EMPTY: '';
 
-WS: [LF CR] -> skip ;
+WS: [CR LF HT]+ -> skip ;
 
 BACK_SLASH: '\\';

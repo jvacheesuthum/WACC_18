@@ -87,7 +87,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitParam(@NotNull WaccParser.ParamContext ctx) {
 		visit(ctx.type());
 		visit(ctx.ident());
-		ctx.typename = ctx.type().typename;
+		//ctx.typename = ctx.type().typename;
 		return null;
 	}
 
