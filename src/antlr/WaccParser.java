@@ -142,6 +142,7 @@ public class WaccParser extends Parser {
 	}
 
 	public static class Array_literContext extends ParserRuleContext {
+		public TYPE typename;
 		public TerminalNode OPEN_SQUARE_BRACKET() { return getToken(WaccParser.OPEN_SQUARE_BRACKET, 0); }
 		public List<ExprContext> expr() {
 			return getRuleContexts(ExprContext.class);
@@ -1307,6 +1308,7 @@ public class WaccParser extends Parser {
 	}
 
 	public static class TypeContext extends ParserRuleContext {
+		public TYPE typename;
 		public Array_typeContext array_type() {
 			return getRuleContext(Array_typeContext.class,0);
 		}

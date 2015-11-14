@@ -12,7 +12,9 @@ locals[TYPE typename]
 
 pair_liter: NUL;
 
-array_liter: OPEN_SQUARE_BRACKET (expr (COMMA expr)?) CLOSE_SQUARE_BRACKET;
+array_liter
+locals[TYPE typename]
+: OPEN_SQUARE_BRACKET (expr (COMMA expr)?) CLOSE_SQUARE_BRACKET;
 
 str_liter: DOUBLE_QUOTATION (CHARACTER)* DOUBLE_QUOTATION ;
 
@@ -93,7 +95,9 @@ locals[TYPE typename]
 | STRING
 ;
 
-type: base_type
+type
+locals[TYPE typename]
+: base_type
 | array_type
 | pair_type
 ;

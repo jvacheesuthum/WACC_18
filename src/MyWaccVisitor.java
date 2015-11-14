@@ -102,9 +102,12 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	}
 
 	@Override public T visitStat_read(@NotNull WaccParser.Stat_readContext ctx) { 
-		//a read statement can only target a program variable, an array element or a pair element
-		//the above shoudve been checked in parser ?
+		
 		visit(ctx.assign_lhs());
+		//a read statement can only target a program variable, an array element or a pair element
+		if ((!(ctx.assign_lhs().typename instanceof ARRAY_TYPE)) ||
+		(!(ctx.assign_lhs().typename instanceof PAIR_TYPE)))
+		throw new Error("cannot read into type " + ctx.assign_lhs().typename.toString() + "PAIR or ARRAY expected.");
 		//check std input that its only char / int input
 		//if !(ctx.READ().getClass() instanceof char / int) throw Error("input has to be only char/int")
 		//check if the types of 2 sides match
@@ -262,7 +265,20 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		return null;
 	}
 
-	@Override public T visitArray_liter(@NotNull WaccParser.Array_literContext ctx) { return visitChildren(ctx); }
+	@Override public T visitArray_liter(@NotNull WaccParser.Array_literContext ctx) {
+		List<ExprContext> list = ctx.expr();
+		if (list.isEmpty()){
+			ctx.typename = null;
+		} else {
+			for (ExprContext e : list){
+				if (!(e.typename.equals(ctx.expr().get(0).typename))){
+				throw new Error("Array elem not the same type.");
+				}
+			}
+			ctx.typename = ctx.expr().get(0).typename;
+		}
+		return null;
+	}
 
 	@Override public T visitStat_print(@NotNull WaccParser.Stat_printContext ctx) {
 		visit(ctx.expr());
