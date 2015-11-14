@@ -2,7 +2,7 @@ package SemanticAnalyser;
 
 public class SymbolTable {
 
-	SymbolTable encSymTable;
+	public SymbolTable encSymTable;
 	Dictionary dict;
 	
 	public SymbolTable(SymbolTable encSymTable) {
