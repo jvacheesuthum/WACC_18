@@ -26,40 +26,44 @@ int_liter: (int_sign)? (INTEGER)+ ;
 
 array_elem: ident (OPEN_SQUARE_BRACKET expr CLOSE_SQUARE_BRACKET)+ ;
 
-binary_oper: MULTIPLY
-| DIVIDE
-| MOD
-| PLUS
-| MINUS
-| GREATER
-| GREATER_EQUAL
-| LESS
-| LESS_EQUAL
-| IS_EQUAL
-| NOT_EQUAL
-| AND
-| OR
+binary_oper
+locals[TYPE argtype, TYPE returntype]
+: MULTIPLY #bin_math
+| DIVIDE #bin_math
+| MOD #bin_math
+| PLUS #bin_math
+| MINUS #bin_math
+| GREATER #bin_compare
+| GREATER_EQUAL #bin_compare
+| LESS #bin_compare
+| LESS_EQUAL #bin_compare
+| IS_EQUAL #bin_bool
+| NOT_EQUAL #bin_bool
+| AND #bin_logic
+| OR #bin_logic
 ;
 
-unary_oper: NOT
-| MINUS
-| LEN
-| ORD
-| CHR
+unary_oper
+locals[TYPE argtype, TYPE returntype]
+: NOT #unary_not
+| MINUS #unary_minus
+| LEN #unary_len
+| ORD #unary_ord
+| CHR #unary_chr
 ;
 
 expr
 locals[TYPE typename]
-: int_liter
-| bool_liter
-| char_liter
-| str_liter
-| pair_liter
-| ident
-| array_elem
-| unary_oper expr
-| expr binary_oper expr
-| OPEN_PARENTHESES expr CLOSE_PARENTHESES
+: int_liter #expr_int
+| bool_liter #expr_bool
+| char_liter #expr_char
+| str_liter #expr_str
+| pair_liter #expr_pair
+| ident #expr_ident
+| array_elem #expr_array_elem
+| unary_oper expr #expr_unary
+| expr binary_oper expr #expr_binary
+| OPEN_PARENTHESES expr CLOSE_PARENTHESES #expr_brackets
 ;
 
 pair_elem_type
@@ -94,7 +98,9 @@ type: base_type
 | pair_type
 ;
 
-pair_elem: FST expr
+pair_elem
+locals[TYPE typename]
+: FST expr
 | SND expr
 ;
 

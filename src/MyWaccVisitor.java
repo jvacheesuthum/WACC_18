@@ -54,21 +54,24 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
     @Override 
     public T visitStat_declare(@NotNull WaccParser.Stat_declareContext ctx) {
-//        WaccParser.TypeContext type = ctx.type();
-//        WaccParser.IdentContext id  = ctx.ident();
-//        WaccParser.Assign_rhsContext rhs = ctx.assign_rhs();
+//      WaccParser.TypeContext type = ctx.type();
+//      WaccParser.IdentContext id  = ctx.ident();
+//      WaccParser.Assign_rhsContext rhs = ctx.assign_rhs();
 //
-//        DeclarationAST D = new DeclarationAST(currentTable);
-//        D.check();
-        //check for assign because we in wacc we do declare and assign at the same time
-    	
-    	//----------------------------------------------------------------------------------------
-    	//lookup for variable declartion clash
-    	//currentTable.lookup(ctx.ident().getText());
-    	
-    	
-    	return visitChildren(ctx);
-
+//      DeclarationAST D = new DeclarationAST(currentTable);
+//      D.check();
+  	
+      //check for assign because we in wacc we do declare and assign at the same time
+  	
+      WaccParser.Assign_rhsContext rhs = ctx.assign_rhs();
+      visit(rhs);
+      //assignCompat(ctx.type().typename, rhs.typename);
+  	
+      currentTable.add(ctx.ident().getText(), rhs.typename);
+     
+      
+  	
+  	return null;
     }
 
     @Override
@@ -108,8 +111,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		return null;
 	}
 
-	@Override public T visitExpr(@NotNull WaccParser.ExprContext ctx) { return visitChildren(ctx); }
-
 	@Override public T visitType(@NotNull WaccParser.TypeContext ctx) { return visitChildren(ctx); }
 
 	@Override public T visitStat_exit(@NotNull WaccParser.Stat_exitContext ctx) {
@@ -118,7 +119,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		return null; 
 	}
 
-	@Override public T visitUnary_oper(@NotNull WaccParser.Unary_operContext ctx) { return visitChildren(ctx); }
+	public T visitUnary_oper(@NotNull WaccParser.Unary_operContext ctx) { return visitChildren(ctx); }
 
 	@Override public T visitStat_while(@NotNull WaccParser.Stat_whileContext ctx) { 
 		visit(ctx.expr());
@@ -133,6 +134,13 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		return null;
 	}
 	
+	@Override public T visitAssign_lhs_ident(@NotNull WaccParser.Assign_lhs_identContext ctx) { 
+		IDENTIFIER type = currentTable.lookup(ctx.getText());
+		VARIABLE var = (VARIABLE) type;
+		ctx.typename = var.TYPE();
+		return null;
+}
+	
 	@Override public T visitAssign_lhs_array(@NotNull WaccParser.Assign_lhs_arrayContext ctx) {
 		visit(ctx.array_elem().ident());
 		ctx.typename = ctx.array_elem().ident().typename;
@@ -140,6 +148,13 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		//IDENTIFIER x = currentTable.lookup(ctx.array_elem().ident().getText());
 		//ARRAY_TYPE xx = (ARRAY_TYPE) x;
 		//ctx.typename = xx.TYPE();
+		return null;
+	}
+	
+	@Override 
+	public T visitAssign_lhs_pair(@NotNull WaccParser.Assign_lhs_pairContext ctx) { 
+		visit(ctx.pair_elem());
+		ctx.typename = ctx.pair_elem().typename;
 		return null;
 	}
 
@@ -155,8 +170,44 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 	@Override public T visitArray_type(@NotNull WaccParser.Array_typeContext ctx) { return visitChildren(ctx); }
 
-	@Override public T visitPair_elem(@NotNull WaccParser.Pair_elemContext ctx) { return visitChildren(ctx); }
-
+	@Override 
+	public T visitPair_elem(@NotNull WaccParser.Pair_elemContext ctx) {
+		visit(ctx.expr());
+		ctx.typename = ctx.expr().typename;
+		
+		return null;
+	}
+	
+	//assign rhs ------------------------
+	
+	@Override 
+	public T visitAssign_rhs_newpair(@NotNull WaccParser.Assign_rhs_newpairContext ctx) { 
+		visit(ctx.expr(0));
+		visit(ctx.expr(1));
+		ctx.typename = new PAIR(ctx.expr(0).typename, ctx.expr(1).typename);
+				
+		return null;
+	}
+	
+	@Override public T visitAssign_rhs_expr(@NotNull WaccParser.Assign_rhs_exprContext ctx) { 
+		visit(ctx.expr());
+		ctx.typename = ctx.expr().typename;
+		return null;
+	}
+	
+	@Override public T visitAssign_rhs_ar_liter(@NotNull WaccParser.Assign_rhs_ar_literContext ctx) { 
+		visit(ctx.array_liter());
+		//ctx.typename = ctx.array_liter().typename;
+		return null;
+	}
+	
+	@Override public T visitAssign_rhs_pair_elem(@NotNull WaccParser.Assign_rhs_pair_elemContext ctx) { 
+		visit(ctx.pair_elem());
+		ctx.typename = ctx.pair_elem().typename;
+		return null;
+	}
+	
+	//-------------------------------------------------
 	@Override public T visitStat_skip(@NotNull WaccParser.Stat_skipContext ctx) {
 		ctx.typename = null;
 		return null; 
@@ -204,8 +255,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 	@Override public T visitProgram(@NotNull WaccParser.ProgramContext ctx) { return visitChildren(ctx); }
 
-	@Override public T visitBinary_oper(@NotNull WaccParser.Binary_operContext ctx) { return visitChildren(ctx); }
-
 	@Override public T visitChar_liter(@NotNull WaccParser.Char_literContext ctx) { return visitChildren(ctx); }
 
 	@Override public T visitPair_elem_type(@NotNull WaccParser.Pair_elem_typeContext ctx) {
@@ -232,7 +281,79 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		//have to override tostring in TYPE class
 		return null;
 	}
+	
+	@Override public T visitExpr_int(@NotNull WaccParser.Expr_intContext ctx) { ctx.typename = new INT(); return null; }
+	
+	@Override public T visitExpr_bool(@NotNull WaccParser.Expr_boolContext ctx) { ctx.typename = new BOOL(); return null; }
+	
+	@Override public T visitExpr_char(@NotNull WaccParser.Expr_charContext ctx) { ctx.typename = new CHAR(); return null; }
+	
+	@Override public T visitExpr_str(@NotNull WaccParser.Expr_strContext ctx) { ctx.typename = new STRING(); return null; }
+	
+	@Override public T visitExpr_ident(@NotNull WaccParser.Expr_identContext ctx) {
+		visit(ctx.ident());
+		ctx.typename = ctx.ident().typename;
+		return null;
+	}
+	
+	@Override public T visitExpr_pair(@NotNull WaccParser.Expr_pairContext ctx) { 
+		// unimplemented
+		return visitChildren(ctx); }
+	
+	@Override public T visitExpr_array_elem(@NotNull WaccParser.Expr_array_elemContext ctx) {
+		visit(ctx.array_elem().ident());
+		ctx.typename = ctx.array_elem().ident().typename;
+		return null;
+	}
+	
+	@Override public T visitExpr_binary(@NotNull WaccParser.Expr_binaryContext ctx) { 
+		visit(ctx.expr(0));
+		visit(ctx.expr(1));
+		visit(ctx.binary_oper());
+		//assignCompat(ctx.expr(0).typename, ctx.expr(1).typename);
+		assert ctx.binary_oper().getClass().isAssignableFrom(ctx.expr(0).typename.getClass());
+		return null;
+	}
+	
+	@Override public T visitBin_bool(@NotNull WaccParser.Bin_boolContext ctx) { 
+		ctx.argtype = new EQUALITY(); ctx.returntype = new BOOL(); return null; }
+	
+	@Override public T visitBin_math(@NotNull WaccParser.Bin_mathContext ctx) { 
+		ctx.argtype = new INT(); ctx.returntype = new INT(); return null; }
+	
+	@Override public T visitBin_compare(@NotNull WaccParser.Bin_compareContext ctx) { 
+		ctx.argtype = new INT(); ctx.returntype = new BOOL(); return null; }
+	
+	@Override public T visitBin_logic(@NotNull WaccParser.Bin_logicContext ctx) { 
+		ctx.argtype = new BOOL(); ctx.returntype = new BOOL(); return null; }
+	
+	@Override public T visitExpr_unary(@NotNull WaccParser.Expr_unaryContext ctx) { 
+		visit(ctx.unary_oper());
+		visit(ctx.expr());
+		//assignCompat(ctx.unary_oper().argtype, ctx.expr().typename);
+		ctx.typename = ctx.unary_oper().returntype;
+		return null;
+	}
+	
+	@Override public T visitUnary_not(@NotNull WaccParser.Unary_notContext ctx) { 
+		ctx.argtype = new BOOL(); ctx.returntype = new BOOL(); return null; }
+	
+	@Override public T visitUnary_minus(@NotNull WaccParser.Unary_minusContext ctx) { 
+		ctx.argtype = new INT(); ctx.returntype = new INT(); return null; }
+	
+	@Override public T visitUnary_len(@NotNull WaccParser.Unary_lenContext ctx) { 
+		ctx.argtype = new ARRAY_TYPE(); ctx.returntype = new INT(); return null; }
+	
+	@Override public T visitUnary_chr(@NotNull WaccParser.Unary_chrContext ctx) { 
+		ctx.argtype = new INT(); ctx.returntype = new CHAR(); return null; }
+	
+	@Override public T visitUnary_ord(@NotNull WaccParser.Unary_ordContext ctx) { 
+		ctx.argtype = new CHAR(); ctx.returntype = new INT(); return null; }
 
-
+	@Override public T visitExpr_brackets(@NotNull WaccParser.Expr_bracketsContext ctx) {
+		visit(ctx.expr());
+		ctx.typename = ctx.expr().typename;
+		return null;
+	}
 
 }
