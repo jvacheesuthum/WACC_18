@@ -14,7 +14,12 @@ import java.util.List;
 
 public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     SymbolTable currentTable = new SymbolTable(null);
-//    currentTable.add("int",new TYPE());
+    
+    public MyWaccVisitor() {
+        currentTable.add("int",new TYPE());
+        currentTable.add("char",new TYPE());
+        currentTable.add("bool",new TYPE());
+    }
 
 
     @Override 
@@ -62,7 +67,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
       WaccParser.Assign_rhsContext rhs = ctx.assign_rhs();
       visit(rhs);
       SharedMethods.assignCompat(ctx.type().typename, rhs.typename);
-      if (currentTable.lookup(ctx.ident().getText()) == null) {
+      if (currentTable.lookup(ctx.ident().getText()) != null) {
     	  throw new Error("Variable already declared");
       }
       currentTable.add(ctx.ident().getText(), rhs.typename);
