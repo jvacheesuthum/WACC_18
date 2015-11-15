@@ -104,24 +104,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	public T visitAssign_rhs_call(@NotNull WaccParser.Assign_rhs_callContext ctx) {
 		//visit(ctx.ident());
 		//ctx.typename = ctx.ident().typename;
-		if(currentTable.lookup(ctx.ident().getText()) == null) {
-			throw new Error("Invalid function");
-		}
-		FUNCTION func = (FUNCTION) currentTable.lookup(ctx.ident().getText());
-	    List<PARAM> parameters = func.formals;
-
-		List<ParseTree> args = ctx.arg_list().children;
-		
-		for (ParseTree arg : args) {
-			visit(arg);
-			
-		}
-		
-		TYPE paramType, argType;
-		for(int i = 0; i < parameters.size(); i++) {
-			paramType = parameters.get(i).TYPE();
-			visit(args.get(i));
-		}
 
 		return visitChildren(ctx);
 	}
