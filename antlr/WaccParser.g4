@@ -88,24 +88,24 @@ locals[TYPE typename]
 // fixing mutually recursive (this below is 'direct left recursive')
 array_type
 locals[TYPE typename]
-: array_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
-| base_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET 
-| pair_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
+: array_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET #array_type_array
+| base_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET #array_type_base 
+| pair_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET #array_type_pair
 ;
 
 base_type
 locals[TYPE typename]
-: INT 
-| BOOL
-| CHAR 
-| STRING
+: INT 	#base_type_int
+| BOOL	#base_type_bool
+| CHAR 	#base_type_char
+| STRING	#base_type_string
 ;
 
 type
 locals[TYPE typename]
-: base_type
-| array_type
-| pair_type
+: base_type	#type_basetype
+| array_type	#type_arraytype
+| pair_type	#type_pairtype
 ;
 
 pair_elem
