@@ -100,12 +100,41 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		return null;
     }
 
-	@Override 
-	public T visitAssign_rhs_call(@NotNull WaccParser.Assign_rhs_callContext ctx) {
-		//visit(ctx.ident());
-		//ctx.typename = ctx.ident().typename;
+	@Override public T visitAssign_rhs_call(@NotNull WaccParser.Assign_rhs_callContext ctx) {
 
-		return visitChildren(ctx);
+		String funcname = ctx.ident().getText();
+		List<ExprContext> actuals = ctx.arg_list().expr();
+
+		IDENTIFIER F = currentTable.lookup(funcname);
+
+		if (F == null) throw new Error("unknown function" + funcname);
+		if (!(F instanceof FUNCTION)) throw new Error(funcname + "is not a function");
+		if (((FUNCTION) F).formals.size() != actuals.size()) throw new Error ("wrong number of parameters");
+
+		for(int i = 0; i < actuals.size(); i++){
+			ExprContext each = actuals.get(i);
+			visit(each);
+			if (!assignCompat(each.typename,((FUNCTION) F).formals.get(i).TYPE())){
+				throw new Error("type of func param " + i + " incompatible with declaration");
+			}
+		}
+
+		//ctx.funcObj = F; <- do we need this line?
+
+		return null;
+	}
+
+	@Override public T visitAssign_rhs_call_empty(@NotNull WaccParser.Assign_rhs_call_emptyContext ctx) {
+		String funcname = ctx.ident().getText();
+		IDENTIFIER F = currentTable.lookup(funcname);
+
+		if (F == null) throw new Error("unknown function" + funcname);
+		if (!(F instanceof FUNCTION)) throw new Error(funcname + "is not a function");
+		if (((FUNCTION) F).formals.size() != 0) throw new Error ("wrong number of parameters");
+
+		//ctx.funObj = F; <- do we need this line?
+
+		return null;
 	}
 
 
@@ -431,6 +460,12 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitExpr_ident(@NotNull WaccParser.Expr_identContext ctx) {
 		visit(ctx.ident());
 		ctx.typename = ctx.ident().typename;
+
+		String id = ctx.ident().getText();
+		//also check if the ident has been declared
+		if (currentTable.lookup(id) == null) throw new Error(id + "has not been declared");
+		// do we have static variable in Wacc language. ^this would not support static var usage in stat in function declaration
+
 		return null;
 	}
 	

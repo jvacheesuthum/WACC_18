@@ -118,12 +118,12 @@ arg_list: expr (COMMA expr)* ;
 
 assign_rhs
 locals[TYPE typename]
-: expr	#assign_rhs_expr
-| array_liter	#assign_rhs_ar_liter
+: expr	                                                        #assign_rhs_expr
+| array_liter	                                                #assign_rhs_ar_liter
 | NEWPAIR OPEN_PARENTHESES expr COMMA expr CLOSE_PARENTHESES	#assign_rhs_newpair
-| pair_elem		#assign_rhs_pair_elem
-| CALL ident OPEN_PARENTHESES arg_list CLOSE_PARENTHESES	#assign_rhs_call
-| CALL ident OPEN_PARENTHESES CLOSE_PARENTHESES				#assign_rhs_call_empty
+| pair_elem		                                                #assign_rhs_pair_elem
+| CALL ident OPEN_PARENTHESES arg_list CLOSE_PARENTHESES	    #assign_rhs_call
+| CALL ident OPEN_PARENTHESES CLOSE_PARENTHESES				    #assign_rhs_call_empty
 ;
 
 assign_lhs
