@@ -18,9 +18,9 @@ array_liter
 locals[TYPE typename]
 : OPEN_SQUARE_BRACKET (expr (COMMA expr)?) CLOSE_SQUARE_BRACKET;
 
-str_liter: DOUBLE_QUOTATION (CHARACTER)* DOUBLE_QUOTATION ;
+str_liter: STR ;
 
-char_liter: SINGLE_QUOTATION CHARACTER SINGLE_QUOTATION ;
+char_liter: CHARACTER ;
 
 bool_liter: TRUE | FALSE ;
 

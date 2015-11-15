@@ -66,6 +66,7 @@ CR=65
 EMPTY=66
 BACK_SLASH=67
 CHARACTER=68
+STR=69
 ','=1
 'true'=2
 'false'=3
