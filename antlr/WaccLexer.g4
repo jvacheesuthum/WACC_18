@@ -1,5 +1,7 @@
 lexer grammar WaccLexer;
 
+WS: [ \r\n\t]+ -> skip ;
+
 COMMA: ',' ;
 
 TRUE: 'true' ;
@@ -82,14 +84,14 @@ ESCAPED_CHAR: '0' | 'b' | 't' | 'n' | 'f' | 'r' | SINGLE_QUOTATION | DOUBLE_QUOT
 
 //comment
 fragment HASH : '#';
-COMMENT: HASH ~[CR LF]* EOL -> skip ;
+COMMENT: HASH ~[\r\n]* EOL -> skip ;
 fragment EOL: (CR)? LF | CR;
 
 //escaped characters
 NUL: ''; // <------------------------------------ how?
 BS: '\b' ;  // backspace
 HT: '\t' ;  // horizontal tab
-LF: '\r'? '\n' | '\n' ;  // newline
+LF: '\n' ;  // newline
 FF: '\f' ;  // newpage 
 CR: '\r' ;  // carriage return
 
@@ -98,7 +100,5 @@ SINGLE_QUOTATION: '\'' ;
 DOUBLE_QUOTATION: '\"' ;
 
 EMPTY: '';
-
-WS: [CR LF HT]+ -> skip ;
 
 BACK_SLASH: '\\';

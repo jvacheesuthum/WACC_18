@@ -14,4 +14,5 @@ public class FUNCTION extends IDENTIFIER {
     public FUNCTION(TYPE returntype){
         this.returntype = returntype;
     }
+    
 }

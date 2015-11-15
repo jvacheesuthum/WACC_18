@@ -88,24 +88,24 @@ locals[TYPE typename]
 // fixing mutually recursive (this below is 'direct left recursive')
 array_type
 locals[TYPE typename]
-: array_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
-| base_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET 
-| pair_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET
+: array_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET #array_type_array
+| base_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET #array_type_base 
+| pair_type OPEN_SQUARE_BRACKET CLOSE_SQUARE_BRACKET #array_type_pair
 ;
 
 base_type
 locals[TYPE typename]
-: INT 
-| BOOL
-| CHAR 
-| STRING
+: INT 	#base_type_int
+| BOOL	#base_type_bool
+| CHAR 	#base_type_char
+| STRING	#base_type_string
 ;
 
 type
 locals[TYPE typename]
-: base_type
-| array_type
-| pair_type
+: base_type	#type_basetype
+| array_type	#type_arraytype
+| pair_type	#type_pairtype
 ;
 
 pair_elem
@@ -118,12 +118,12 @@ arg_list: expr (COMMA expr)* ;
 
 assign_rhs
 locals[TYPE typename]
-: expr	#assign_rhs_expr
-| array_liter	#assign_rhs_ar_liter
+: expr	                                                        #assign_rhs_expr
+| array_liter	                                                #assign_rhs_ar_liter
 | NEWPAIR OPEN_PARENTHESES expr COMMA expr CLOSE_PARENTHESES	#assign_rhs_newpair
-| pair_elem		#assign_rhs_pair_elem
-| CALL ident OPEN_PARENTHESES arg_list CLOSE_PARENTHESES	#assign_rhs_call
-| CALL ident OPEN_PARENTHESES CLOSE_PARENTHESES				#assign_rhs_call_empty
+| pair_elem		                                                #assign_rhs_pair_elem
+| CALL ident OPEN_PARENTHESES arg_list CLOSE_PARENTHESES	    #assign_rhs_call
+| CALL ident OPEN_PARENTHESES CLOSE_PARENTHESES				    #assign_rhs_call_empty
 ;
 
 assign_lhs
