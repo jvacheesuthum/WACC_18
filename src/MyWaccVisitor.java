@@ -381,7 +381,13 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		return null; 
 	}
 
-	@Override public T visitArg_list(@NotNull WaccParser.Arg_listContext ctx) { return visitChildren(ctx); }
+	@Override public T visitArg_list(@NotNull WaccParser.Arg_listContext ctx) {
+		List<ExprContext> list = ctx.expr();
+		for (ExprContext e : list){
+			visit(e);
+		}
+		return null; 
+	}
 
 	@Override public T visitArray_elem(@NotNull WaccParser.Array_elemContext ctx) { return visitChildren(ctx); }
 
