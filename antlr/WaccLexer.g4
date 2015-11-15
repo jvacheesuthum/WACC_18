@@ -1,6 +1,6 @@
 lexer grammar WaccLexer;
 
-WS: [ \r\n\t]+ -> skip ;
+
 
 COMMA: ',' ;
 
@@ -70,17 +70,27 @@ SEMI_COLON: ';' ;
 IS: 'is' ;
 
 
+
+
 //numbers
 fragment DIGIT : '0'..'9' ; 
 INTEGER: DIGIT+ ;
-
 VARIABLE: ('_' | 'a'..'z' | 'A'..'Z') ('_' | 'a'..'z' | 'A'..'Z' | DIGIT)* ;
+
+WS: [ \r\n\t]+ -> skip ;
+
+//quotations
+SINGLE_QUOTATION: '\'' ;
+DOUBLE_QUOTATION: '\"' ;
 
 CHARACTER: 
 ~[BACK_SLASH SINGLE_QUOTATION DOUBLE_QUOTATION]
 | BACK_SLASH ESCAPED_CHAR ;
 
+
 ESCAPED_CHAR: '0' | 'b' | 't' | 'n' | 'f' | 'r' | SINGLE_QUOTATION | DOUBLE_QUOTATION | BACK_SLASH ;
+
+
 
 //comment
 fragment HASH : '#';
@@ -95,9 +105,6 @@ LF: '\n' ;  // newline
 FF: '\f' ;  // newpage 
 CR: '\r' ;  // carriage return
 
-//quotations
-SINGLE_QUOTATION: '\'' ;
-DOUBLE_QUOTATION: '\"' ;
 
 EMPTY: '';
 
