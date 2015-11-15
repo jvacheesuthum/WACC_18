@@ -34,6 +34,10 @@ CLOSE_PARENTHESES : ')' ;
 OPEN_SQUARE_BRACKET : '[' ;
 CLOSE_SQUARE_BRACKET : ']' ;
 
+//quotations
+SINGLE_QUOTATION: '\'' ;
+DOUBLE_QUOTATION: '\"' ;
+
 //pair
 PAIR: 'pair' ;
 FST: 'fst' ;
@@ -76,9 +80,6 @@ INTEGER: DIGIT+ ;
 
 VARIABLE: ('_' | 'a'..'z' | 'A'..'Z') ('_' | 'a'..'z' | 'A'..'Z' | DIGIT)* ;
 
-CHARACTER: 
-~[BACK_SLASH SINGLE_QUOTATION DOUBLE_QUOTATION]
-| BACK_SLASH ESCAPED_CHAR ;
 
 ESCAPED_CHAR: '0' | 'b' | 't' | 'n' | 'f' | 'r' | SINGLE_QUOTATION | DOUBLE_QUOTATION | BACK_SLASH ;
 
@@ -95,10 +96,13 @@ LF: '\n' ;  // newline
 FF: '\f' ;  // newpage 
 CR: '\r' ;  // carriage return
 
-//quotations
-SINGLE_QUOTATION: '\'' ;
-DOUBLE_QUOTATION: '\"' ;
+
 
 EMPTY: '';
 
 BACK_SLASH: '\\';
+
+
+CHARACTER:
+~[BACK_SLASH SINGLE_QUOTATION DOUBLE_QUOTATION]
+| BACK_SLASH ESCAPED_CHAR ;
