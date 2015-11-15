@@ -43,7 +43,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         visit(lhs);
         visit(rhs);
         
-        //assignCompat(rhs.typename,lhs.typename);  
+        SharedMethods.assignCompat(rhs.typename,lhs.typename);  
         
     	return null;
     }
@@ -61,7 +61,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
   	
       WaccParser.Assign_rhsContext rhs = ctx.assign_rhs();
       visit(rhs);
-      //assignCompat(ctx.type().typename, rhs.typename);
+      SharedMethods.assignCompat(ctx.type().typename, rhs.typename);
       if (currentTable.lookup(ctx.ident().getText()) == null) {
     	  throw new Error("Variable already declared");
       }
@@ -248,9 +248,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitStat_return(@NotNull WaccParser.Stat_returnContext ctx) { 
 		visit(ctx.expr());
 		ctx.typename = ctx.expr().typename;
-		//check if type is returnable -> check with function type
-		IDENTIFIER returntype = currentTable.lookup(ctx.getText()); //not sure
-		//assignCompat(returntype, ctx.typename);
 		return null; 
 		
 	}
@@ -489,7 +486,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		visit(ctx.expr(0));
 		visit(ctx.expr(1));
 		visit(ctx.binary_oper());
-		//assignCompat(ctx.expr(0).typename, ctx.expr(1).typename);
+		SharedMethods.assignCompat(ctx.expr(0).typename, ctx.expr(1).typename);
 		assert ctx.binary_oper().getClass().isAssignableFrom(ctx.expr(0).typename.getClass());
 		return null;
 	}
@@ -509,7 +506,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitExpr_unary(@NotNull WaccParser.Expr_unaryContext ctx) { 
 		visit(ctx.unary_oper());
 		visit(ctx.expr());
-		//assignCompat(ctx.unary_oper().argtype, ctx.expr().typename);
+		SharedMethods.assignCompat(ctx.unary_oper().argtype, ctx.expr().typename);
 		ctx.typename = ctx.unary_oper().returntype;
 		return null;
 	}
