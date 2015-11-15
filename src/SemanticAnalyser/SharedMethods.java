@@ -13,9 +13,12 @@ public class SharedMethods {
 
 
 	// does assignCompat do more than just check if the 2 TYPEs are the same?
-	public boolean assignCompat(TYPE lhs, TYPE rhs) {
-		IDENTIFIER INTtype = CurrentSymbolTable.lookup("int");
+	public static boolean assignCompat(TYPE lhs, TYPE rhs) {
+/*		IDENTIFIER INTtype = CurrentSymbolTable.lookup("int");
 		IDENTIFIER DOUBLEtype = CurrentSymbolTable.lookup("double");
 		return (lhs == rhs) || ((lhs == DOUBLEtype) && (rhs == INTtype));
+*/
+		return lhs == rhs;
+		
 	}
 }

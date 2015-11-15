@@ -114,7 +114,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		for(int i = 0; i < actuals.size(); i++){
 			ExprContext each = actuals.get(i);
 			visit(each);
-			if (!assignCompat(each.typename,((FUNCTION) F).formals.get(i).TYPE())){
+			if (!SharedMethods.assignCompat(each.typename,((FUNCTION) F).formals.get(i).TYPE())){
 				throw new Error("type of func param " + i + " incompatible with declaration");
 			}
 		}
