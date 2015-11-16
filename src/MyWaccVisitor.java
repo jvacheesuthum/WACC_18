@@ -28,18 +28,18 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     @Override 
     public T visitStat_stat(@NotNull WaccParser.Stat_statContext ctx) {
 
-        //WaccParser.StatContext first = ctx.stat(0);  // assuming parameter 0 returns first stat
-        //WaccParser.StatContext second = ctx.stat(1); // assuming parameter 1 return second stat
-        //visit(first);
-        //visit(second); //but we need to return
-
+        WaccParser.StatContext first = ctx.stat(0);  // assuming parameter 0 returns first stat
+        WaccParser.StatContext second = ctx.stat(1); // assuming parameter 1 return second stat
+        visit(first);
+        visit(second); //but we need to return
+        ctx.typename = second.typename;
         //or
-        List<WaccParser.StatContext> stats = ctx.stat();
+/*        List<WaccParser.StatContext> stats = ctx.stat();
     	for (StatContext s : stats){
     		visit(s);
 
     	}
-    	
+  */  	
     	return null;
         //or
         //return visitChildren(ctx);
