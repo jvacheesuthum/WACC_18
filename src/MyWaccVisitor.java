@@ -116,7 +116,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 			}
 
 			visit(ctx.stat());
-			if(returntypename != ctx.stat().typename) throw new Error("statement return type not match function return type");
+			System.out.println("typename: " + returntypename.getClass().toString());
+			System.out.println("typename: " + ctx.stat().typename.getClass().toString());
+			if(!SharedMethods.assignCompat(returntypename, ctx.stat().typename)) throw new Error("statement return type not match function return type!");
 
 			currentTable = currentTable.encSymTable;
 		}
@@ -263,11 +265,26 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 	//put type into ident according to the symbol table
 	@Override public T visitIdent(@NotNull WaccParser.IdentContext ctx) {
-    	System.out.println("visitIdent");
+    	/*
+		System.out.println("visitIdent");
 		IDENTIFIER type = currentTable.lookup(ctx.getText());
 		VARIABLE var = new VARIABLE((TYPE) type);
 		ctx.typename = var.TYPE();
 		return null;
+		
+		*/
+		
+		System.out.println("visitIdent");
+		IDENTIFIER id = currentTable.lookup(ctx.getText());
+		if(id instanceof VARIABLE){
+			ctx.typename = ((VARIABLE) id).TYPE();
+		}
+		else{
+			System.out.println("something is wronmg");
+		}
+		
+		return null;
+	
 	}
 	
 	@Override public T visitAssign_lhs_ident(@NotNull WaccParser.Assign_lhs_identContext ctx) { 
@@ -383,28 +400,29 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override 
 	public T visitBase_type_int(@NotNull WaccParser.Base_type_intContext ctx) { 
     	System.out.println("visitBase_type_int");
-		ctx.typename = (TYPE) currentTable.lookup("int");
+//		ctx.typename = (TYPE) currentTable.lookup("int");
+    	ctx.typename = new INT();
 		return null;
 	}
 	
 	@Override 
 	public T visitBase_type_char(@NotNull WaccParser.Base_type_charContext ctx) {
     	System.out.println("visitBase_type_char");
-		ctx.typename = (TYPE) currentTable.lookup("char");
+		ctx.typename = new CHAR();
 		return null; 
 	}
 	
 	@Override 
 	public T visitBase_type_string(@NotNull WaccParser.Base_type_stringContext ctx) { 
     	System.out.println("visitBase_type_string");
-		ctx.typename = (TYPE) currentTable.lookup("string");
+		ctx.typename = new STRING();
 		return null;
 	}
 	
 	@Override 
 	public T visitBase_type_bool(@NotNull WaccParser.Base_type_boolContext ctx) { 
     	System.out.println("visitBase_type_bool");
-		ctx.typename = (TYPE) currentTable.lookup("bool");
+		ctx.typename = new BOOL();
 		return null;
 	}
 
@@ -539,26 +557,27 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	
 	@Override 
 	public T visitExpr_int(@NotNull WaccParser.Expr_intContext ctx) { 
-		ctx.typename = (TYPE) currentTable.lookup("int");
+		//ctx.typename = (TYPE) currentTable.lookup("int");
+		ctx.typename = new INT();
 		return null; 
 	}
 	
 	@Override 
 	public T visitExpr_bool(@NotNull WaccParser.Expr_boolContext ctx) {
 		System.out.println("visit expr bool");
-		ctx.typename = (TYPE) currentTable.lookup("bool"); 
+		ctx.typename = new BOOL();
 		return null; 
 	}
 	
 	@Override 
 	public T visitExpr_char(@NotNull WaccParser.Expr_charContext ctx) { 
-		ctx.typename = (TYPE) currentTable.lookup("char");
+		ctx.typename = new CHAR();
 		return null; 
 	}
 	
 	@Override 
 	public T visitExpr_str(@NotNull WaccParser.Expr_strContext ctx) { 
-		ctx.typename = (TYPE) currentTable.lookup("string");		
+		ctx.typename = new STRING();		
 		return null;
 	}
 	
@@ -576,7 +595,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	
 	@Override public T visitExpr_pair(@NotNull WaccParser.Expr_pairContext ctx) { 
 		// unimplemented
-		return visitChildren(ctx); }
+		ctx.typename = new PAIR_TYPE();
+		return null;
+	}
 	
 	@Override public T visitExpr_array_elem(@NotNull WaccParser.Expr_array_elemContext ctx) {
 		visit(ctx.array_elem().ident());
