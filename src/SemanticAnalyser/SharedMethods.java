@@ -20,9 +20,11 @@ public class SharedMethods {
 */
 		if (lhs == null) {
 			System.out.println("lhs is null");
+			return false;
 		}
 		if (rhs == null) {
 			System.out.println("rhs is null");
+			return false;
 		}
 		return lhs.equals(rhs);
 		
