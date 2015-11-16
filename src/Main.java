@@ -26,7 +26,7 @@ public class Main {
 		    MyWaccVisitor visitor = new MyWaccVisitor();
 		    visitor.visit(tree);
 		    System.out.println("====");
-
+		    System.exit(0);
 		  }
 	
 }

@@ -18,6 +18,10 @@ public class SymbolTable {
 		return dict.get(name);
 	}
 	
+	public void setEncTable(SymbolTable enc){
+		encSymTable = enc;
+	}
+	
 	public IDENTIFIER lookupAll(String name) {
 		SymbolTable st = this;
 		IDENTIFIER obj;

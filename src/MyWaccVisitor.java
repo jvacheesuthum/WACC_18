@@ -253,6 +253,10 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitStat_while(@NotNull WaccParser.Stat_whileContext ctx) { 
     	System.out.println("visitStat_while");
 		visit(ctx.expr());
+		if ((ctx.expr().typename != currentTable.lookup("bool")) &&
+				!(ctx.expr().typename instanceof BOOL)){
+			throw new Error("while condition is not of type bool.");
+		}
 		visit(ctx.stat());
 		return null; 
 	}
@@ -429,8 +433,10 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	}
 
 	@Override public T visitStat_begin_end(@NotNull WaccParser.Stat_begin_endContext ctx) {
-		//new scope created so maybe new symboltable?
+		SymbolTable table = new SymbolTable(currentTable);
+		currentTable = table;
 		visit(ctx.stat());
+		currentTable = table.encSymTable;
 		return null; 
 	}
 
