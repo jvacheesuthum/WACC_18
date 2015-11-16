@@ -16,7 +16,7 @@ pair_liter: NUL;
 
 array_liter
 locals[TYPE typename]
-: OPEN_SQUARE_BRACKET (expr (COMMA expr)?) CLOSE_SQUARE_BRACKET;
+: OPEN_SQUARE_BRACKET (expr (COMMA expr)*) CLOSE_SQUARE_BRACKET;
 
 str_liter: STR ;
 
