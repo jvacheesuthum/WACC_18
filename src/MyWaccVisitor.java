@@ -265,6 +265,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     	System.out.println("visitStat_exit");
 		visit(ctx.expr());
 		ctx.typename = ctx.expr().typename;
+		if(SharedMethods.assignCompat(ctx.typename, new INT())) {
+			
+		}
 		return null; 
 	}
 
@@ -650,7 +653,10 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		visit(ctx.expr(1));
 		visit(ctx.binary_oper());
 		SharedMethods.assignCompat(ctx.expr(0).typename, ctx.expr(1).typename);
-		assert ctx.binary_oper().getClass().isAssignableFrom(ctx.expr(0).typename.getClass());
+//		assert ctx.binary_oper().getClass().isAssignableFrom(ctx.expr(0).typename.getClass());
+		if(!ctx.binary_oper().getClass().isAssignableFrom(ctx.expr(0).typename.getClass())) {
+			System.exit(200);
+		}
 		ctx.typename = ctx.binary_oper().returntype;
 		return null;
 	}
