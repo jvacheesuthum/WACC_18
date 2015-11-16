@@ -289,9 +289,14 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	
 	@Override public T visitAssign_lhs_ident(@NotNull WaccParser.Assign_lhs_identContext ctx) { 
     	System.out.println("visitAssign_lhs_ident");
-		IDENTIFIER type = currentTable.lookup(ctx.getText());
-		VARIABLE var = new VARIABLE((TYPE) type);
-		ctx.typename = var.TYPE();
+		IDENTIFIER id = currentTable.lookup(ctx.getText());
+		if(id instanceof VARIABLE){
+			ctx.typename = ((VARIABLE) id).TYPE();
+		}
+		else{
+			System.out.println("something is wronmg");
+		}
+		
 		return null;
 }
 	
