@@ -622,7 +622,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	
 	@Override 
 	public T visitExpr_bool(@NotNull WaccParser.Expr_boolContext ctx) {
-		System.out.println("visit expr bool");
+		System.out.println("visitExpr_bool");
 		ctx.typename = new BOOL();
 		return null; 
 	}
@@ -672,7 +672,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		visit(ctx.expr(1));
 		visit(ctx.binary_oper());
 
-		SharedMethods.assignCompat(ctx.expr(0).typename, ctx.expr(1).typename);
+		if(!SharedMethods.assignCompat(ctx.expr(0).typename, ctx.expr(1).typename)){
+			System.exit(200);
+		}
 //		assert ctx.binary_oper().getClass().isAssignableFrom(ctx.expr(0).typename.getClass());
 		System.out.println("argtype " + ctx.binary_oper().argtype.getClass());
 		System.out.println("input type " + ctx.expr(0).typename.getClass());
