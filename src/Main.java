@@ -6,6 +6,7 @@ import java.util.Scanner;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
+import SemanticAnalyser.SyntaxErrorListener;
 import antlr.*;
 
 public class Main {
@@ -29,22 +30,33 @@ public class Main {
 		  	} finally {
 		  		br.close();
 		  	}
-		  	System.out.println("FILE: " + str);
+		  //System.out.println("FILE: " + str);
+		  	
+
 		  	
 		    // create a CharStream that reads from standard input
 		    ANTLRInputStream input = new ANTLRInputStream(str);
 
 		    // create a lexer that feeds off of input CharStream
 		    WaccLexer lexer = new WaccLexer(input);
+		    //lexer.removeErrorListeners();
+		    //lexer.addErrorListener(SyntaxErrorListener.INSTANCE);
 
+		  	
+		    
 		    // create a buffer of tokens pulled from the lexer
 		    CommonTokenStream tokens = new CommonTokenStream(lexer);
 
 		    // create a parser that feeds off the tokens buffer
 		    WaccParser parser = new WaccParser(tokens);
+		    //parser.removeErrorListeners();
+		    //parser.addErrorListener(SyntaxErrorListener.INSTANCE);
 
+		    
+		    
 		    ParseTree tree = parser.program(); // begin parsing at program rule
 
+		   
 		    // build and run my custom visitor
 		    System.out.println("====");
 		    MyWaccVisitor visitor = new MyWaccVisitor();
