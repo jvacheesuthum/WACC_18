@@ -265,9 +265,10 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     	System.out.println("visitStat_exit");
 		visit(ctx.expr());
 		ctx.typename = ctx.expr().typename;
-		if(SharedMethods.assignCompat(ctx.typename, new INT())) {
-			
+		if(!SharedMethods.assignCompat(ctx.typename, new INT())) {
+			System.exit(200);
 		}
+		
 		return null; 
 	}
 
@@ -352,6 +353,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     	System.out.println("visitStat_return");
 		visit(ctx.expr());
 		ctx.typename = ctx.expr().typename;
+		if(currentTable.encSymTable == null) {
+			System.exit(200);
+		}
 		return null; 
 		
 	}
@@ -599,6 +603,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		System.out.println("visitExpr_int");
 		//ctx.typename = (TYPE) currentTable.lookup("int");
 		ctx.typename = new INT();
+		
 		return null; 
 	}
 	
