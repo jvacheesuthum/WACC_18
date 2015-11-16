@@ -297,11 +297,13 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		
 		System.out.println("visitIdent");
 		IDENTIFIER id = currentTable.lookup(ctx.getText());
+		if(id == null) System.out.println("LHS IS NULLLLL");	//REMOVE
 		if(id instanceof VARIABLE){
 			ctx.typename = ((VARIABLE) id).TYPE();
 		}
 		else{
-			System.out.println("something is wronmg");
+			System.out.println("something is wronmg: ");
+			System.exit(200);
 		}
 		
 		return null;
@@ -311,13 +313,16 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitAssign_lhs_ident(@NotNull WaccParser.Assign_lhs_identContext ctx) { 
     	System.out.println("visitAssign_lhs_ident");
 		IDENTIFIER id = currentTable.lookup(ctx.getText());
+		if(id == null) System.out.println("LHS IS NULLLLL");	////REMOVE
 		if(id instanceof VARIABLE){
 			ctx.typename = ((VARIABLE) id).TYPE();
 		}
 		else{
 			System.out.println("something is wronmg");
+			System.exit(200);
 		}
 		
+	
 		return null;
 }
 	
