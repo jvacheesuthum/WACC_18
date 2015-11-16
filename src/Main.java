@@ -1,3 +1,8 @@
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.util.Scanner;
+
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
@@ -7,8 +12,27 @@ public class Main {
 
 	  public static void main(String[] args) throws Exception {
 
+		  	File file = new File(args[0]);
+		  	String str = "";
+		 
+		  	BufferedReader br = new BufferedReader(new FileReader(file));
+		  	try {
+		  		StringBuilder sb = new StringBuilder();
+		  		String line = br.readLine();
+		  		
+		  		while (line != null) {
+		  			sb.append(line);
+		  			sb.append("\n");
+		  			line = br.readLine();
+		  		}
+		  		str = sb.toString();
+		  	} finally {
+		  		br.close();
+		  	}
+		  	System.out.println("FILE: " + str);
+		  	
 		    // create a CharStream that reads from standard input
-		    ANTLRInputStream input = new ANTLRInputStream(System.in);
+		    ANTLRInputStream input = new ANTLRInputStream(str);
 
 		    // create a lexer that feeds off of input CharStream
 		    WaccLexer lexer = new WaccLexer(input);
