@@ -2,25 +2,16 @@ FST=28
 WHILE=48
 MOD=6
 DOUBLE_QUOTATION=26
-<<<<<<< HEAD
 HT=62
-=======
-HT=63
->>>>>>> Derek
 CHAR=33
 DO=49
 NOT=17
 AND=15
 ESCAPED_CHAR=58
 ORD=19
-<<<<<<< HEAD
 CHARACTER=68
 IF=44
-=======
-CHARACTER=69
-IF=44
-STR=57
->>>>>>> Derek
+STR=69
 FREE=39
 CLOSE_PARENTHESES=22
 GREATER=9
@@ -37,20 +28,12 @@ RETURN=40
 PLUS=7
 PAIR=27
 SINGLE_QUOTATION=25
-<<<<<<< HEAD
 COMMENT=59
-=======
-COMMENT=60
->>>>>>> Derek
 NEWPAIR=30
 DIVIDE=5
 INTEGER=55
 EXIT=41
-<<<<<<< HEAD
 BS=61
-=======
-BS=62
->>>>>>> Derek
 OPEN_SQUARE_BRACKET=23
 SND=29
 ELSE=46
@@ -61,7 +44,6 @@ EQUAL_ASSIGN=37
 MINUS=8
 TRUE=2
 PRINT=42
-<<<<<<< HEAD
 FF=64
 CHR=20
 NUL=60
@@ -71,17 +53,6 @@ CLOSE_SQUARE_BRACKET=24
 SKIP=36
 WS=57
 BACK_SLASH=67
-=======
-FF=65
-CHR=20
-NUL=61
-FI=47
-EMPTY=67
-CLOSE_SQUARE_BRACKET=24
-SKIP=36
-WS=58
-BACK_SLASH=68
->>>>>>> Derek
 VARIABLE=56
 READ=38
 OR=16
@@ -91,19 +62,11 @@ IS_EQUAL=13
 LESS_EQUAL=12
 CALL=35
 END=52
-<<<<<<< HEAD
 CR=65
 FALSE=3
 GREATER_EQUAL=10
 STRING=34
 LF=63
-=======
-CR=66
-FALSE=3
-GREATER_EQUAL=10
-STRING=34
-LF=64
->>>>>>> Derek
 'ord'=19
 'end'=52
 'println'=43
@@ -125,28 +88,16 @@ LF=64
 'skip'=36
 'else'=46
 '\''=25
-<<<<<<< HEAD
 '\f'=64
 'int'=31
 'if'=44
 '\r'=65
-=======
-'\f'=65
-'int'=31
-'if'=44
-'\r'=66
->>>>>>> Derek
 '('=21
 '-'=8
 'exit'=41
 'while'=48
-<<<<<<< HEAD
 '\b'=61
 '\n'=63
-=======
-'\b'=62
-'\n'=64
->>>>>>> Derek
 ','=1
 ']'=24
 '!'=17
@@ -154,15 +105,9 @@ LF=64
 'begin'=51
 'snd'=29
 'call'=35
-<<<<<<< HEAD
 '\\'=67
 'newpair'=30
 '\t'=62
-=======
-'\\'=68
-'newpair'=30
-'\t'=63
->>>>>>> Derek
 'len'=18
 '='=37
 'print'=42
