@@ -260,7 +260,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	public T visitType_arraytype(@NotNull WaccParser.Type_arraytypeContext ctx) { 
     	System.out.println("visitType_arraytype");
 		visit(ctx.array_type());
-		ctx.typename = ctx.array_type().typename;
+    	ctx.typename = new ARRAY_TYPE(ctx.array_type().typename);
 		return null;
 	}
 	
@@ -428,7 +428,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitAssign_rhs_ar_liter(@NotNull WaccParser.Assign_rhs_ar_literContext ctx) { 
     	System.out.println("visitAssign_rhs_ar_liter");
 		visit(ctx.array_liter());
-		ctx.typename = ctx.array_liter().typename;
+		ctx.typename = new ARRAY_TYPE(ctx.array_liter().typename);
 		return null;
 	}
 	
@@ -674,6 +674,8 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 		SharedMethods.assignCompat(ctx.expr(0).typename, ctx.expr(1).typename);
 //		assert ctx.binary_oper().getClass().isAssignableFrom(ctx.expr(0).typename.getClass());
+		System.out.println("argtype " + ctx.binary_oper().argtype.getClass());
+		System.out.println("input type " + ctx.expr(0).typename.getClass());
 		if(!ctx.binary_oper().argtype.getClass().isAssignableFrom(ctx.expr(0).typename.getClass())) {
 			System.exit(200);
 		}
