@@ -16,4 +16,14 @@ public class PAIR_TYPE extends TYPE{
 	public TYPE secondType(){
 		return t2;
 	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (o.getClass().equals(this.getClass())) {
+			PAIR_TYPE p = (PAIR_TYPE) o;
+			return (p.firstType().equals(this.firstType()) && 
+					p.secondType().equals(this.secondType()));
+		}
+		return false;
+	}
 }
