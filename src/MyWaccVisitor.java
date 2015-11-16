@@ -74,21 +74,11 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
       WaccParser.Assign_rhsContext rhs = ctx.assign_rhs();
       visit(rhs);
       visit(ctx.type());
-<<<<<<< HEAD
-      
-      
-      System.out.println("LHS: " + ctx.type().typename);
-      System.out.println("RHS: " + rhs.typename);
-      
-      
-      if(!SharedMethods.assignCompat(ctx.type().typename, rhs.typename)) {
-    	  throw new Error("Array Type does not match elem type");
-=======
+
       System.out.println("rhs: " + rhs.typename);
       System.out.println("lhs: " + ctx.type().typename);
       if(!SharedMethods.assignCompat(ctx.type().typename, rhs.typename)) {
     	  throw new Error("Different type");
->>>>>>> Derek
       }
       if (currentTable.lookup(ctx.ident().getText()) != null) {
     	  throw new Error("Variable already declared");
@@ -109,23 +99,31 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		TYPE returntypename = ctx.type().typename;
 
 		SymbolTable newST = new SymbolTable(currentTable);
-		currentTable = newST;
+		
+		
+		//currentTable = newST;
 		ctx.funObj = new FUNCTION(returntypename);
 		currentTable.add(ctx.ident().getText(), ctx.funObj);
-
 		ctx.funObj.symtab = newST;
-		visit(ctx.param_list());
+		
+		if(ctx.param_list() != null){
+			currentTable = newST;
+			visit(ctx.param_list());
 
-		List <ParamContext> params = ctx.param_list().param();
-		for(ParamContext p : params){
-			ctx.funObj.formals.add(p.paramObj);
+			List <ParamContext> params = ctx.param_list().param();
+			for(ParamContext p : params){
+				ctx.funObj.formals.add(p.paramObj);
+			}
+
+			visit(ctx.stat());
+			if(returntypename != ctx.stat().typename) throw new Error("statement return type not match function return type");
+
+			currentTable = currentTable.encSymTable;
 		}
-
-		visit(ctx.stat());
-		if(returntypename != ctx.stat().typename) throw new Error("statement return type not match function return type");
-
-		currentTable = currentTable.encSymTable;
-
+		else{
+			visit(ctx.stat());
+			if(returntypename != ctx.stat().typename) throw new Error("statement return type not match function return type");
+		}
 		return null;
     }
 
@@ -495,26 +493,10 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 			
 			for (ExprContext e : list){
 				visit(e);
-<<<<<<< HEAD
-/*				System.out.println("TYPE1: " + e.typename);
-				System.out.println("TYPE2: " + ctx.expr().get(0).typename.toString());
-				System.out.println(e.typename.getClass().toString());
-				System.out.println(ctx.expr().get(0).typename.getClass().toString());
 
-//				if (!(e.typename.equals(ctx.expr().get(0).typename))){
-//				if (!SharedMethods.assignCompat(e.typename, ctx.expr().get(0).typename)) {
-				
-				if (!(e.typename.getClass().equals(ctx.expr().get(0).typename.getClass()))){
-				throw new Error("Array elem not the same type."); */
-
-//				if (!(e.typename.equals(ctx.expr().get(0).typename))){
-				if (!SharedMethods.assignCompat(e.typename, ctx.expr().get(0).typename)) {
-					throw new Error("Array elem not the same type.");
-=======
 //				if (!(e.typename.equals(ctx.expr().get(0).typename))){
 				if(!SharedMethods.assignCompat(e.typename, ctx.expr().get(0).typename)){
 				throw new Error("Array elem not the same type.");
->>>>>>> Derek
 				}
 			}
 			ctx.typename = ctx.expr().get(0).typename;
