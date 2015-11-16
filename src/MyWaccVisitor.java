@@ -81,6 +81,21 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
       System.out.println("rhs: " + rhs.typename);
       System.out.println("lhs: " + ctx.type().typename);
+      
+      //---------------------- catching declaration of array with empty array ie int[] x = [] should be fine
+      
+      if(ctx.type().typename instanceof ARRAY_TYPE) {
+        if(rhs.typename instanceof ARRAY_TYPE) {
+          if(((ARRAY_TYPE)rhs.typename).TYPE() == null){
+            VARIABLE var = new VARIABLE(rhs.typename);
+            currentTable.add(ctx.ident().getText(), var);
+            return null;
+          }
+        }
+      }
+      //------------------------
+      
+      
       if(!SharedMethods.assignCompat(ctx.type().typename, rhs.typename)) {
  //   	  throw new Error("Different type");
       	  System.exit(200);
