@@ -39,8 +39,8 @@ public class Main {
 
 		    // create a lexer that feeds off of input CharStream
 		    WaccLexer lexer = new WaccLexer(input);
-		    //lexer.removeErrorListeners();
-		    //lexer.addErrorListener(SyntaxErrorListener.INSTANCE);
+		    lexer.removeErrorListeners();
+		    lexer.addErrorListener(SyntaxErrorListener.INSTANCE);
 
 		  	
 		    
@@ -49,8 +49,8 @@ public class Main {
 
 		    // create a parser that feeds off the tokens buffer
 		    WaccParser parser = new WaccParser(tokens);
-		    //parser.removeErrorListeners();
-		    //parser.addErrorListener(SyntaxErrorListener.INSTANCE);
+		    parser.removeErrorListeners();
+		    parser.addErrorListener(SyntaxErrorListener.INSTANCE);
 
 		    
 		    
