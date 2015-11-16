@@ -53,7 +53,8 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         visit(rhs);
         
         if (!SharedMethods.assignCompat(rhs.typename,lhs.typename)) {
-        	throw new Error("Assign not of the same type");
+ //       	throw new Error("Assign not of the same type");
+        	System.exit(200);
         }
         
     	return null;
@@ -78,10 +79,12 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
       System.out.println("rhs: " + rhs.typename);
       System.out.println("lhs: " + ctx.type().typename);
       if(!SharedMethods.assignCompat(ctx.type().typename, rhs.typename)) {
-    	  throw new Error("Different type");
+ //   	  throw new Error("Different type");
+      	  System.exit(200);
       }
       if (currentTable.lookup(ctx.ident().getText()) != null) {
-    	  throw new Error("Variable already declared");
+ //   	  throw new Error("Variable already declared");
+      	  System.exit(200);
       }
       VARIABLE var = new VARIABLE(rhs.typename);
       currentTable.add(ctx.ident().getText(), var);
@@ -93,7 +96,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     public T visitFunc(@NotNull WaccParser.FuncContext ctx) {
     	System.out.println("visitFunc");
 		IDENTIFIER id = currentTable.lookup(ctx.ident().getText());
-		if(id != null) throw new Error();
+		if(id != null) System.exit(200);
 
 		visit(ctx.type());
 		TYPE returntypename = ctx.type().typename;
@@ -118,13 +121,16 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 			visit(ctx.stat());
 			System.out.println("typename: " + returntypename.getClass().toString());
 			System.out.println("typename: " + ctx.stat().typename.getClass().toString());
-			if(!SharedMethods.assignCompat(returntypename, ctx.stat().typename)) throw new Error("statement return type not match function return type!");
-
+			if(!SharedMethods.assignCompat(returntypename, ctx.stat().typename)) {//throw new Error("statement return type not match function return type!");
+	        	System.exit(200);
+			}
 			currentTable = currentTable.encSymTable;
 		}
 		else{
 			visit(ctx.stat());
-			if(returntypename != ctx.stat().typename) throw new Error("statement return type not match function return type");
+			if(returntypename != ctx.stat().typename) {//throw new Error("statement return type not match function return type");
+	        	System.exit(200);
+			}
 		}
 		return null;
     }
@@ -136,15 +142,21 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 		IDENTIFIER F = currentTable.lookup(funcname);
 
-		if (F == null) throw new Error("unknown function" + funcname);
-		if (!(F instanceof FUNCTION)) throw new Error(funcname + "is not a function");
-		if (((FUNCTION) F).formals.size() != actuals.size()) throw new Error ("wrong number of parameters");
+		if (F == null) {
+        	System.exit(200); //throw new Error("unknown function" + funcname);
+		}
+		if (!(F instanceof FUNCTION)) {
+        	System.exit(200); //throw new Error(funcname + "is not a function");
+		}
+		if (((FUNCTION) F).formals.size() != actuals.size()) {
+        	System.exit(200);//throw new Error ("wrong number of parameters");
+		}
 
 		for(int i = 0; i < actuals.size(); i++){
 			ExprContext each = actuals.get(i);
 			visit(each);
 			if (!SharedMethods.assignCompat(each.typename,((FUNCTION) F).formals.get(i).TYPE())){
-				throw new Error("type of func param " + i + " incompatible with declaration");
+	        	System.exit(200);//throw new Error("type of func param " + i + " incompatible with declaration");
 			}
 		}
 
@@ -158,9 +170,15 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		String funcname = ctx.ident().getText();
 		IDENTIFIER F = currentTable.lookup(funcname);
 
-		if (F == null) throw new Error("unknown function" + funcname);
-		if (!(F instanceof FUNCTION)) throw new Error(funcname + "is not a function");
-		if (((FUNCTION) F).formals.size() != 0) throw new Error ("wrong number of parameters");
+		if (F == null) {
+        	System.exit(200);//throw new Error("unknown function" + funcname);
+		}
+		if (!(F instanceof FUNCTION)) {
+        	System.exit(200);//throw new Error(funcname + "is not a function");
+		}
+		if (((FUNCTION) F).formals.size() != 0) {
+        	System.exit(200);//throw new Error ("wrong number of parameters");
+		}
 
 		//ctx.funObj = F; <- do we need this line?
 
@@ -193,7 +211,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		System.out.println("expr = "+ ctx.expr().toString());
 		if ((ctx.expr().typename != currentTable.lookup("bool")) &&
 				!(ctx.expr().typename instanceof BOOL)){
-			throw new Error("If condition is not of type bool.");
+        	System.exit(200);//throw new Error("If condition is not of type bool.");
 		}
 		for (StatContext s : stats){
 			visit(s);
@@ -208,7 +226,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		//a read statement can only target a program variable, an array element or a pair element
 		if ((!(ctx.assign_lhs().typename instanceof ARRAY_TYPE)) ||
 		(!(ctx.assign_lhs().typename instanceof PAIR_TYPE)))
-		throw new Error("cannot read into type " + ctx.assign_lhs().typename.toString() + "PAIR or ARRAY expected.");
+        	System.exit(200);//throw new Error("cannot read into type " + ctx.assign_lhs().typename.toString() + "PAIR or ARRAY expected.");
 		//check std input that its only char / int input
 		//if !(ctx.READ().getClass() instanceof char / int) throw Error("input has to be only char/int")
 		//check if the types of 2 sides match
@@ -257,7 +275,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		visit(ctx.expr());
 		if ((ctx.expr().typename != currentTable.lookup("bool")) &&
 				!(ctx.expr().typename instanceof BOOL)){
-			throw new Error("while condition is not of type bool.");
+        	System.exit(200);//throw new Error("while condition is not of type bool.");
 		}
 		visit(ctx.stat());
 		return null; 
@@ -467,7 +485,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		visit(ctx.expr());
 		ctx.typename = ctx.expr().typename;
 		if (!(ctx.typename instanceof PAIR_TYPE) || !(ctx.typename instanceof ARRAY_TYPE))
-			throw new Error("Cannot free TYPE " + ctx.typename.toString() + ", ARRAY_TYPE or PAIR_TYPE expected.");
+        	System.exit(200);//throw new Error("Cannot free TYPE " + ctx.typename.toString() + ", ARRAY_TYPE or PAIR_TYPE expected.");
 		return null; 
 	}
 
@@ -525,7 +543,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 //				if (!(e.typename.equals(ctx.expr().get(0).typename))){
 				if(!SharedMethods.assignCompat(e.typename, ctx.expr().get(0).typename)){
-				throw new Error("Array elem not the same type.");
+		        	System.exit(200);//throw new Error("Array elem not the same type.");
 				}
 			}
 			ctx.typename = ctx.expr().get(0).typename;
@@ -592,7 +610,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 		String id = ctx.ident().getText();
 		//also check if the ident has been declared
-		if (currentTable.lookup(id) == null) throw new Error(id + "has not been declared");
+		if (currentTable.lookup(id) == null) System.exit(200);//throw new Error(id + "has not been declared");
 		// do we have static variable in Wacc language. ^this would not support static var usage in stat in function declaration
 
 		return null;
