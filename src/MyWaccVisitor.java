@@ -470,9 +470,13 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 				visit(e);
 				System.out.println("TYPE1: " + e.typename);
 				System.out.println("TYPE2: " + ctx.expr().get(0).typename.toString());
+				System.out.println(e.typename.getClass().toString());
+				System.out.println(ctx.expr().get(0).typename.getClass().toString());
 
 //				if (!(e.typename.equals(ctx.expr().get(0).typename))){
-				if (!SharedMethods.assignCompat(e.typename, ctx.expr().get(0).typename)) {
+//				if (!SharedMethods.assignCompat(e.typename, ctx.expr().get(0).typename)) {
+				
+				if (!(e.typename.getClass().equals(ctx.expr().get(0).typename.getClass()))){
 				throw new Error("Array elem not the same type.");
 				}
 			}
