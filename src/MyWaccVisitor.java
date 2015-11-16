@@ -52,7 +52,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         visit(lhs);
         visit(rhs);
         
-        if (!SharedMethods.assignCompat(rhs.typename,lhs.typename)) {
+        if (!SharedMethods.assignCompat(rhs.typename,lhs.typename)) {;
 //        	throw new Error("Assign not of the same type");
         	System.exit(200);
         }
@@ -130,7 +130,8 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		else{
 			visit(ctx.stat());
 			if(!SharedMethods.assignCompat(returntypename, ctx.stat().typename)) {//throw new Error("statement return type not match function return type");
-	        	System.exit(200);
+
+				System.exit(200);
 			}
 		}
 		return null;

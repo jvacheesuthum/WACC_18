@@ -6,3 +6,4 @@
 v1 = ARGV[0]
 puts v1
 system "java  -cp bin:lib/antlr-4.4-complete.jar Main #{v1}" 
+exit($?.exitstatus)
