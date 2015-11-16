@@ -12,7 +12,7 @@ public class FUNCTION extends VARIABLE {
     public SymbolTable symtab;
 
     public FUNCTION(TYPE returntype){
-    	super(returntype);
+    	super(new FUNCTION_TYPE());
         this.returntype = returntype;
     }
     

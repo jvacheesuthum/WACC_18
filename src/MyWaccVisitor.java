@@ -53,7 +53,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         visit(rhs);
         
         if (!SharedMethods.assignCompat(rhs.typename,lhs.typename)) {
- //       	throw new Error("Assign not of the same type");
+//        	throw new Error("Assign not of the same type");
         	System.exit(200);
         }
         
@@ -99,6 +99,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		if(id != null) System.exit(200);
 
 		visit(ctx.type());
+
 		TYPE returntypename = ctx.type().typename;
 
 		SymbolTable newST = new SymbolTable(currentTable);
@@ -128,7 +129,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		}
 		else{
 			visit(ctx.stat());
-			if(returntypename != ctx.stat().typename) {//throw new Error("statement return type not match function return type");
+			if(!SharedMethods.assignCompat(returntypename, ctx.stat().typename)) {//throw new Error("statement return type not match function return type");
 	        	System.exit(200);
 			}
 		}
@@ -499,7 +500,12 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 	@Override public T visitArray_elem(@NotNull WaccParser.Array_elemContext ctx) { return visitChildren(ctx); }
 
-	@Override public T visitProgram(@NotNull WaccParser.ProgramContext ctx) { return visitChildren(ctx); }
+	@Override public T visitProgram(@NotNull WaccParser.ProgramContext ctx) { 
+		visitChildren(ctx);
+		//visit(ctx.func(0));
+		//visit(ctx.stat());
+		return null; 
+	}
 
 	@Override public T visitChar_liter(@NotNull WaccParser.Char_literContext ctx) { return visitChildren(ctx); }
 
@@ -580,6 +586,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	
 	@Override 
 	public T visitExpr_int(@NotNull WaccParser.Expr_intContext ctx) { 
+		System.out.println("visitExpr_int");
 		//ctx.typename = (TYPE) currentTable.lookup("int");
 		ctx.typename = new INT();
 		return null; 
@@ -594,17 +601,20 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	
 	@Override 
 	public T visitExpr_char(@NotNull WaccParser.Expr_charContext ctx) { 
+		System.out.println("visitExpr_char");
 		ctx.typename = new CHAR();
 		return null; 
 	}
 	
 	@Override 
 	public T visitExpr_str(@NotNull WaccParser.Expr_strContext ctx) { 
+		System.out.println("visitExpr_str");
 		ctx.typename = new STRING();		
 		return null;
 	}
 	
 	@Override public T visitExpr_ident(@NotNull WaccParser.Expr_identContext ctx) {
+		System.out.println("visitExpr_ident");
 		visit(ctx.ident());
 		ctx.typename = ctx.ident().typename;
 
