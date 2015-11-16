@@ -48,7 +48,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         visit(lhs);
         visit(rhs);
         
-        SharedMethods.assignCompat(rhs.typename,lhs.typename);  
+        if (!SharedMethods.assignCompat(rhs.typename,lhs.typename)) {
+        	throw new Error("Assign not of the same type");
+        }
         
     	return null;
     }
@@ -66,7 +68,12 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
   	
       WaccParser.Assign_rhsContext rhs = ctx.assign_rhs();
       visit(rhs);
-      SharedMethods.assignCompat(ctx.type().typename, rhs.typename);
+      visit(ctx.type());
+      System.out.println("rhs: " + rhs.typename);
+      System.out.println("lhs: " + ctx.type().typename);
+      if(!SharedMethods.assignCompat(ctx.type().typename, rhs.typename)) {
+    	  throw new Error("Different type");
+      }
       if (currentTable.lookup(ctx.ident().getText()) != null) {
     	  throw new Error("Variable already declared");
       }
@@ -221,14 +228,14 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	//put type into ident according to the symbol table
 	@Override public T visitIdent(@NotNull WaccParser.IdentContext ctx) {
 		IDENTIFIER type = currentTable.lookup(ctx.getText());
-		VARIABLE var = (VARIABLE) type;
+		VARIABLE var = new VARIABLE((TYPE) type);
 		ctx.typename = var.TYPE();
 		return null;
 	}
 	
 	@Override public T visitAssign_lhs_ident(@NotNull WaccParser.Assign_lhs_identContext ctx) { 
 		IDENTIFIER type = currentTable.lookup(ctx.getText());
-		VARIABLE var = (VARIABLE) type;
+		VARIABLE var = new VARIABLE((TYPE) type);
 		ctx.typename = var.TYPE();
 		return null;
 }
@@ -306,7 +313,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	
 	@Override public T visitAssign_rhs_ar_liter(@NotNull WaccParser.Assign_rhs_ar_literContext ctx) { 
 		visit(ctx.array_liter());
-		//ctx.typename = ctx.array_liter().typename;
+		ctx.typename = ctx.array_liter().typename;
 		return null;
 	}
 	
@@ -429,8 +436,11 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		if (list.isEmpty()){
 			ctx.typename = null;
 		} else {
+			
 			for (ExprContext e : list){
-				if (!(e.typename.equals(ctx.expr().get(0).typename))){
+				visit(e);
+//				if (!(e.typename.equals(ctx.expr().get(0).typename))){
+				if(!SharedMethods.assignCompat(e.typename, ctx.expr().get(0).typename)){
 				throw new Error("Array elem not the same type.");
 				}
 			}

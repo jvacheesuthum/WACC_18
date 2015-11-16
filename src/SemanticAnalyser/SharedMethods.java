@@ -18,7 +18,10 @@ public class SharedMethods {
 		IDENTIFIER DOUBLEtype = CurrentSymbolTable.lookup("double");
 		return (lhs == rhs) || ((lhs == DOUBLEtype) && (rhs == INTtype));
 */
-		return lhs == rhs;
+		if (lhs == null) {
+			System.out.println("lhr is null");
+		}
+		return lhs.equals(rhs);
 		
 	}
 }
