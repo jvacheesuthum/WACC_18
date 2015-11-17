@@ -479,6 +479,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitAssign_lhs_array(@NotNull WaccParser.Assign_lhs_arrayContext ctx) {
     	System.out.println("visitAssign_lhs_array");
 		visit(ctx.array_elem().ident());
+		System.out.println("arrayelem ident typename " + ctx.array_elem().ident().typename);
 		if (ctx.array_elem().ident().typename instanceof STRING) {
 			ctx.typename = new CHAR();
 		} else {
