@@ -1507,18 +1507,38 @@ public class WaccParser extends Parser {
 
 	public static class Pair_elemContext extends ParserRuleContext {
 		public TYPE typename;
-		public ExprContext expr() {
-			return getRuleContext(ExprContext.class,0);
-		}
-		public TerminalNode FST() { return getToken(WaccParser.FST, 0); }
-		public TerminalNode SND() { return getToken(WaccParser.SND, 0); }
 		public Pair_elemContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);
 		}
 		@Override public int getRuleIndex() { return RULE_pair_elem; }
+	 
+		public Pair_elemContext() { }
+		public void copyFrom(Pair_elemContext ctx) {
+			super.copyFrom(ctx);
+			this.typename = ctx.typename;
+		}
+	}
+	public static class Pair_elem_fstContext extends Pair_elemContext {
+		public ExprContext expr() {
+			return getRuleContext(ExprContext.class,0);
+		}
+		public TerminalNode FST() { return getToken(WaccParser.FST, 0); }
+		public Pair_elem_fstContext(Pair_elemContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
-			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitPair_elem(this);
+			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitPair_elem_fst(this);
+			else return visitor.visitChildren(this);
+		}
+	}
+	public static class Pair_elem_sndContext extends Pair_elemContext {
+		public ExprContext expr() {
+			return getRuleContext(ExprContext.class,0);
+		}
+		public TerminalNode SND() { return getToken(WaccParser.SND, 0); }
+		public Pair_elem_sndContext(Pair_elemContext ctx) { copyFrom(ctx); }
+		@Override
+		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
+			if ( visitor instanceof WaccParserVisitor ) return ((WaccParserVisitor<? extends T>)visitor).visitPair_elem_snd(this);
 			else return visitor.visitChildren(this);
 		}
 	}
@@ -1530,6 +1550,7 @@ public class WaccParser extends Parser {
 			setState(188);
 			switch (_input.LA(1)) {
 			case FST:
+				_localctx = new Pair_elem_fstContext(_localctx);
 				enterOuterAlt(_localctx, 1);
 				{
 				setState(184); match(FST);
@@ -1537,6 +1558,7 @@ public class WaccParser extends Parser {
 				}
 				break;
 			case SND:
+				_localctx = new Pair_elem_sndContext(_localctx);
 				enterOuterAlt(_localctx, 2);
 				{
 				setState(186); match(SND);

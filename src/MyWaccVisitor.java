@@ -54,7 +54,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         visit(lhs);    
 
         visit(rhs);
-        
         if (!SharedMethods.assignCompat(lhs.typename, rhs.typename)) {
 //        	throw new Error("Assign not of the same type");
         	System.exit(200);
@@ -272,6 +271,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		//check std input that its only char / int input
 		//if !(ctx.READ().getClass() instanceof char / int) throw Error("input has to be only char/int")
 		//check if the types of 2 sides match
+
 		return null;
 	}
 
@@ -388,6 +388,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override 
 	public T visitAssign_lhs_pair(@NotNull WaccParser.Assign_lhs_pairContext ctx) { 
     	System.out.println("visitAssign_lhs_pair");
+
 		visit(ctx.pair_elem());
 		ctx.typename = ctx.pair_elem().typename;
 		return null;
@@ -429,7 +430,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		ctx.typename = ctx.pair_type().typename;
 		return null;
 	}
-
+/*
 	@Override 
 	public T visitPair_elem(@NotNull WaccParser.Pair_elemContext ctx) {
     	System.out.println("visitPair_elem");
@@ -437,6 +438,27 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		ctx.typename = ctx.expr().typename;
 		
 		return null;
+	}
+*/
+	
+	@Override 
+	public T visitPair_elem_fst(@NotNull WaccParser.Pair_elem_fstContext ctx) { 
+		System.out.println("visitPair_elem_fst");
+
+		visit(ctx.expr());
+		PAIR_TYPE pair = (PAIR_TYPE) ctx.expr().typename;
+		ctx.typename = pair.firstType();
+		return null; 
+	}
+	
+	@Override 
+	public T visitPair_elem_snd(@NotNull WaccParser.Pair_elem_sndContext ctx) {
+		System.out.println("visitPair_elem_snd");
+		visit(ctx.expr());
+//		ctx.typename = ctx.expr().typename;
+		PAIR_TYPE pair = (PAIR_TYPE) ctx.expr().typename;
+		ctx.typename = pair.secondType();
+		return null; 
 	}
 	
 	//assign rhs ------------------------
@@ -446,6 +468,8 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     	System.out.println("visitAssign_rhs_newpair");
 		visit(ctx.expr(0));
 		visit(ctx.expr(1));
+		System.out.println("HERE: " + ctx.expr(0).typename);
+		System.out.println("THERE: " + ctx.expr(0).typename);
 		ctx.typename = new PAIR_TYPE(ctx.expr(0).typename, ctx.expr(1).typename);
 				
 		return null;
@@ -724,9 +748,11 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitExpr_binary(@NotNull WaccParser.Expr_binaryContext ctx) { 
 		System.out.println("visitExpr_binary");
 		visit(ctx.expr(0));
+
 		visit(ctx.expr(1));
 
 		visit(ctx.binary_oper());
+
 
 		if(ctx.expr(0).typename == null || ctx.expr(1).typename == null) {
 			System.exit(200);
@@ -746,6 +772,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	}
 	
 	@Override public T visitBin_bool(@NotNull WaccParser.Bin_boolContext ctx) { 
+		System.out.println("visitBin_bool");
 		ctx.argtype = new EQUALITY(); ctx.returntype = new BOOL(); return null; }
 	
 	@Override public T visitBin_math(@NotNull WaccParser.Bin_mathContext ctx) { 
@@ -754,12 +781,15 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		return null; }
 	
 	@Override public T visitBin_compare(@NotNull WaccParser.Bin_compareContext ctx) { 
+		System.out.println("visitBin_compare");
 		ctx.argtype = new INT(); ctx.returntype = new BOOL(); return null; }
 	
 	@Override public T visitBin_logic(@NotNull WaccParser.Bin_logicContext ctx) { 
+		System.out.println("visitBin_logic");
 		ctx.argtype = new BOOL(); ctx.returntype = new BOOL(); return null; }
 	
-	@Override public T visitExpr_unary(@NotNull WaccParser.Expr_unaryContext ctx) { 
+	@Override public T visitExpr_unary(@NotNull WaccParser.Expr_unaryContext ctx) {
+		System.out.println("visitExpr_unary");
 		visit(ctx.unary_oper());
 		visit(ctx.expr());
 		if(ctx.expr().typename == null) {
@@ -773,21 +803,27 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	}
 	
 	@Override public T visitUnary_not(@NotNull WaccParser.Unary_notContext ctx) { 
+		System.out.println("Unary_not");
 		ctx.argtype = new BOOL(); ctx.returntype = new BOOL(); return null; }
 	
 	@Override public T visitUnary_minus(@NotNull WaccParser.Unary_minusContext ctx) { 
+		System.out.println("Unary_minus");
 		ctx.argtype = new INT(); ctx.returntype = new INT(); return null; }
 	
 	@Override public T visitUnary_len(@NotNull WaccParser.Unary_lenContext ctx) { //ARRAY TYPE CHECK!!!
+		System.out.println("Unary_len");
 		ctx.argtype = new ARRAY_TYPE(ctx.argtype); ctx.returntype = new INT(); return null; }
 	
 	@Override public T visitUnary_chr(@NotNull WaccParser.Unary_chrContext ctx) { 
+		System.out.println("Unary_chr");
 		ctx.argtype = new INT(); ctx.returntype = new CHAR(); return null; }
 	
 	@Override public T visitUnary_ord(@NotNull WaccParser.Unary_ordContext ctx) { 
+		System.out.println("Unary_ord");
 		ctx.argtype = new CHAR(); ctx.returntype = new INT(); return null; }
 
 	@Override public T visitExpr_brackets(@NotNull WaccParser.Expr_bracketsContext ctx) {
+		System.out.println("Unary_brackets");
 		visit(ctx.expr());
 		ctx.typename = ctx.expr().typename;
 		return null;

@@ -110,8 +110,8 @@ locals[TYPE typename]
 
 pair_elem
 locals[TYPE typename]
-: FST expr
-| SND expr
+: FST expr	#pair_elem_fst
+| SND expr	#pair_elem_snd
 ;
 
 arg_list: expr (COMMA expr)* ;
