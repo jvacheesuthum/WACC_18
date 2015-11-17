@@ -170,6 +170,7 @@ locals[TYPE typename]
 | WHILE expr DO stat DONE 		#stat_while
 | BEGIN stat END 			#stat_begin_end
 | stat SEMI_COLON stat			#stat_stat
+| stat_return				#stat_return_middle
 ;
 
 stat_return
@@ -186,7 +187,9 @@ param_list: param (COMMA param)* ;
 
 func
 locals[FUNCTION funObj]
-: type ident OPEN_PARENTHESES (param_list)? CLOSE_PARENTHESES IS (stat SEMI_COLON)? stat_return END ;
+: type ident OPEN_PARENTHESES (param_list)? CLOSE_PARENTHESES IS (stat SEMI_COLON)? stat_return END #func_standard
+| type ident OPEN_PARENTHESES (param_list)? CLOSE_PARENTHESES IS (stat SEMI_COLON)? IF expr THEN (stat SEMI_COLON)? stat_return ELSE (stat SEMI_COLON)? stat_return FI END #func_if
+;
 
 // EOF indicates that the program must consume to the end of the input.
 program: BEGIN (func)* stat END EOF;
