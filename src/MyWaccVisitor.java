@@ -125,7 +125,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
       if (currentTable.lookup(ctx.ident().getText()) != null) {
  //   	  throw new Error("Variable already declared");
-    	  System.out.println("var already declared");
+    	  System.out.println("var already declared: " + ctx.ident().getText());
       	  System.exit(200);
       }
 
