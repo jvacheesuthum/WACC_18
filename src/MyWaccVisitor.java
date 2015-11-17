@@ -56,7 +56,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         visit(lhs);    
 
         visit(rhs);
-        
         if(lhs.typename == null){
           System.out.println("assign to unknown");
           System.exit(200);
@@ -65,7 +64,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
           System.out.println("assigning unknown");
           System.exit(200);
         }
-        
+        System.out.println("lhs typename " + lhs.typename);
+        System.out.println("rhs typename " + rhs.typename);
+
         if (!SharedMethods.assignCompat(lhs.typename, rhs.typename)) {
 //        	throw new Error("Assign not of the same type");
         	System.exit(200);
