@@ -170,7 +170,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 			currentTable = newST;
 
-			visit(ctx.stat());
+			if (!(ctx.stat() == null)){
+				visit(ctx.stat());
+			}
 			visit(ctx.stat_return());
 
 			if(!SharedMethods.assignCompat(ctx.stat_return().typename, returntypename)) {//throw new Error("statement return type not match function return type");
@@ -728,7 +730,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		while (it.hasNext()) {
 			number = number + it.next().getText();
 		}
-		System.out.println("i got the number :" + number);
+//		System.out.println("i got the number :" + number);
 		try {
 		Integer i = Integer.parseInt(number);
 		} catch (NumberFormatException e) {
