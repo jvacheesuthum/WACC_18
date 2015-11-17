@@ -56,6 +56,16 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         visit(lhs);    
 
         visit(rhs);
+        
+        if(lhs.typename == null){
+          System.out.println("assign to unknown");
+          System.exit(200);
+        }
+        if(rhs.typename == null){
+          System.out.println("assigning unknown");
+          System.exit(200);
+        }
+        
         if (!SharedMethods.assignCompat(lhs.typename, rhs.typename)) {
 //        	throw new Error("Assign not of the same type");
         	System.exit(200);
@@ -80,11 +90,10 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
       visit(rhs);
       System.out.println("SEP: ");
       visit(ctx.type());
+      System.out.println("After visit declare lhs and rhs");
 
-      System.out.println("rhs: " + rhs.typename);
-      System.out.println("lhs: " + ctx.type().typename);
-//      System.out.println("rhs elem1: " + ((PAIR_TYPE)rhs.typename).firstType());
-//      System.out.println("lhs elem1: " + ((PAIR_TYPE)ctx.type().typename).firstType());
+      System.out.println("declare rhs: " + rhs.typename);
+      System.out.println("declare lhs: " + ctx.type().typename);
       
       //---------------------- catching declaration of array with empty array ie int[] x = [] should be fine
       
@@ -105,7 +114,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
       
       if(!SharedMethods.assignCompat(ctx.type().typename, rhs.typename)) {
  //   	  throw new Error("Different type");
-
       	  System.exit(200);
       }
 
@@ -124,7 +132,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     @Override
     public T visitFunc(@NotNull WaccParser.FuncContext ctx) {
     	System.out.println("visitFunc");
-		IDENTIFIER id = currentTable.lookupAll(ctx.ident().getText());
+		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
 		if(id != null) System.exit(200);
 
 		visit(ctx.type());
@@ -136,7 +144,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 		//currentTable = newST;
 		ctx.funObj = new FUNCTION(returntypename);
-		currentTable.add(ctx.ident().getText(), ctx.funObj);
+		currentTable.funcadd(ctx.ident().getText(), ctx.funObj);
 		ctx.funObj.symtab = newST;
 		
 		if(ctx.param_list() != null){
@@ -181,7 +189,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		String funcname = ctx.ident().getText();
 		List<ExprContext> actuals = ctx.arg_list().expr();
 
-		IDENTIFIER F = currentTable.lookupAll(funcname);
+		IDENTIFIER F = currentTable.lookupAllFunc(funcname);
 
 		if (F == null) {
         	System.exit(200); //throw new Error("unknown function" + funcname);
@@ -211,7 +219,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitAssign_rhs_call_empty(@NotNull WaccParser.Assign_rhs_call_emptyContext ctx) {
     	System.out.println("visitAssign_rhs_	@Override public T visitAtom_char(@NotNull WaccParser.Atom_charContext ctx) { return visitChildren(ctx); }call_empty");
 		String funcname = ctx.ident().getText();
-		IDENTIFIER F = currentTable.lookupAll(funcname);
+		IDENTIFIER F = currentTable.lookupAllFunc(funcname);
 
 		if (F == null) {
         	System.exit(200);//throw new Error("unknown function" + funcname);
@@ -296,8 +304,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override 
 	public T visitType_arraytype(@NotNull WaccParser.Type_arraytypeContext ctx) { 
     	System.out.println("visitType_arraytype");
-		visit(ctx.array_type());
-    	ctx.typename = new ARRAY_TYPE(ctx.array_type().typename);
+		  visit(ctx.array_type());
+    	ctx.typename = ctx.array_type().typename;
+		  //ctx.typename = new ARRAY_TYPE(ctx.array_type().typename);
 		return null;
 	}
 	
@@ -306,6 +315,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     	System.out.println("visitType_basetype");
 		visit(ctx.base_type());
 		ctx.typename = ctx.base_type().typename;
+		//ctx.typename = new ARRAY_TYPE(ctx.base_type().typename);
 		
 		return null;
 	}
@@ -335,7 +345,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
         	System.exit(200);//throw new Error("while condition is not of type bool.");
 		}
+
 		visit(ctx.stat());
+
 		return null; 
 	}
 
@@ -349,10 +361,14 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		return null;
 		
 		*/
-		
+
 		System.out.println("visitIdent");
+		if(ctx.getText().equals("null")) {
+			ctx.typename = new NULL();
+			return null;
+		}
 		IDENTIFIER id = currentTable.lookupAll(ctx.getText());
-		if(id == null) System.out.println("LHS IS NULLLLL");	//REMOVE
+		if(id == null) System.out.println("visitIndent: LHS IS NULLLLL");	//REMOVE
 		if(id instanceof VARIABLE){
 			ctx.typename = ((VARIABLE) id).TYPE();
 		}
@@ -371,7 +387,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		IDENTIFIER id = currentTable.lookupAll(ctx.getText());
 
 
-		if(id == null) System.out.println("LHS IS NULLLLL");	////REMOVE
+		if(id == null) System.out.println("visitAssign_lhs_indent: LHS IS NULLLLL");	////REMOVE
 		if(id instanceof VARIABLE){
 
 			ctx.typename = ((VARIABLE) id).TYPE();
@@ -429,7 +445,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	public T visitArray_type_base(@NotNull WaccParser.Array_type_baseContext ctx) { 
     	System.out.println("visitArray_type_base");
 		visit(ctx.base_type());
-		ctx.typename = ctx.base_type().typename;
+		//ctx.typename = ctx.base_type().typename;
+		
+		ctx.typename = new ARRAY_TYPE(ctx.base_type().typename);
 		return null;
 	}
 	
@@ -437,7 +455,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	public T visitArray_type_pair(@NotNull WaccParser.Array_type_pairContext ctx) { 
     	System.out.println("visitArray_type_pair");
 		visit(ctx.pair_type());
-		ctx.typename = ctx.pair_type().typename;
+		//ctx.typename = ctx.pair_type().typename;
+		
+		ctx.typename = new ARRAY_TYPE(ctx.pair_type().typename);
 		return null;
 	}
 /*
@@ -595,13 +615,15 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	}
 
 	@Override public T visitStat_free(@NotNull WaccParser.Stat_freeContext ctx) {
+		System.out.println("visitStat_free");
 		visit(ctx.expr());
 		ctx.typename = ctx.expr().typename;
 		if(ctx.typename instanceof NULL) {
 
 			return null;
 		}
-		if (!(ctx.typename instanceof PAIR_TYPE) || !(ctx.typename instanceof ARRAY_TYPE)){
+		if (!(ctx.typename instanceof PAIR_TYPE) && !(ctx.typename instanceof ARRAY_TYPE)){
+
         	System.exit(200);//throw new Error("Cannot free TYPE " + ctx.typename.toString() + ", ARRAY_TYPE or PAIR_TYPE expected.");
 		}
 
@@ -765,10 +787,12 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 		ctx.typename = ctx.ident().typename;
 		String id = ctx.ident().getText();
-		if(ctx.typename == null) {
+
+		if(ctx.typename == null || ctx.typename instanceof NULL) {
 			return null;
 		}
 		//also check if the ident has been declared
+
 		if (currentTable.lookupAll(id) == null) System.exit(200);//throw new Error(id + "has not been declared");
 		// do we have static variable in Wacc language. ^this would not support static var usage in stat in function declaration
 
@@ -783,7 +807,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	
 	@Override public T visitExpr_array_elem(@NotNull WaccParser.Expr_array_elemContext ctx) {
 		visit(ctx.array_elem().ident());
-		ctx.typename = ctx.array_elem().ident().typename;
+		//ctx.typename = ctx.array_elem().ident().typename;
+		ARRAY_TYPE ar = (ARRAY_TYPE) ctx.array_elem().ident().typename;
+		ctx.typename = ar.TYPE();
 		return null;
 	}
 	
