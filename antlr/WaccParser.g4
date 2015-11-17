@@ -31,35 +31,43 @@ int_liter: (int_sign)? (INTEGER)+ ;
 array_elem: ident (OPEN_SQUARE_BRACKET expr CLOSE_SQUARE_BRACKET)+ ;
 
 binary_oper
-locals[TYPE argtype, TYPE returntype]
-: MULTIPLY #bin_math
-| DIVIDE #bin_math
-| MOD #bin_math
-| PLUS #bin_math
-| MINUS #bin_math
-| GREATER #bin_compare
-| GREATER_EQUAL #bin_compare
-| LESS #bin_compare
-| LESS_EQUAL #bin_compare
-| IS_EQUAL #bin_bool
-| NOT_EQUAL #bin_bool
-| AND #bin_logic
-| OR #bin_logic
+: MULTIPLY
+| DIVIDE
+| MOD
+| PLUS
+| MINUS
+| GREATER
+| GREATER_EQUAL
+| LESS
+| LESS_EQUAL
+| IS_EQUAL
+| NOT_EQUAL
+| AND
+| OR
 ;
 
 atom
 locals[TYPE typename]
-: int_liter | bool_liter | char_liter | ident | OPEN_PARENTHESES expr CLOSE_PARENTHESES;
+: int_liter #atom_int
+| bool_liter #atom_bool
+| char_liter #atom_char
+| ident #atom_ident
+| OPEN_PARENTHESES expr CLOSE_PARENTHESES #atom_brackets
+;
 
 math
-locals[TYPE typename]
-: math (MULTIPLY | DIVIDE | MOD | PLUS | MINUS) math
-| atom ((MULTIPLY | DIVIDE | MOD | PLUS | MINUS) atom)? ;
+locals[TYPE argtype, TYPE returntype]
+: math (MULTIPLY | DIVIDE | MOD | PLUS | MINUS) math #expr_bin_math_math
+| atom (MULTIPLY | DIVIDE | MOD | PLUS | MINUS) atom #expr_bin_math_atom
+| atom #expr_bin_atom
+;
 
-bool
-locals[TYPE typename]
-: bool (AND | OR) bool
-| math ((GREATER | GREATER_EQUAL| LESS | LESS_EQUAL | IS_EQUAL | NOT_EQUAL) math)? ;
+bin_bool
+locals[TYPE argtype, TYPE returntype]
+: bin_bool (AND | OR) bin_bool #expr_bin_bool_bool
+| math (GREATER | GREATER_EQUAL| LESS | LESS_EQUAL | IS_EQUAL | NOT_EQUAL) math #expr_bin_bool_math
+| math #expr_bin_math
+;
 
 unary_oper
 locals[TYPE argtype, TYPE returntype]
@@ -80,7 +88,7 @@ locals[TYPE typename]
 | ident #expr_ident
 | array_elem #expr_array_elem
 | unary_oper expr #expr_unary
-| bool ((AND | OR) bool)? #expr_binary
+| bin_bool #expr_binary
 | OPEN_PARENTHESES expr CLOSE_PARENTHESES #expr_brackets
 ;
 
