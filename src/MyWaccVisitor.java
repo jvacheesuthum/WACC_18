@@ -783,7 +783,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	
 	@Override public T visitBin_compare(@NotNull WaccParser.Bin_compareContext ctx) { 
 		System.out.println("visitBin_compare");
-		ctx.argtype = new INT(); ctx.returntype = new BOOL(); return null; }
+		ctx.argtype = new EQUALITY(); ctx.returntype = new BOOL(); return null; }
 	
 	@Override public T visitBin_logic(@NotNull WaccParser.Bin_logicContext ctx) { 
 		System.out.println("visitBin_logic");
