@@ -264,9 +264,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		}
 
 		//a read statement can only target a program variable, an array element or a pair element
-		if ((!(ctx.assign_lhs().typename instanceof ARRAY_TYPE)) &&
-		(!(ctx.assign_lhs().typename instanceof PAIR_TYPE)) && 
-		(!(ctx.assign_lhs().typename instanceof INT)) &&
+//		if ((!(ctx.assign_lhs().typename instanceof ARRAY_TYPE)) &&
+	//	(!(ctx.assign_lhs().typename instanceof PAIR_TYPE)) && 
+		if((!(ctx.assign_lhs().typename instanceof INT)) &&
 		(!(ctx.assign_lhs().typename instanceof CHAR)))
         	System.exit(200);//throw new Error("cannot read into type " + ctx.assign_lhs().typename.toString() + "PAIR or ARRAY expected.");
 		//check std input that its only char / int input
@@ -319,8 +319,10 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitStat_while(@NotNull WaccParser.Stat_whileContext ctx) { 
     	System.out.println("visitStat_while");
 		visit(ctx.expr());
+
 		if ((ctx.expr().typename != currentTable.lookup("bool")) &&
 				!(ctx.expr().typename instanceof BOOL)){
+
         	System.exit(200);//throw new Error("while condition is not of type bool.");
 		}
 		visit(ctx.stat());
@@ -723,8 +725,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		System.out.println("visitExpr_binary");
 		visit(ctx.expr(0));
 		visit(ctx.expr(1));
-		visit(ctx.binary_oper());
-
+		System.out.println("HERE");
 		if(ctx.expr(0).typename == null || ctx.expr(1).typename == null) {
 			System.exit(200);
 		}
