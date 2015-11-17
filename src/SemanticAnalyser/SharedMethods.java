@@ -23,6 +23,9 @@ public class SharedMethods {
 		
 		System.out.println("AssignCompat lhs: " + lhs);
 		System.out.println("AssignCompat rhs: " + rhs);
+		if (rhs instanceof NULL || lhs instanceof NULL) {
+			return true;
+		}
 		if (lhs == null) {
 			System.out.println("lhs is null");
 			return false;
@@ -31,6 +34,7 @@ public class SharedMethods {
 			System.out.println("rhs is null");
 			return false;
 		}
+
 		return lhs.equals(rhs);
 		
 	}
