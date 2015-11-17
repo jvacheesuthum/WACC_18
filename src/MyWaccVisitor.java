@@ -3,6 +3,7 @@ import antlr.WaccParser;
 import antlr.WaccParser.ExprContext;
 import antlr.WaccParser.ParamContext;
 import antlr.WaccParser.StatContext;
+import antlr.WaccParser.Stat_returnContext;
 import antlr.WaccParserBaseVisitor;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -131,7 +132,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     }
 
     @Override
-    public T visitFunc(@NotNull WaccParser.FuncContext ctx) {
+    public T visitFunc_standard(@NotNull WaccParser.Func_standardContext ctx) {
     	System.out.println("visitFunc");
 		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
 		if(id != null) System.exit(200);
@@ -182,6 +183,77 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 //			System.out.println("typename STAT = " + ctx.stat().typename);
 
 				System.exit(200);
+			}
+			
+			currentTable = currentTable.encSymTable;
+		}
+		return null;
+    }
+    
+    @Override
+    public T visitFunc_if(@NotNull WaccParser.Func_ifContext ctx) {
+    	System.out.println("visitFunc");
+		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
+		if(id != null) System.exit(200);
+
+		visit(ctx.type());
+
+		TYPE returntypename = ctx.type().typename;
+
+		SymbolTable newST = new SymbolTable(currentTable);
+		
+
+		//currentTable = newST;
+		ctx.funObj = new FUNCTION(returntypename);
+		currentTable.funcadd(ctx.ident().getText(), ctx.funObj);
+		ctx.funObj.symtab = newST;
+		
+		if(ctx.param_list() != null){
+			currentTable = newST;
+			visit(ctx.param_list());
+
+			List <ParamContext> params = ctx.param_list().param();
+			for(ParamContext p : params){
+				ctx.funObj.formals.add(p.paramObj);
+			}
+			System.out.println("Before stat");
+			List<StatContext> stats = ctx.stat();
+			Iterator<StatContext> it = stats.iterator();
+			while (it.hasNext()) {
+				visit(it.next());
+			}
+			List<Stat_returnContext> rets = ctx.stat_return();
+			Iterator<Stat_returnContext> retit = rets.iterator();
+			while (retit.hasNext()) {
+				Stat_returnContext s = retit.next();
+				visit(s);
+				if(!SharedMethods.assignCompat(s.typename, returntypename)) {//throw new Error("statement return type not match function return type!");
+		        	System.exit(200);
+				}
+			}
+			
+
+	//		System.out.println("typename: " + returntypename.getClass().toString());
+//			System.out.println("typename: " + ctx.stat().typename.getClass().toString());
+			currentTable = currentTable.encSymTable;
+		}
+		else{
+
+			currentTable = newST;
+
+			List<StatContext> stats = ctx.stat();
+			Iterator<StatContext> it = stats.iterator();
+			while (it.hasNext()) {
+				visit(it.next());
+			}
+			List<Stat_returnContext> rets = ctx.stat_return();
+			Iterator<Stat_returnContext> retit = rets.iterator();
+			while (retit.hasNext()) {
+				Stat_returnContext s = retit.next();
+				visit(s);
+				if(!SharedMethods.assignCompat(s.typename, returntypename)) {//throw new Error("statement return type not match function return type!");
+		        	System.exit(200);
+				}
 			}
 			
 			currentTable = currentTable.encSymTable;
@@ -846,16 +918,16 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		System.out.println("visitExpr_bin_bool_math");
 		visit(ctx.math(0));
 		visit(ctx.math(1));
+		System.out.println("HERE: " + ctx.math(0).returntype);
+		System.out.println("THERE: " + ctx.math(1).returntype);
 		ctx.returntype = new BOOL();
 		ctx.argtype = new EQUALITY();
 		if(!SharedMethods.assignCompat(ctx.math(0).returntype, ctx.math(1).returntype)) {
 			System.exit(200);
 		}
-		System.out.println("argtype " + ctx.argtype.getClass());
-		System.out.println("mat0 " + ctx.math(0).getClass());
 
 		if(!ctx.argtype.getClass().isAssignableFrom(ctx.math(0).returntype.getClass())) {
-			System.out.println("isAssignable error");
+
 			System.exit(200);
 		}
 		return null; 

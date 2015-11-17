@@ -1,6 +1,6 @@
 package SemanticAnalyser;
 
-public class NULL extends TYPE {
+public class NULL extends EQUALITY {
 
 	/**
 	 * @param args

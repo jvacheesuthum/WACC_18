@@ -1,6 +1,6 @@
 package SemanticAnalyser;
 
-public class ARRAY_TYPE extends TYPE{
+public class ARRAY_TYPE extends EQUALITY{
 	TYPE type;
 	int elements;
 	
