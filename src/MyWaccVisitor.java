@@ -57,7 +57,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         visit(lhs);    
 
         visit(rhs);
-        
         if(lhs.typename == null){
           System.out.println("assign to unknown");
           System.exit(200);
@@ -66,8 +65,10 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
           System.out.println("assigning unknown");
           System.exit(200);
         }
-        
-        if (!SharedMethods.assignCompat(lhs.typename, rhs.typename)) {
+        System.out.println("lhs typename " + lhs.typename);
+        System.out.println("rhs typename " + rhs.typename);
+
+        if ((!SharedMethods.assignCompat(lhs.typename, rhs.typename)))  {
 //        	throw new Error("Assign not of the same type");
         	System.exit(200);
         }
@@ -157,7 +158,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 				ctx.funObj.formals.add(p.paramObj);
 			}
 			System.out.println("Before stat");
-			visit(ctx.stat());
+			if (!(ctx.stat() == null)){
+				visit(ctx.stat());
+			}
 			visit(ctx.stat_return());
 
 	//		System.out.println("typename: " + returntypename.getClass().toString());
@@ -177,7 +180,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 			visit(ctx.stat_return());
 
 			if(!SharedMethods.assignCompat(ctx.stat_return().typename, returntypename)) {//throw new Error("statement return type not match function return type");
-			System.out.println("typename STAT = " + ctx.stat().typename);
+//			System.out.println("typename STAT = " + ctx.stat().typename);
 
 				System.exit(200);
 			}
@@ -421,7 +424,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		}
 
 		visit(ctx.stat());
-
 		return null; 
 	}
 
@@ -913,12 +915,16 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		System.out.println("visitExpr_bin_bool_math");
 		visit(ctx.math(0));
 		visit(ctx.math(1));
+		System.out.println("HERE: " + ctx.math(0).returntype);
+		System.out.println("THERE: " + ctx.math(1).returntype);
 		ctx.returntype = new BOOL();
 		ctx.argtype = new EQUALITY();
 		if(!SharedMethods.assignCompat(ctx.math(0).returntype, ctx.math(1).returntype)) {
 			System.exit(200);
 		}
-		if(!ctx.argtype.getClass().isAssignableFrom(ctx.math(0).getClass())) {
+
+		if(!ctx.argtype.getClass().isAssignableFrom(ctx.math(0).returntype.getClass())) {
+
 			System.exit(200);
 		}
 		return null; 
@@ -949,12 +955,15 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitExpr_bin_math_atom(@NotNull WaccParser.Expr_bin_math_atomContext ctx) {
 		System.out.println("visitExpr_bin_math_atom");
 		visit(ctx.atom(0));
+		System.out.println("HERE");
 		visit(ctx.atom(1));
+		System.out.println("THERE");
 		ctx.returntype = new INT();
 		ctx.argtype = new INT();
 		if(!SharedMethods.assignCompat(ctx.atom(0).typename, ctx.argtype)) {
 			System.exit(200);
 		}
+		System.out.println("HERE: " + ctx.atom(1).typename);
 		if(!SharedMethods.assignCompat(ctx.atom(1).typename, ctx.argtype)) {
 			System.exit(200);
 		}
