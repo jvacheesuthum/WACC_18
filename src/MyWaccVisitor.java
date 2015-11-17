@@ -56,7 +56,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         visit(lhs);    
 
         visit(rhs);
-        
         if(lhs.typename == null){
           System.out.println("assign to unknown");
           System.exit(200);
@@ -65,8 +64,10 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
           System.out.println("assigning unknown");
           System.exit(200);
         }
-        
-        if (!SharedMethods.assignCompat(lhs.typename, rhs.typename)) {
+        System.out.println("lhs typename " + lhs.typename);
+        System.out.println("rhs typename " + rhs.typename);
+
+        if ((!SharedMethods.assignCompat(lhs.typename, rhs.typename)))  {
 //        	throw new Error("Assign not of the same type");
         	System.exit(200);
         }
@@ -351,7 +352,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		}
 
 		visit(ctx.stat());
-
 		return null; 
 	}
 
@@ -850,7 +850,15 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		if(!SharedMethods.assignCompat(ctx.math(0).returntype, ctx.math(1).returntype)) {
 			System.exit(200);
 		}
+<<<<<<< HEAD
 		if(!ctx.argtype.getClass().isAssignableFrom(ctx.math(0).returntype.getClass())) {
+=======
+		System.out.println("argtype " + ctx.argtype.getClass());
+		System.out.println("mat0 " + ctx.math(0).getClass());
+
+		if(!ctx.argtype.getClass().isAssignableFrom(ctx.math(0).returntype.getClass())) {
+			System.out.println("isAssignable error");
+>>>>>>> 35c5c6dc6da41a37a4c017f6cd6f8d7734c7926a
 			System.exit(200);
 		}
 		return null; 
