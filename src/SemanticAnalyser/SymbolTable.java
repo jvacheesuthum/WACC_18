@@ -11,6 +11,9 @@ public class SymbolTable {
 	}
 	
 	public void add(String name, IDENTIFIER obj) {
+		if(obj == null) {
+			obj = new NULL();
+		}
 		dict.add(name, obj);
 	}
 	

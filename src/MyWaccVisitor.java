@@ -51,10 +51,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         WaccParser.Assign_lhsContext lhs = ctx.assign_lhs();
         WaccParser.Assign_rhsContext rhs = ctx.assign_rhs();
 
-        visit(lhs);
-        System.out.println("HERE");
+        visit(lhs);    
         visit(rhs);
-      
+        System.out.println("HERE");
         if (!SharedMethods.assignCompat(lhs.typename, rhs.typename)) {
 //        	throw new Error("Assign not of the same type");
         	System.exit(200);
@@ -95,19 +94,24 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
       }
       //------------------------
       
-      
+      if(rhs.typename == null) {
+    	  rhs.typename = new NULL();
+      }
+
       if(!SharedMethods.assignCompat(ctx.type().typename, rhs.typename)) {
  //   	  throw new Error("Different type");
       	  System.exit(200);
       }
+
       if (currentTable.lookup(ctx.ident().getText()) != null) {
  //   	  throw new Error("Variable already declared");
     	  System.out.println("var already declared");
       	  System.exit(200);
       }
+
       VARIABLE var = new VARIABLE(rhs.typename);
       currentTable.add(ctx.ident().getText(), var);
-	
+
   	  return null;
     }
 
@@ -142,7 +146,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 	//		System.out.println("typename: " + returntypename.getClass().toString());
 //			System.out.println("typename: " + ctx.stat().typename.getClass().toString());
-			if(!SharedMethods.assignCompat(returntypename, ctx.stat().typename)) {//throw new Error("statement return type not match function return type!");
+			if(!SharedMethods.assignCompat(ctx.stat().typename, returntypename)) {//throw new Error("statement return type not match function return type!");
 	        	System.exit(200);
 			}
 			currentTable = currentTable.encSymTable;
@@ -152,7 +156,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 			//System.out.println("HERE");
 			visit(ctx.stat());
 
-			if(!SharedMethods.assignCompat(returntypename, ctx.stat().typename)) {//throw new Error("statement return type not match function return type");
+			if(!SharedMethods.assignCompat(ctx.stat().typename, returntypename)) {//throw new Error("statement return type not match function return type");
 
 				System.exit(200);
 			}
@@ -180,10 +184,10 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		}
 
 		for(int i = 0; i < actuals.size(); i++){
-			System.out.println("HERE1");
 			ExprContext each = actuals.get(i);
 			visit(each);
-			if (!SharedMethods.assignCompat(each.typename,((FUNCTION) F).formals.get(i).TYPE())){
+
+			if (!SharedMethods.assignCompat(((FUNCTION) F).formals.get(i).TYPE(), each.typename)){
 	        	System.exit(200);//throw new Error("type of func param " + i + " incompatible with declaration");
 			}
 		}
@@ -333,8 +337,8 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 			ctx.typename = ((VARIABLE) id).TYPE();
 		}
 		else{
-			System.out.println("something is wronmg: ");
-			System.exit(200);
+//			System.out.println("something is wronmg: ");
+//			System.exit(200);
 		}
 		
 		return null;
@@ -349,8 +353,8 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 			ctx.typename = ((VARIABLE) id).TYPE();
 		}
 		else{
-			System.out.println("something is wronmg");
-			System.exit(200);
+//			System.out.println("something is wronmg");
+//			System.exit(200);
 		}
 	
 		return null;
@@ -525,8 +529,14 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitStat_free(@NotNull WaccParser.Stat_freeContext ctx) {
 		visit(ctx.expr());
 		ctx.typename = ctx.expr().typename;
-		if (!(ctx.typename instanceof PAIR_TYPE) || !(ctx.typename instanceof ARRAY_TYPE))
+		if(ctx.typename instanceof NULL) {
+
+			return null;
+		}
+		if (!(ctx.typename instanceof PAIR_TYPE) || !(ctx.typename instanceof ARRAY_TYPE)){
         	System.exit(200);//throw new Error("Cannot free TYPE " + ctx.typename.toString() + ", ARRAY_TYPE or PAIR_TYPE expected.");
+		}
+
 		return null; 
 	}
 
@@ -588,7 +598,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 				visit(e);
 
 //				if (!(e.typename.equals(ctx.expr().get(0).typename))){
-				if(!SharedMethods.assignCompat(e.typename, ctx.expr().get(0).typename)){
+				if(!SharedMethods.assignCompat(ctx.expr().get(0).typename, e.typename)){
 		        	System.exit(200);//throw new Error("Array elem not the same type.");
 				}
 			}
@@ -659,9 +669,12 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitExpr_ident(@NotNull WaccParser.Expr_identContext ctx) {
 		System.out.println("visitExpr_ident");
 		visit(ctx.ident());
-		ctx.typename = ctx.ident().typename;
 
+		ctx.typename = ctx.ident().typename;
 		String id = ctx.ident().getText();
+		if(ctx.typename == null) {
+			return null;
+		}
 		//also check if the ident has been declared
 		if (currentTable.lookup(id) == null) System.exit(200);//throw new Error(id + "has not been declared");
 		// do we have static variable in Wacc language. ^this would not support static var usage in stat in function declaration
@@ -687,6 +700,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		visit(ctx.expr(1));
 		visit(ctx.binary_oper());
 
+		if(ctx.expr(0).typename == null || ctx.expr(1).typename == null) {
+			System.exit(200);
+		}
 		if(!SharedMethods.assignCompat(ctx.expr(0).typename, ctx.expr(1).typename)){
 			System.exit(200);
 		}
@@ -718,7 +734,12 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitExpr_unary(@NotNull WaccParser.Expr_unaryContext ctx) { 
 		visit(ctx.unary_oper());
 		visit(ctx.expr());
-		SharedMethods.assignCompat(ctx.unary_oper().argtype, ctx.expr().typename);
+		if(ctx.expr().typename == null) {
+			System.exit(200);
+		}
+		if(!SharedMethods.assignCompat(ctx.unary_oper().argtype, ctx.expr().typename)) {
+			System.exit(200);
+		}
 		ctx.typename = ctx.unary_oper().returntype;
 		return null;
 	}
