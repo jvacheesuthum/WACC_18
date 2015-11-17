@@ -482,6 +482,8 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		System.out.println("arrayelem ident typename " + ctx.array_elem().ident().typename);
 		if (ctx.array_elem().ident().typename instanceof STRING) {
 			ctx.typename = new CHAR();
+		} else if (ctx.array_elem().ident().typename instanceof ARRAY_TYPE){
+			ctx.typename = ((ARRAY_TYPE)ctx.array_elem().ident().typename).TYPE();
 		} else {
 			ctx.typename = ctx.array_elem().ident().typename;
 		}
