@@ -9,6 +9,8 @@ public class SharedMethods {
 	public boolean scalartype(TYPE type, String name) {
 		return type == CurrentSymbolTable.lookup(name);
 	}
+	
+	
 
 
 
