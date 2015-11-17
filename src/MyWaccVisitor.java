@@ -347,7 +347,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		}
 
 		visit(ctx.stat());
-
 		return null; 
 	}
 
@@ -844,7 +843,11 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		if(!SharedMethods.assignCompat(ctx.math(0).returntype, ctx.math(1).returntype)) {
 			System.exit(200);
 		}
-		if(!ctx.argtype.getClass().isAssignableFrom(ctx.math(0).getClass())) {
+		System.out.println("argtype " + ctx.argtype.getClass());
+		System.out.println("mat0 " + ctx.math(0).getClass());
+
+		if(!ctx.argtype.getClass().isAssignableFrom(ctx.math(0).returntype.getClass())) {
+			System.out.println("isAssignable error");
 			System.exit(200);
 		}
 		return null; 
