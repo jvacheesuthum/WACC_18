@@ -1,6 +1,8 @@
 package SemanticAnalyser;
 
 public class ARRAY_TYPE extends EQUALITY{
+	boolean prints = false;
+	
 	TYPE type;
 	int elements;
 	
@@ -18,8 +20,8 @@ public class ARRAY_TYPE extends EQUALITY{
 		  ARRAY_TYPE a = (ARRAY_TYPE) o;
 			
 
-      System.out.println("Arraytype this type : " + type.getClass().toString()) ;
-      System.out.println ("Arraytype a type : " + a.type.getClass().toString()) ;
+      if (prints) System.out.println("Arraytype this type : " + type.getClass().toString()) ;
+      if (prints) System.out.println ("Arraytype a type : " + a.type.getClass().toString()) ;
 		  
 		  return a.TYPE().equals(type);
 			

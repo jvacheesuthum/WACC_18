@@ -2,6 +2,8 @@ package SemanticAnalyser;
 
 
 public class PAIR_TYPE extends EQUALITY {
+	
+	boolean prints = false;
 
 	TYPE t1;
 	TYPE t2;
@@ -33,11 +35,11 @@ public class PAIR_TYPE extends EQUALITY {
 			
 			PAIR_TYPE p = (PAIR_TYPE) o;
 			
-			System.out.println("Pairtype: this fisrt type: " + this.firstType().getClass().toString());
-			System.out.println("Pairtype: this second type: " + this.secondType().getClass().toString());
+			if (prints) System.out.println("Pairtype: this fisrt type: " + this.firstType().getClass().toString());
+			if (prints) System.out.println("Pairtype: this second type: " + this.secondType().getClass().toString());
 			
-			System.out.println("Pairtype: o fisrt type: " + p.firstType().getClass().toString());
-      System.out.println("Pairtype: o second type: " + p.secondType().getClass().toString());
+			if (prints) System.out.println("Pairtype: o fisrt type: " + p.firstType().getClass().toString());
+      if (prints) System.out.println("Pairtype: o second type: " + p.secondType().getClass().toString());
 			
       return SharedMethods.assignCompat(this.firstType(), p.firstType()) && SharedMethods.assignCompat(this.secondType(), p.secondType());
       
