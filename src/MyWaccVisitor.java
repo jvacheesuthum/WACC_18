@@ -262,9 +262,12 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		if(ctx.assign_lhs().typename instanceof NULL) {
 			return null;
 		}
+
 		//a read statement can only target a program variable, an array element or a pair element
-		if ((!(ctx.assign_lhs().typename instanceof ARRAY_TYPE)) ||
-		(!(ctx.assign_lhs().typename instanceof PAIR_TYPE)))
+		if ((!(ctx.assign_lhs().typename instanceof ARRAY_TYPE)) &&
+		(!(ctx.assign_lhs().typename instanceof PAIR_TYPE)) && 
+		(!(ctx.assign_lhs().typename instanceof INT)) &&
+		(!(ctx.assign_lhs().typename instanceof CHAR)))
         	System.exit(200);//throw new Error("cannot read into type " + ctx.assign_lhs().typename.toString() + "PAIR or ARRAY expected.");
 		//check std input that its only char / int input
 		//if !(ctx.READ().getClass() instanceof char / int) throw Error("input has to be only char/int")
@@ -358,6 +361,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 		if(id == null) System.out.println("LHS IS NULLLLL");	////REMOVE
 		if(id instanceof VARIABLE){
+
 			ctx.typename = ((VARIABLE) id).TYPE();
 		}
 		else{
