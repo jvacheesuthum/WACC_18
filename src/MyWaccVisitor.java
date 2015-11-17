@@ -54,6 +54,16 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         visit(lhs);    
 
         visit(rhs);
+        
+        if(lhs.typename == null){
+          System.out.println("assign to unknown");
+          System.exit(200);
+        }
+        if(rhs.typename == null){
+          System.out.println("assigning unknown");
+          System.exit(200);
+        }
+        
         if (!SharedMethods.assignCompat(lhs.typename, rhs.typename)) {
 //        	throw new Error("Assign not of the same type");
         	System.exit(200);
@@ -352,7 +362,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		
 		System.out.println("visitIdent");
 		IDENTIFIER id = currentTable.lookupAll(ctx.getText());
-		if(id == null) System.out.println("LHS IS NULLLLL");	//REMOVE
+		if(id == null) System.out.println("visitIndent: LHS IS NULLLLL");	//REMOVE
 		if(id instanceof VARIABLE){
 			ctx.typename = ((VARIABLE) id).TYPE();
 		}
@@ -371,7 +381,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		IDENTIFIER id = currentTable.lookupAll(ctx.getText());
 
 
-		if(id == null) System.out.println("LHS IS NULLLLL");	////REMOVE
+		if(id == null) System.out.println("visitAssign_lhs_indent: LHS IS NULLLLL");	////REMOVE
 		if(id instanceof VARIABLE){
 
 			ctx.typename = ((VARIABLE) id).TYPE();
