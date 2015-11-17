@@ -21,8 +21,18 @@ public class PAIR_TYPE extends TYPE{
 	
 	@Override
 	public boolean equals(Object o) {
+	  
+	  
 		if (o.getClass().equals(this.getClass())) {
+		  
 			PAIR_TYPE p = (PAIR_TYPE) o;
+			
+			System.out.println("Pairtype: this fisrt type: " + this.firstType().getClass().toString());
+			System.out.println("Pairtype: this second type: " + this.secondType().getClass().toString());
+			
+			System.out.println("Pairtype: o fisrt type: " + p.firstType().getClass().toString());
+      System.out.println("Pairtype: o second type: " + p.secondType().getClass().toString());
+			
 			return (p.firstType().equals(this.firstType()) && 
 					p.secondType().equals(this.secondType()));
 		}

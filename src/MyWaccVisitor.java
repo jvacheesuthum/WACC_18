@@ -78,8 +78,8 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
       visit(rhs);
       visit(ctx.type());
 
-      System.out.println("rhs: " + rhs.typename);
-      System.out.println("lhs: " + ctx.type().typename);
+      System.out.println("declare rhs: " + rhs.typename);
+      System.out.println("declare lhs: " + ctx.type().typename);
       
       //---------------------- catching declaration of array with empty array ie int[] x = [] should be fine
       
@@ -100,6 +100,8 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
       if(!SharedMethods.assignCompat(ctx.type().typename, rhs.typename)) {
  //   	  throw new Error("Different type");
+        
+          System.out.println("declare Different Type");
       	  System.exit(200);
       }
 
@@ -286,8 +288,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override 
 	public T visitType_arraytype(@NotNull WaccParser.Type_arraytypeContext ctx) { 
     	System.out.println("visitType_arraytype");
-		visit(ctx.array_type());
-    	ctx.typename = new ARRAY_TYPE(ctx.array_type().typename);
+		  visit(ctx.array_type());
+    	ctx.typename = ctx.array_type().typename;
+		  //ctx.typename = new ARRAY_TYPE(ctx.array_type().typename);
 		return null;
 	}
 	
@@ -296,6 +299,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     	System.out.println("visitType_basetype");
 		visit(ctx.base_type());
 		ctx.typename = ctx.base_type().typename;
+		//ctx.typename = new ARRAY_TYPE(ctx.base_type().typename);
 		
 		return null;
 	}
@@ -419,7 +423,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	public T visitArray_type_base(@NotNull WaccParser.Array_type_baseContext ctx) { 
     	System.out.println("visitArray_type_base");
 		visit(ctx.base_type());
-		ctx.typename = ctx.base_type().typename;
+		//ctx.typename = ctx.base_type().typename;
+		
+		ctx.typename = new ARRAY_TYPE(ctx.base_type().typename);
 		return null;
 	}
 	
@@ -427,7 +433,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	public T visitArray_type_pair(@NotNull WaccParser.Array_type_pairContext ctx) { 
     	System.out.println("visitArray_type_pair");
 		visit(ctx.pair_type());
-		ctx.typename = ctx.pair_type().typename;
+		//ctx.typename = ctx.pair_type().typename;
+		
+		ctx.typename = new ARRAY_TYPE(ctx.pair_type().typename);
 		return null;
 	}
 /*
@@ -741,7 +749,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	
 	@Override public T visitExpr_array_elem(@NotNull WaccParser.Expr_array_elemContext ctx) {
 		visit(ctx.array_elem().ident());
-		ctx.typename = ctx.array_elem().ident().typename;
+		//ctx.typename = ctx.array_elem().ident().typename;
+		ARRAY_TYPE ar = (ARRAY_TYPE) ctx.array_elem().ident().typename;
+		ctx.typename = ar.TYPE();
 		return null;
 	}
 	
