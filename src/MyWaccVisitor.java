@@ -156,7 +156,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 			currentTable = newST;
 
 			visit(ctx.stat());
-
+			System.out.println("typename STAT = " + ctx.stat().typename);
 			if(!SharedMethods.assignCompat(ctx.stat().typename, returntypename)) {//throw new Error("statement return type not match function return type");
 
 				System.exit(200);
@@ -251,6 +251,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		for (StatContext s : stats){
 			visit(s);
 		}
+		ctx.typename = stats.get(0).typename;
 		return null;
 	}
 
