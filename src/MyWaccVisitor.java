@@ -484,7 +484,25 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	
 	@Override public T visitAssign_lhs_array(@NotNull WaccParser.Assign_lhs_arrayContext ctx) {
     	System.out.println("visitAssign_lhs_array");
-		visit(ctx.array_elem().ident());
+		
+    	
+    	visit(ctx.array_elem());
+    	
+    	ctx.typename = ctx.array_elem().typename;
+    	
+    	/*
+    	TYPE temp_type = ctx.array_elem().typename;
+    	System.out.println("temp_type: " + temp_type.getClass().toString());
+    	
+    	if(temp_type instanceof STRING){
+    		ctx.typename = new CHAR();
+    	} else{
+    		ctx.typename = temp_type;
+    	}
+    	*/
+    	
+    	/*
+    	visit(ctx.array_elem().ident());
 		System.out.println("arrayelem ident typename " + ctx.array_elem().ident().typename);
 		if (ctx.array_elem().ident().typename instanceof STRING) {
 			ctx.typename = new CHAR();
@@ -493,6 +511,8 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		} else {
 			ctx.typename = ctx.array_elem().ident().typename;
 		}
+		*/
+		
 		//IDENTIFIER x = currentTable.lookup(ctx.array_elem().ident().getText());
 		//ARRAY_TYPE xx = (ARRAY_TYPE) x;
 		//ctx.typename = xx.TYPE();
@@ -726,7 +746,18 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		return null; 
 	}
 
-	@Override public T visitArray_elem(@NotNull WaccParser.Array_elemContext ctx) { return visitChildren(ctx); }
+	@Override public T visitArray_elem(@NotNull WaccParser.Array_elemContext ctx) { 
+		VARIABLE array_or_string = (VARIABLE) currentTable.lookup(ctx.ident().getText());
+		
+		if(array_or_string.TYPE() instanceof STRING){
+		  System.out.println("ITS A STRING");
+		  ctx.typename = new CHAR();
+		}
+		else{
+		  ctx.typename = ((ARRAY_TYPE)array_or_string.TYPE()).TYPE();
+		}
+		return null;
+	}
 
 	@Override public T visitProgram(@NotNull WaccParser.ProgramContext ctx) { 
 
