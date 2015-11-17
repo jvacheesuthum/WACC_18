@@ -2,8 +2,8 @@ package SemanticAnalyser;
 
 public class STRING extends TYPE {
 
-	@Override
+/*	@Override
 	public boolean equals(Object o){
 		return o instanceof STRING || o instanceof CHAR;
-	}
+	}*/
 }
