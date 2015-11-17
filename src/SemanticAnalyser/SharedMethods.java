@@ -1,5 +1,7 @@
 package SemanticAnalyser;
 
+import org.antlr.v4.runtime.tree.ParseTree;
+
 //Still need to add more type check in assignCompat
 
 public class SharedMethods {
@@ -38,6 +40,10 @@ public class SharedMethods {
 		}
 
 		return lhs.equals(rhs);
+		
+	}
+	
+	public void detectFunc(ParseTree tree, SymbolTable table) {
 		
 	}
 }

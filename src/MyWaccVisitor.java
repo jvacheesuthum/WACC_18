@@ -1,6 +1,8 @@
 import SemanticAnalyser.*;
 import antlr.WaccParser;
 import antlr.WaccParser.ExprContext;
+import antlr.WaccParser.FuncContext;
+import antlr.WaccParser.Func_standardContext;
 import antlr.WaccParser.ParamContext;
 import antlr.WaccParser.StatContext;
 import antlr.WaccParser.Stat_returnContext;
@@ -128,7 +130,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
       VARIABLE var = new VARIABLE(rhs.typename);
       currentTable.add(ctx.ident().getText(), var);
-
+      
   	  return null;
     }
 
@@ -136,7 +138,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     public T visitFunc_standard(@NotNull WaccParser.Func_standardContext ctx) {
     	System.out.println("visitFunc");
 		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
-		if(id != null) System.exit(200);
+		if(((FUNCTION) id).symtab != null) System.exit(200);
 
 		visit(ctx.type());
 
@@ -268,14 +270,17 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		List<ExprContext> actuals = ctx.arg_list().expr();
 
 		IDENTIFIER F = currentTable.lookupAllFunc(funcname);
-
+		
 		if (F == null) {
+
+//			ctx.typename = 
         	System.exit(200); //throw new Error("unknown function" + funcname);
 		}
 		if (!(F instanceof FUNCTION)) {
         	System.exit(200); //throw new Error(funcname + "is not a function");
 		}
 		if (((FUNCTION) F).formals.size() != actuals.size()) {
+
         	System.exit(200);//throw new Error ("wrong number of parameters");
 		}
 
@@ -724,6 +729,27 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitArray_elem(@NotNull WaccParser.Array_elemContext ctx) { return visitChildren(ctx); }
 
 	@Override public T visitProgram(@NotNull WaccParser.ProgramContext ctx) { 
+
+		List<FuncContext> list = ctx.func();
+		for(FuncContext func : list) {
+			Func_standardContext f = (Func_standardContext) func;
+			System.out.println("IDENT: " + f.ident().getText());
+			visit(f.type());
+			FUNCTION newFunc = new FUNCTION(f.type().typename);
+			if(f.param_list() != null){
+				currentTable = new SymbolTable(currentTable);
+				visit(f.param_list());
+				currentTable = currentTable.encSymTable;
+				
+				List <ParamContext> params = f.param_list().param();
+				for(ParamContext p : params){
+					newFunc.formals.add(p.paramObj);
+				}
+			} 
+
+			currentTable.funcadd(f.ident().getText(), newFunc);
+			
+		}
 		visitChildren(ctx);
 		//visit(ctx.func(0));
 		//visit(ctx.stat());
@@ -995,9 +1021,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitExpr_bin_math_atom(@NotNull WaccParser.Expr_bin_math_atomContext ctx) {
 		System.out.println("visitExpr_bin_math_atom");
 		visit(ctx.atom(0));
-		System.out.println("HERE");
 		visit(ctx.atom(1));
-		System.out.println("THERE");
 		ctx.returntype = new INT();
 		ctx.argtype = new INT();
 		if(!SharedMethods.assignCompat(ctx.atom(0).typename, ctx.argtype)) {
