@@ -478,8 +478,8 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	
 	@Override public T visitAssign_lhs_array(@NotNull WaccParser.Assign_lhs_arrayContext ctx) {
     	System.out.println("visitAssign_lhs_array");
-		visit(ctx.array_elem().ident());
-		ctx.typename = ctx.array_elem().ident().typename;
+		visit(ctx.array_elem());
+		ctx.typename = ctx.array_elem().typename;
 		
 		//IDENTIFIER x = currentTable.lookup(ctx.array_elem().ident().getText());
 		//ARRAY_TYPE xx = (ARRAY_TYPE) x;
@@ -714,7 +714,12 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		return null; 
 	}
 
-	@Override public T visitArray_elem(@NotNull WaccParser.Array_elemContext ctx) { return visitChildren(ctx); }
+	@Override public T visitArray_elem(@NotNull WaccParser.Array_elemContext ctx) { 
+	  VARIABLE array = (VARIABLE) currentTable.lookup(ctx.ident().getText());
+	  System.out.println("asdf");
+	  ctx.typename = ((ARRAY_TYPE)array.TYPE()).TYPE();
+	  return null;
+	}
 
 	@Override public T visitProgram(@NotNull WaccParser.ProgramContext ctx) { 
 		visitChildren(ctx);

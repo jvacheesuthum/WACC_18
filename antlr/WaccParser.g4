@@ -28,7 +28,9 @@ int_sign: PLUS | MINUS ;
 
 int_liter: (int_sign)? (INTEGER)+ ;
 
-array_elem: ident (OPEN_SQUARE_BRACKET expr CLOSE_SQUARE_BRACKET)+ ;
+array_elem
+locals[TYPE typename]
+: ident (OPEN_SQUARE_BRACKET expr CLOSE_SQUARE_BRACKET)+ ;
 
 binary_oper
 : MULTIPLY
