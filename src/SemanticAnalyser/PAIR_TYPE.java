@@ -23,6 +23,10 @@ public class PAIR_TYPE extends TYPE{
 	public boolean equals(Object o) {
 		if (o.getClass().equals(this.getClass())) {
 			PAIR_TYPE p = (PAIR_TYPE) o;
+	          System.out.println("HERE: " + p.firstType());
+	          System.out.println("THERE: " + p.secondType());
+	          System.out.println("HERE: " + this.firstType());
+	          System.out.println("THERE: " + this.secondType());
 			return (p.firstType().equals(this.firstType()) && 
 					p.secondType().equals(this.secondType()));
 		}
