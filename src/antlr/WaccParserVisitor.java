@@ -461,6 +461,13 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitStat_stat(@NotNull WaccParser.Stat_statContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code layer_s_i}
+	 * labeled alternative in {@link WaccParser#if_layers}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLayer_s_i(@NotNull WaccParser.Layer_s_iContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code expr_unary}
 	 * labeled alternative in {@link WaccParser#expr}.
 	 * @param ctx the parse tree
@@ -520,6 +527,13 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitStat_free(@NotNull WaccParser.Stat_freeContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code layer_s_s}
+	 * labeled alternative in {@link WaccParser#if_layers}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLayer_s_s(@NotNull WaccParser.Layer_s_sContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link WaccParser#arg_list}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -572,4 +586,11 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitAssign_rhs_call(@NotNull WaccParser.Assign_rhs_callContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code layer_i_i}
+	 * labeled alternative in {@link WaccParser#if_layers}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLayer_i_i(@NotNull WaccParser.Layer_i_iContext ctx);
 }

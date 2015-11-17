@@ -178,6 +178,7 @@ locals[TYPE typename]
 stat_return
 locals[TYPE typename]
 : RETURN expr
+| EXIT expr
 ;
 
 
@@ -187,11 +188,18 @@ locals[PARAM paramObj]
 
 param_list: param (COMMA param)* ;
 
+if_layers
+locals[TYPE typename]
+: (IF expr THEN (stat SEMI_COLON)? stat_return ELSE (stat SEMI_COLON)? stat_return FI) #layer_s_s
+| (IF expr THEN (stat SEMI_COLON)? if_layers ELSE (stat SEMI_COLON)? if_layers FI) #layer_i_i
+| (IF expr THEN (stat SEMI_COLON)? stat_return ELSE (stat SEMI_COLON)? if_layers FI) #layer_s_i
+| (IF expr THEN (stat SEMI_COLON)? if_layers ELSE (stat SEMI_COLON)? stat_return FI) #layer_s_i
+;
+
 func
 locals[FUNCTION funObj]
 : type ident OPEN_PARENTHESES (param_list)? CLOSE_PARENTHESES IS (stat SEMI_COLON)? stat_return END #func_standard
-| type ident OPEN_PARENTHESES (param_list)? CLOSE_PARENTHESES IS (stat SEMI_COLON)? IF expr THEN (stat SEMI_COLON)? stat_return ELSE (stat SEMI_COLON)? stat_return FI END #func_if
-;
+| type ident OPEN_PARENTHESES (param_list)? CLOSE_PARENTHESES IS (stat SEMI_COLON)? if_layers END #func_if;
 
 // EOF indicates that the program must consume to the end of the input.
 program: BEGIN (func)* stat END EOF;

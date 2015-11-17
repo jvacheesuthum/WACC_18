@@ -24,9 +24,13 @@ public class PAIR_TYPE extends EQUALITY {
 	@Override
 	public boolean equals(Object o) {
 	  
+		if (o instanceof NULL) {
+			return true;
+		}
 	  
 		if (o.getClass().equals(this.getClass())) {
 		  
+			
 			PAIR_TYPE p = (PAIR_TYPE) o;
 			
 			System.out.println("Pairtype: this fisrt type: " + this.firstType().getClass().toString());
@@ -35,8 +39,10 @@ public class PAIR_TYPE extends EQUALITY {
 			System.out.println("Pairtype: o fisrt type: " + p.firstType().getClass().toString());
       System.out.println("Pairtype: o second type: " + p.secondType().getClass().toString());
 			
-			return (p.firstType().equals(this.firstType()) && 
-					p.secondType().equals(this.secondType()));
+      return SharedMethods.assignCompat(this.firstType(), p.firstType()) && SharedMethods.assignCompat(this.secondType(), p.secondType());
+      
+		//	return (p.firstType().equals(this.firstType()) && 
+			//		p.secondType().equals(this.secondType()));
 		}
 		return false;
 	}

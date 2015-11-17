@@ -133,7 +133,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
     @Override
     public T visitFunc_standard(@NotNull WaccParser.Func_standardContext ctx) {
-    	System.out.println("visitFunc");
+    	System.out.println("visitFunc_std");
 		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
 		if(id != null) System.exit(200);
 
@@ -192,7 +192,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     
     @Override
     public T visitFunc_if(@NotNull WaccParser.Func_ifContext ctx) {
-    	System.out.println("visitFunc");
+    	System.out.println("visitFunc_if");
 		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
 		if(id != null) System.exit(200);
 
@@ -217,21 +217,14 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 				ctx.funObj.formals.add(p.paramObj);
 			}
 			System.out.println("Before stat");
-			List<StatContext> stats = ctx.stat();
-			Iterator<StatContext> it = stats.iterator();
-			while (it.hasNext()) {
-				visit(it.next());
+			if (ctx.stat() != null) {
+				visit(ctx.stat());
 			}
-			List<Stat_returnContext> rets = ctx.stat_return();
-			Iterator<Stat_returnContext> retit = rets.iterator();
-			while (retit.hasNext()) {
-				Stat_returnContext s = retit.next();
-				visit(s);
-				if(!SharedMethods.assignCompat(s.typename, returntypename)) {//throw new Error("statement return type not match function return type!");
-		        	System.exit(200);
-				}
-			}
+			visit(ctx.if_layers());
 			
+			if (!SharedMethods.assignCompat(ctx.if_layers().typename, returntypename)){
+	        	System.exit(200);
+			}
 
 	//		System.out.println("typename: " + returntypename.getClass().toString());
 //			System.out.println("typename: " + ctx.stat().typename.getClass().toString());
@@ -241,25 +234,71 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 			currentTable = newST;
 
-			List<StatContext> stats = ctx.stat();
-			Iterator<StatContext> it = stats.iterator();
-			while (it.hasNext()) {
-				visit(it.next());
+			if (ctx.stat() != null) {
+				visit(ctx.stat());
 			}
-			List<Stat_returnContext> rets = ctx.stat_return();
-			Iterator<Stat_returnContext> retit = rets.iterator();
-			while (retit.hasNext()) {
-				Stat_returnContext s = retit.next();
-				visit(s);
-				if(!SharedMethods.assignCompat(s.typename, returntypename)) {//throw new Error("statement return type not match function return type!");
-		        	System.exit(200);
-				}
+			visit(ctx.if_layers());
+			
+			if (!SharedMethods.assignCompat(ctx.if_layers().typename, returntypename)){
+	        	System.exit(200);
 			}
 			
 			currentTable = currentTable.encSymTable;
 		}
 		return null;
     }
+    
+	@Override public T visitLayer_s_s(@NotNull WaccParser.Layer_s_sContext ctx) {
+		System.out.println("visitLayer_s_s");
+		if (ctx.stat(0) != null) {
+			visit(ctx.stat(0));
+		}
+		if (ctx.stat(1) != null) {
+			visit(ctx.stat(1));
+		}
+		visit(ctx.stat_return(0));
+		visit(ctx.stat_return(1));
+		if (!SharedMethods.assignCompat(ctx.stat_return(0).typename, ctx.stat_return(1).typename)){
+        	System.exit(200);
+		}
+		ctx.typename = ctx.stat_return(0).typename;
+		return null;
+	}
+	
+	@Override public T visitLayer_i_i(@NotNull WaccParser.Layer_i_iContext ctx) {
+		System.out.println("visitLayer_i_i");
+		if (ctx.stat(0) != null) {
+			visit(ctx.stat(0));
+		}
+		if (ctx.stat(1) != null) {
+			visit(ctx.stat(1));
+		}
+		visit(ctx.if_layers(0));
+		visit(ctx.if_layers(1));
+		if (!SharedMethods.assignCompat(ctx.if_layers(0).typename, ctx.if_layers(1).typename)){
+        	System.exit(200);
+		}
+		ctx.typename = ctx.if_layers(0).typename;
+		return null;
+	}
+	
+	@Override public T visitLayer_s_i(@NotNull WaccParser.Layer_s_iContext ctx) {
+		System.out.println("visitLayer_s_i");
+		if (ctx.stat(0) != null) {
+			visit(ctx.stat(0));
+		}
+		if (ctx.stat(1) != null) {
+			visit(ctx.stat(1));
+		}
+		visit(ctx.if_layers());
+		visit(ctx.stat_return());
+		if (!SharedMethods.assignCompat(ctx.if_layers().typename, ctx.stat_return().typename)){
+        	System.exit(200);
+		}
+		ctx.typename = ctx.stat_return().typename;
+		return null;
+	}
+
 
 	@Override public T visitAssign_rhs_call(@NotNull WaccParser.Assign_rhs_callContext ctx) {
     	System.out.println("visitAssign_rhs_call");
@@ -267,7 +306,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		List<ExprContext> actuals = ctx.arg_list().expr();
 
 		IDENTIFIER F = currentTable.lookupAllFunc(funcname);
-
 		if (F == null) {
         	System.exit(200); //throw new Error("unknown function" + funcname);
 		}
@@ -277,7 +315,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		if (((FUNCTION) F).formals.size() != actuals.size()) {
         	System.exit(200);//throw new Error ("wrong number of parameters");
 		}
-
 		for(int i = 0; i < actuals.size(); i++){
 			ExprContext each = actuals.get(i);
 			visit(each);
@@ -521,7 +558,15 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitStat_return(@NotNull WaccParser.Stat_returnContext ctx) { 
     	System.out.println("visitStat_return");
 		visit(ctx.expr());
-		ctx.typename = ctx.expr().typename;
+		if (ctx.RETURN() != null) {
+			assert ctx.EXIT() == null;
+			ctx.typename = ctx.expr().typename;
+		}
+		else {
+			assert ctx.EXIT() != null;
+			ctx.typename = new NULL();
+		}
+		
 		if(currentTable.encSymTable == null) {
 			System.exit(200);
 		}
