@@ -479,8 +479,14 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitAssign_lhs_array(@NotNull WaccParser.Assign_lhs_arrayContext ctx) {
     	System.out.println("visitAssign_lhs_array");
 		visit(ctx.array_elem().ident());
-		ctx.typename = ctx.array_elem().ident().typename;
-		
+		System.out.println("arrayelem ident typename " + ctx.array_elem().ident().typename);
+		if (ctx.array_elem().ident().typename instanceof STRING) {
+			ctx.typename = new CHAR();
+		} else if (ctx.array_elem().ident().typename instanceof ARRAY_TYPE){
+			ctx.typename = ((ARRAY_TYPE)ctx.array_elem().ident().typename).TYPE();
+		} else {
+			ctx.typename = ctx.array_elem().ident().typename;
+		}
 		//IDENTIFIER x = currentTable.lookup(ctx.array_elem().ident().getText());
 		//ARRAY_TYPE xx = (ARRAY_TYPE) x;
 		//ctx.typename = xx.TYPE();
@@ -914,14 +920,15 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		return null; 
 	}
 	
-	@Override public T visitExpr_bin_bool_math(@NotNull WaccParser.Expr_bin_bool_mathContext ctx) {
+	@Override 
+	public T visitExpr_bin_bool_math_eq(@NotNull WaccParser.Expr_bin_bool_math_eqContext ctx) { 
 		System.out.println("visitExpr_bin_bool_math");
 		visit(ctx.math(0));
 		visit(ctx.math(1));
-		System.out.println("HERE: " + ctx.math(0).returntype);
-		System.out.println("THERE: " + ctx.math(1).returntype);
+
 		ctx.returntype = new BOOL();
 		ctx.argtype = new EQUALITY();
+		
 		if(!SharedMethods.assignCompat(ctx.math(0).returntype, ctx.math(1).returntype)) {
 			System.exit(200);
 		}
@@ -932,6 +939,35 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		}
 		return null; 
 	}
+
+	@Override 
+	public T visitExpr_bin_bool_math_moreless(@NotNull WaccParser.Expr_bin_bool_math_morelessContext ctx) { 
+		System.out.println("visitExpr_bin_bool_math");
+		visit(ctx.math(0));
+		visit(ctx.math(1));
+
+		if(ctx.math(0).returntype instanceof PAIR_TYPE || 
+				ctx.math(0).returntype instanceof ARRAY_TYPE ||
+				ctx.math(1).returntype instanceof PAIR_TYPE ||
+				ctx.math(1).returntype instanceof ARRAY_TYPE) {
+			System.exit(200);
+		}
+				
+		
+		ctx.returntype = new BOOL();
+		ctx.argtype = new EQUALITY();
+		
+		if(!SharedMethods.assignCompat(ctx.math(0).returntype, ctx.math(1).returntype)) {
+			System.exit(200);
+		}
+
+		if(!ctx.argtype.getClass().isAssignableFrom(ctx.math(0).returntype.getClass())) {
+
+			System.exit(200);
+		}
+		return null; 
+	}
+
 	
 	@Override public T visitExpr_bin_math(@NotNull WaccParser.Expr_bin_mathContext ctx) {
 		System.out.println("visitExpr_bin_math");
