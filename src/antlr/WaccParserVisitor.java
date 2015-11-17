@@ -274,6 +274,13 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAssign_rhs_pair_elem(@NotNull WaccParser.Assign_rhs_pair_elemContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code expr_bin_bool_math_eq}
+	 * labeled alternative in {@link WaccParser#bin_bool}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpr_bin_bool_math_eq(@NotNull WaccParser.Expr_bin_bool_math_eqContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code type_pairtype}
 	 * labeled alternative in {@link WaccParser#type}.
 	 * @param ctx the parse tree
@@ -425,6 +432,13 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitType_basetype(@NotNull WaccParser.Type_basetypeContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code expr_bin_bool_math_moreless}
+	 * labeled alternative in {@link WaccParser#bin_bool}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpr_bin_bool_math_moreless(@NotNull WaccParser.Expr_bin_bool_math_morelessContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code array_type_array}
 	 * labeled alternative in {@link WaccParser#array_type}.
 	 * @param ctx the parse tree
@@ -510,13 +524,6 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitType_arraytype(@NotNull WaccParser.Type_arraytypeContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code expr_bin_bool_math}
-	 * labeled alternative in {@link WaccParser#bin_bool}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitExpr_bin_bool_math(@NotNull WaccParser.Expr_bin_bool_mathContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link WaccParser#binary_oper}.
 	 * @param ctx the parse tree
