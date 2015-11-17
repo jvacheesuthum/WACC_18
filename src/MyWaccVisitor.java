@@ -156,7 +156,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 				ctx.funObj.formals.add(p.paramObj);
 			}
 			System.out.println("Before stat");
-			visit(ctx.stat());
+			if (!(ctx.stat() == null)){
+				visit(ctx.stat());
+			}
 			visit(ctx.stat_return());
 
 	//		System.out.println("typename: " + returntypename.getClass().toString());
