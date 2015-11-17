@@ -1,6 +1,9 @@
 import SemanticAnalyser.*;
 import antlr.WaccParser;
 import antlr.WaccParser.ExprContext;
+import antlr.WaccParser.FuncContext;
+import antlr.WaccParser.Func_ifContext;
+import antlr.WaccParser.Func_standardContext;
 import antlr.WaccParser.ParamContext;
 import antlr.WaccParser.StatContext;
 import antlr.WaccParser.Stat_returnContext;
@@ -70,6 +73,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
         if ((!SharedMethods.assignCompat(lhs.typename, rhs.typename)))  {
 //        	throw new Error("Assign not of the same type");
+            System.out.println("HERE");
         	System.exit(200);
         }
         
@@ -127,7 +131,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
       VARIABLE var = new VARIABLE(rhs.typename);
       currentTable.add(ctx.ident().getText(), var);
-
+      
   	  return null;
     }
 
@@ -135,7 +139,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     public T visitFunc_standard(@NotNull WaccParser.Func_standardContext ctx) {
     	System.out.println("visitFunc_std");
 		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
-		if(id != null) System.exit(200);
+		if(((FUNCTION) id).symtab != null) System.exit(200);
 
 		visit(ctx.type());
 
@@ -194,7 +198,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     public T visitFunc_if(@NotNull WaccParser.Func_ifContext ctx) {
     	System.out.println("visitFunc_if");
 		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
-		if(id != null) System.exit(200);
+		if(((FUNCTION) id).symtab != null) System.exit(200);
 
 		visit(ctx.type());
 
@@ -306,13 +310,17 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		List<ExprContext> actuals = ctx.arg_list().expr();
 
 		IDENTIFIER F = currentTable.lookupAllFunc(funcname);
+
 		if (F == null) {
+
+//			ctx.typename = 
         	System.exit(200); //throw new Error("unknown function" + funcname);
 		}
 		if (!(F instanceof FUNCTION)) {
         	System.exit(200); //throw new Error(funcname + "is not a function");
 		}
 		if (((FUNCTION) F).formals.size() != actuals.size()) {
+
         	System.exit(200);//throw new Error ("wrong number of parameters");
 		}
 		for(int i = 0; i < actuals.size(); i++){
@@ -516,16 +524,21 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitAssign_lhs_array(@NotNull WaccParser.Assign_lhs_arrayContext ctx) {
     	System.out.println("visitAssign_lhs_array");
 		
+    	
     	visit(ctx.array_elem());
     	
+    	ctx.typename = ctx.array_elem().typename;
+    	
+    	/*
     	TYPE temp_type = ctx.array_elem().typename;
+    	System.out.println("temp_type: " + temp_type.getClass().toString());
     	
     	if(temp_type instanceof STRING){
     		ctx.typename = new CHAR();
     	} else{
     		ctx.typename = temp_type;
     	}
-    	
+    	*/
     	
     	/*
     	visit(ctx.array_elem().ident());
@@ -538,7 +551,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 			ctx.typename = ctx.array_elem().ident().typename;
 		}
 		*/
-		
 		
 		//IDENTIFIER x = currentTable.lookup(ctx.array_elem().ident().getText());
 		//ARRAY_TYPE xx = (ARRAY_TYPE) x;
@@ -782,12 +794,61 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	}
 
 	@Override public T visitArray_elem(@NotNull WaccParser.Array_elemContext ctx) { 
-		VARIABLE array = (VARIABLE) currentTable.lookup(ctx.ident().getText());
-		ctx.typename = ((ARRAY_TYPE)array.TYPE()).TYPE();
+		VARIABLE array_or_string = (VARIABLE) currentTable.lookup(ctx.ident().getText());
+		
+		if(array_or_string.TYPE() instanceof STRING){
+		  System.out.println("ITS A STRING");
+		  ctx.typename = new CHAR();
+		}
+		else{
+		  ctx.typename = ((ARRAY_TYPE)array_or_string.TYPE()).TYPE();
+		}
 		return null;
 	}
 
 	@Override public T visitProgram(@NotNull WaccParser.ProgramContext ctx) { 
+
+		List<FuncContext> list = ctx.func();
+		for(FuncContext func : list) {
+			try {
+				Func_standardContext f = (Func_standardContext) func;
+				System.out.println("IDENT: " + f.ident().getText());
+				visit(f.type());
+				FUNCTION newFunc = new FUNCTION(f.type().typename);
+				if(f.param_list() != null){
+					currentTable = new SymbolTable(currentTable);
+					visit(f.param_list());
+					currentTable = currentTable.encSymTable;
+					
+					List <ParamContext> params = f.param_list().param();
+					for(ParamContext p : params){
+						newFunc.formals.add(p.paramObj);
+					}
+				} 
+
+				currentTable.funcadd(f.ident().getText(), newFunc);
+			} catch (ClassCastException e) {
+				Func_ifContext f = (Func_ifContext) func;
+				System.out.println("IDENT: " + f.ident().getText());
+				visit(f.type());
+				FUNCTION newFunc = new FUNCTION(f.type().typename);
+				if(f.param_list() != null){
+					currentTable = new SymbolTable(currentTable);
+					visit(f.param_list());
+					currentTable = currentTable.encSymTable;
+					
+					List <ParamContext> params = f.param_list().param();
+					for(ParamContext p : params){
+						newFunc.formals.add(p.paramObj);
+					}
+				} 
+
+				currentTable.funcadd(f.ident().getText(), newFunc);
+			}
+			
+
+			
+		}
 		visitChildren(ctx);
 		//visit(ctx.func(0));
 		//visit(ctx.stat());
@@ -1059,9 +1120,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitExpr_bin_math_atom(@NotNull WaccParser.Expr_bin_math_atomContext ctx) {
 		System.out.println("visitExpr_bin_math_atom");
 		visit(ctx.atom(0));
-		System.out.println("HERE");
 		visit(ctx.atom(1));
-		System.out.println("THERE");
 		ctx.returntype = new INT();
 		ctx.argtype = new INT();
 		if(!SharedMethods.assignCompat(ctx.atom(0).typename, ctx.argtype)) {
