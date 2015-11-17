@@ -801,6 +801,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		List<TerminalNode> list = ctx.INTEGER();
 		Iterator<TerminalNode> it = list.iterator();
 		String number = "";
+		if (ctx.int_sign() != null) {
+			number = number + "-";
+		}
 		while (it.hasNext()) {
 			number = number + it.next().getText();
 		}
