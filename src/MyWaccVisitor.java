@@ -849,7 +849,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 			System.exit(200);
 		}
 		System.out.println("argtype " + ctx.argtype.getClass());
-		System.out.println("mat0 " + ctx.math(0).getClass());
+		System.out.println("mat0 " + ctx.math(0).returntype);
 
 		if(!ctx.argtype.getClass().isAssignableFrom(ctx.math(0).returntype.getClass())) {
 			System.out.println("isAssignable error");

@@ -1,6 +1,6 @@
 package SemanticAnalyser;
 
-public class PAIR_TYPE extends TYPE{
+public class PAIR_TYPE extends EQUALITY {
 	TYPE t1;
 	TYPE t2;
 	
