@@ -843,12 +843,14 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		System.out.println("visitExpr_bin_bool_math");
 		visit(ctx.math(0));
 		visit(ctx.math(1));
+		System.out.println("HERE: " + ctx.math(0).returntype);
+		System.out.println("THERE: " + ctx.math(1).returntype);
 		ctx.returntype = new BOOL();
 		ctx.argtype = new EQUALITY();
 		if(!SharedMethods.assignCompat(ctx.math(0).returntype, ctx.math(1).returntype)) {
 			System.exit(200);
 		}
-		if(!ctx.argtype.getClass().isAssignableFrom(ctx.math(0).getClass())) {
+		if(!ctx.argtype.getClass().isAssignableFrom(ctx.math(0).returntype.getClass())) {
 			System.exit(200);
 		}
 		return null; 
