@@ -5,9 +5,10 @@ public class NULL extends TYPE {
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) {
-		// TODO Auto-generated method stub
 
+	@Override
+	public boolean equals(Object o) {
+		return true;
 	}
 
 }

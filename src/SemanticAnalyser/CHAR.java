@@ -1,5 +1,5 @@
 package SemanticAnalyser;
 
-public class CHAR extends TYPE {
+public class CHAR extends EQUALITY {
 
 }
