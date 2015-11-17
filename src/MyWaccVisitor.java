@@ -67,8 +67,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         System.out.println("lhs typename " + lhs.typename);
         System.out.println("rhs typename " + rhs.typename);
 
-        if ((!SharedMethods.assignCompat(lhs.typename, rhs.typename)) ||
-        		(!(lhs.typename instanceof STRING)) && !(rhs.typename instanceof CHAR)) {
+        if ((!SharedMethods.assignCompat(lhs.typename, rhs.typename)))  {
 //        	throw new Error("Assign not of the same type");
         	System.exit(200);
         }
