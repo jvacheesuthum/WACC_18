@@ -143,10 +143,11 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 			}
 			System.out.println("Before stat");
 			visit(ctx.stat());
+			visit(ctx.stat_return());
 
 	//		System.out.println("typename: " + returntypename.getClass().toString());
 //			System.out.println("typename: " + ctx.stat().typename.getClass().toString());
-			if(!SharedMethods.assignCompat(ctx.stat().typename, returntypename)) {//throw new Error("statement return type not match function return type!");
+			if(!SharedMethods.assignCompat(ctx.stat_return().typename, returntypename)) {//throw new Error("statement return type not match function return type!");
 	        	System.exit(200);
 			}
 			currentTable = currentTable.encSymTable;
@@ -156,8 +157,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 			currentTable = newST;
 
 			visit(ctx.stat());
+			visit(ctx.stat_return());
 
-			if(!SharedMethods.assignCompat(ctx.stat().typename, returntypename)) {//throw new Error("statement return type not match function return type");
+			if(!SharedMethods.assignCompat(ctx.stat_return().typename, returntypename)) {//throw new Error("statement return type not match function return type");
 
 				System.exit(200);
 			}

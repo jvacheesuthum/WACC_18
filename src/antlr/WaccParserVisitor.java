@@ -15,6 +15,12 @@ import org.antlr.v4.runtime.tree.ParseTreeVisitor;
  */
 public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	/**
+	 * Visit a parse tree produced by {@link WaccParser#atom}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitAtom(@NotNull WaccParser.AtomContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code pair_elem_fst}
 	 * labeled alternative in {@link WaccParser#pair_elem}.
 	 * @param ctx the parse tree
@@ -29,19 +35,19 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitStat_declare(@NotNull WaccParser.Stat_declareContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code stat_if}
-	 * labeled alternative in {@link WaccParser#stat}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitStat_if(@NotNull WaccParser.Stat_ifContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code stat_read}
 	 * labeled alternative in {@link WaccParser#stat}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitStat_read(@NotNull WaccParser.Stat_readContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code stat_if}
+	 * labeled alternative in {@link WaccParser#stat}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitStat_if(@NotNull WaccParser.Stat_ifContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code expr_char}
 	 * labeled alternative in {@link WaccParser#expr}.
@@ -84,8 +90,7 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFunc(@NotNull WaccParser.FuncContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code stat_return}
-	 * labeled alternative in {@link WaccParser#stat}.
+	 * Visit a parse tree produced by {@link WaccParser#stat_return}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
@@ -436,6 +441,12 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAssign_lhs_array(@NotNull WaccParser.Assign_lhs_arrayContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link WaccParser#math}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitMath(@NotNull WaccParser.MathContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code stat_free}
 	 * labeled alternative in {@link WaccParser#stat}.
 	 * @param ctx the parse tree
@@ -482,6 +493,12 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitAssign_rhs_newpair(@NotNull WaccParser.Assign_rhs_newpairContext ctx);
+	/**
+	 * Visit a parse tree produced by {@link WaccParser#bool}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitBool(@NotNull WaccParser.BoolContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code bin_compare}
 	 * labeled alternative in {@link WaccParser#binary_oper}.

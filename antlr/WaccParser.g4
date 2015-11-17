@@ -47,6 +47,20 @@ locals[TYPE argtype, TYPE returntype]
 | OR #bin_logic
 ;
 
+atom
+locals[TYPE typename]
+: int_liter | bool_liter | char_liter | ident | OPEN_PARENTHESES expr CLOSE_PARENTHESES;
+
+math
+locals[TYPE typename]
+: math (MULTIPLY | DIVIDE | MOD | PLUS | MINUS) math
+| atom ((MULTIPLY | DIVIDE | MOD | PLUS | MINUS) atom)? ;
+
+bool
+locals[TYPE typename]
+: bool (AND | OR) bool
+| math ((GREATER | GREATER_EQUAL| LESS | LESS_EQUAL | IS_EQUAL | NOT_EQUAL) math)? ;
+
 unary_oper
 locals[TYPE argtype, TYPE returntype]
 : NOT #unary_not
@@ -66,7 +80,7 @@ locals[TYPE typename]
 | ident #expr_ident
 | array_elem #expr_array_elem
 | unary_oper expr #expr_unary
-| expr binary_oper expr #expr_binary
+| bool ((AND | OR) bool)? #expr_binary
 | OPEN_PARENTHESES expr CLOSE_PARENTHESES #expr_brackets
 ;
 
@@ -140,7 +154,6 @@ locals[TYPE typename]
 | assign_lhs EQUAL_ASSIGN assign_rhs	#stat_assign
 | READ assign_lhs 			#stat_read
 | FREE expr				#stat_free
-| RETURN expr				#stat_return
 | EXIT expr 				#stat_exit
 | PRINT expr				#stat_print
 | PRINTLN expr 				#stat_println
@@ -148,6 +161,11 @@ locals[TYPE typename]
 | WHILE expr DO stat DONE 		#stat_while
 | BEGIN stat END 			#stat_begin_end
 | stat SEMI_COLON stat			#stat_stat
+;
+
+stat_return
+locals[TYPE typename]
+: RETURN expr
 ;
 
 
@@ -159,7 +177,7 @@ param_list: param (COMMA param)* ;
 
 func
 locals[FUNCTION funObj]
-: type ident OPEN_PARENTHESES (param_list)? CLOSE_PARENTHESES IS stat END ;
+: type ident OPEN_PARENTHESES (param_list)? CLOSE_PARENTHESES IS (stat SEMI_COLON)? stat_return END ;
 
 // EOF indicates that the program must consume to the end of the input.
 program: BEGIN (func)* stat END EOF;
