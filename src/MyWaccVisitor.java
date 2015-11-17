@@ -933,9 +933,12 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		if(ctx.expr().typename == null) {
 			System.exit(200);
 		}
-		if(!SharedMethods.assignCompat(ctx.unary_oper().argtype, ctx.expr().typename)) {
+		//if(!SharedMethods.assignCompat(ctx.unary_oper().argtype, ctx.expr().typename)) {
+		//FIXED for array length -> if fuck up change the if con
+		if(!((ctx.unary_oper().argtype.getClass()) == (ctx.expr().typename.getClass()))){
 			System.exit(200);
 		}
+	
 		ctx.typename = ctx.unary_oper().returntype;
 		return null;
 	}
@@ -950,7 +953,8 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	
 	@Override public T visitUnary_len(@NotNull WaccParser.Unary_lenContext ctx) { //ARRAY TYPE CHECK!!!
 		System.out.println("Unary_len");
-		ctx.argtype = new ARRAY_TYPE(ctx.argtype); ctx.returntype = new INT(); return null; }
+		System.out.println("argtype before " + ctx.argtype);
+		ctx.argtype = new ARRAY_TYPE(new NULL()); ctx.returntype = new INT(); return null; }
 	
 	@Override public T visitUnary_chr(@NotNull WaccParser.Unary_chrContext ctx) { 
 		System.out.println("Unary_chr");
