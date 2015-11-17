@@ -254,6 +254,8 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     
 	@Override public T visitLayer_s_s(@NotNull WaccParser.Layer_s_sContext ctx) {
 		System.out.println("visitLayer_s_s");
+		currentTable = new SymbolTable(currentTable);
+
 		if (ctx.stat(0) != null) {
 			visit(ctx.stat(0));
 		}
@@ -266,11 +268,15 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         	System.exit(200);
 		}
 		ctx.typename = ctx.stat_return(0).typename;
+
+		currentTable = currentTable.encSymTable;
 		return null;
 	}
 	
 	@Override public T visitLayer_i_i(@NotNull WaccParser.Layer_i_iContext ctx) {
 		System.out.println("visitLayer_i_i");
+		currentTable = new SymbolTable(currentTable);
+
 		if (ctx.stat(0) != null) {
 			visit(ctx.stat(0));
 		}
@@ -283,11 +289,15 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         	System.exit(200);
 		}
 		ctx.typename = ctx.if_layers(0).typename;
+
+		currentTable = currentTable.encSymTable;
 		return null;
 	}
 	
 	@Override public T visitLayer_s_i(@NotNull WaccParser.Layer_s_iContext ctx) {
 		System.out.println("visitLayer_s_i");
+		currentTable = new SymbolTable(currentTable);
+
 		if (ctx.stat(0) != null) {
 			visit(ctx.stat(0));
 		}
@@ -300,6 +310,8 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         	System.exit(200);
 		}
 		ctx.typename = ctx.stat_return().typename;
+
+		currentTable = currentTable.encSymTable;
 		return null;
 	}
 
@@ -380,17 +392,26 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 	@Override public T visitStat_if(@NotNull WaccParser.Stat_ifContext ctx) { 
     	System.out.println("visitStat_if");
-		List<StatContext> stats = ctx.stat();
 		visit(ctx.expr());
 		System.out.println("expr = "+ ctx.expr().toString());
-		if ((ctx.expr().typename != currentTable.lookup("bool")) &&
-				!(ctx.expr().typename instanceof BOOL)){
-        	System.exit(200);//throw new Error("If condition is not of type bool.");
+//		if ((ctx.expr().typename != currentTable.lookupAll("bool")) &&
+	//			!(ctx.expr().typename instanceof BOOL)){
+      //  	System.exit(200);//throw new Error("If condition is not of type bool.");
+		//}
+		if(!(SharedMethods.assignCompat(ctx.expr().typename, new BOOL()))){
+			System.out.print("if condition is not of type bool");
+			System.exit(200);
 		}
-		for (StatContext s : stats){
-			visit(s);
-		}
-		ctx.typename = stats.get(0).typename;
+
+		currentTable = new SymbolTable(currentTable);
+		visit(ctx.stat(0));
+		currentTable = currentTable.encSymTable;
+		
+		currentTable = new SymbolTable(currentTable);
+		visit(ctx.stat(1));
+		currentTable = currentTable.encSymTable;
+		
+		ctx.typename = ctx.stat(0).typename;
 		return null;
 	}
 
@@ -794,7 +815,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	}
 
 	@Override public T visitArray_elem(@NotNull WaccParser.Array_elemContext ctx) { 
-		VARIABLE array_or_string = (VARIABLE) currentTable.lookup(ctx.ident().getText());
+		VARIABLE array_or_string = (VARIABLE) currentTable.lookupAll(ctx.ident().getText());
 		
 		if(array_or_string.TYPE() instanceof STRING){
 		  System.out.println("ITS A STRING");
@@ -828,7 +849,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 				currentTable.funcadd(f.ident().getText(), newFunc);
 			} catch (ClassCastException e) {
-				Func_ifContext f = (Func_ifContext) func;
+				Func_ifContext f = (Func_ifContext) func;currentTable = new SymbolTable(currentTable);
 				System.out.println("IDENT: " + f.ident().getText());
 				visit(f.type());
 				FUNCTION newFunc = new FUNCTION(f.type().typename);
