@@ -79,15 +79,8 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
       System.out.println("SEP: ");
       visit(ctx.type());
 
-<<<<<<< HEAD
       System.out.println("declare rhs: " + rhs.typename);
       System.out.println("declare lhs: " + ctx.type().typename);
-=======
-      System.out.println("rhs: " + rhs.typename);
-      System.out.println("lhs: " + ctx.type().typename);
-//      System.out.println("rhs elem1: " + ((PAIR_TYPE)rhs.typename).firstType());
-//      System.out.println("lhs elem1: " + ((PAIR_TYPE)ctx.type().typename).firstType());
->>>>>>> refs/remotes/origin/master
       
       //---------------------- catching declaration of array with empty array ie int[] x = [] should be fine
       
@@ -108,12 +101,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
       
       if(!SharedMethods.assignCompat(ctx.type().typename, rhs.typename)) {
  //   	  throw new Error("Different type");
-<<<<<<< HEAD
         
           System.out.println("declare Different Type");
-=======
 
->>>>>>> refs/remotes/origin/master
       	  System.exit(200);
       }
 
