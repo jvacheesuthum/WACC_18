@@ -52,6 +52,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
         WaccParser.Assign_rhsContext rhs = ctx.assign_rhs();
 
         visit(lhs);    
+
         visit(rhs);
         
         if (!SharedMethods.assignCompat(lhs.typename, rhs.typename)) {
@@ -152,8 +153,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 			currentTable = currentTable.encSymTable;
 		}
 		else{
+
 			currentTable = newST;
-			//System.out.println("HERE");
+
 			visit(ctx.stat());
 
 			if(!SharedMethods.assignCompat(ctx.stat().typename, returntypename)) {//throw new Error("statement return type not match function return type");
@@ -350,7 +352,10 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	
 	@Override public T visitAssign_lhs_ident(@NotNull WaccParser.Assign_lhs_identContext ctx) { 
     	System.out.println("visitAssign_lhs_ident");
+
 		IDENTIFIER id = currentTable.lookupAll(ctx.getText());
+
+
 		if(id == null) System.out.println("LHS IS NULLLLL");	////REMOVE
 		if(id instanceof VARIABLE){
 			ctx.typename = ((VARIABLE) id).TYPE();
@@ -525,7 +530,13 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		System.out.println("visitStat_begin_end");
 		SymbolTable table = new SymbolTable(currentTable);
 		currentTable = table;
+
+//		SymbolTable temp = currentTable;
+//		SymbolTable table = new SymbolTable(null);
+//		currentTable = table;
 		visit(ctx.stat());
+//		currentTable = temp;
+//		currentTable.encSymTable = null;
 		currentTable = table.encSymTable;
 		return null; 
 	}
@@ -623,6 +634,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitStat_print(@NotNull WaccParser.Stat_printContext ctx) {
 		System.out.println("visitStat_print");
 		visit(ctx.expr());
+		if(ctx.expr().typename == null) {
+			System.exit(200);
+		}
 //		if !(ctx.typename.instanceof(string,char,array,int,bool,pair)) throw 
 //		new Error("Cannot print Expression of type" + ctx.typename.toString());
 		//have to override tostring in TYPE class
@@ -634,6 +648,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitStat_println(@NotNull WaccParser.Stat_printlnContext ctx) {
 		System.out.println("visitStat_println");
 		visit(ctx.expr());
+		if(ctx.expr().typename == null) {
+			System.exit(200);
+		}
 //		if !(ctx.typename.instanceof(string,char,array,int,bool,pair)) throw 
 //		new Error("Cannot print Expression of type" + ctx.typename.toString());
 		//have to override tostring in TYPE class

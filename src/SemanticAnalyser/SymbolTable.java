@@ -25,13 +25,21 @@ public class SymbolTable {
 	public IDENTIFIER lookupAll(String name) {
 		SymbolTable st = this;
 		IDENTIFIER obj;
+
+		if(this.encSymTable != null) {
+
+		}
 		while (st != null) {
+
 			obj = st.lookup(name);
 			if(obj != null) {
 				return obj;
 			}
-			st = encSymTable;
+
+			st = st.encSymTable;
+
 		}
+
 		return null;
 	}
 }
