@@ -725,7 +725,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		System.out.println("visitExpr_binary");
 		visit(ctx.expr(0));
 		visit(ctx.expr(1));
-		System.out.println("HERE");
+
+		visit(ctx.binary_oper());
+
 		if(ctx.expr(0).typename == null || ctx.expr(1).typename == null) {
 			System.exit(200);
 		}
