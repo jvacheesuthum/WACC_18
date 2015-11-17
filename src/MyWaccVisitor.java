@@ -129,9 +129,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		ctx.funObj = new FUNCTION(returntypename);
 		currentTable.funcadd(ctx.ident().getText(), ctx.funObj);
 		ctx.funObj.symtab = newST;
+		currentTable = newST;
 		
 		if(ctx.param_list() != null){
-			currentTable = newST;
 			visit(ctx.param_list());
 
 			List <ParamContext> params = ctx.param_list().param();
@@ -139,20 +139,8 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 				ctx.funObj.formals.add(p.paramObj);
 			}
 			if (prints) System.out.println("Before stat");
-			if (!(ctx.stat() == null)){
-				visit(ctx.stat());
-			}
-			visit(ctx.stat_return());
-
-
-			if(!SharedMethods.assignCompat(ctx.stat_return().typename, returntypename)) {
-	        	System.exit(200);
-			}
-			currentTable = currentTable.encSymTable;
 		}
-		else{
-
-			currentTable = newST;
+			
 
 			if (!(ctx.stat() == null)){
 				visit(ctx.stat());
@@ -165,7 +153,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 			}
 			
 			currentTable = currentTable.encSymTable;
-		}
 		return null;
     }
     
@@ -186,9 +173,10 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		ctx.funObj = new FUNCTION(returntypename);
 		currentTable.funcadd(ctx.ident().getText(), ctx.funObj);
 		ctx.funObj.symtab = newST;
+		currentTable = newST;
 		
 		if(ctx.param_list() != null){
-			currentTable = newST;
+
 			visit(ctx.param_list());
 
 			List <ParamContext> params = ctx.param_list().param();
@@ -196,32 +184,18 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 				ctx.funObj.formals.add(p.paramObj);
 			}
 			if (prints) System.out.println("Before stat");
-			if (ctx.stat() != null) {
-				visit(ctx.stat());
-			}
-			visit(ctx.if_layers());
-			
-			if (!SharedMethods.assignCompat(ctx.if_layers().typename, returntypename)){
-	        	System.exit(200);
-			}
-
-			currentTable = currentTable.encSymTable;
 		}
-		else{
-
-			currentTable = newST;
-
-			if (ctx.stat() != null) {
-				visit(ctx.stat());
-			}
-			visit(ctx.if_layers());
-			
-			if (!SharedMethods.assignCompat(ctx.if_layers().typename, returntypename)){
-	        	System.exit(200);
-			}
-			
-			currentTable = currentTable.encSymTable;
+		
+		if (ctx.stat() != null) {
+			visit(ctx.stat());
 		}
+		visit(ctx.if_layers());
+		
+		if (!SharedMethods.assignCompat(ctx.if_layers().typename, returntypename)){
+        	System.exit(200);
+		}
+
+		currentTable = currentTable.encSymTable;
 		return null;
     }
     
