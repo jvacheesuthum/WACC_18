@@ -479,16 +479,21 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitAssign_lhs_array(@NotNull WaccParser.Assign_lhs_arrayContext ctx) {
     	System.out.println("visitAssign_lhs_array");
 		
+    	
     	visit(ctx.array_elem());
     	
+    	ctx.typename = ctx.array_elem().typename;
+    	
+    	/*
     	TYPE temp_type = ctx.array_elem().typename;
+    	System.out.println("temp_type: " + temp_type.getClass().toString());
     	
     	if(temp_type instanceof STRING){
     		ctx.typename = new CHAR();
     	} else{
     		ctx.typename = temp_type;
     	}
-    	
+    	*/
     	
     	/*
     	visit(ctx.array_elem().ident());
@@ -736,8 +741,15 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	}
 
 	@Override public T visitArray_elem(@NotNull WaccParser.Array_elemContext ctx) { 
-		VARIABLE array = (VARIABLE) currentTable.lookup(ctx.ident().getText());
-		ctx.typename = ((ARRAY_TYPE)array.TYPE()).TYPE();
+		VARIABLE array_or_string = (VARIABLE) currentTable.lookup(ctx.ident().getText());
+		
+		if(array_or_string.TYPE() instanceof STRING){
+		  System.out.println("ITS A STRING");
+		  ctx.typename = new CHAR();
+		}
+		else{
+		  ctx.typename = ((ARRAY_TYPE)array_or_string.TYPE()).TYPE();
+		}
 		return null;
 	}
 
