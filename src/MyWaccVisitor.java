@@ -2,6 +2,7 @@ import SemanticAnalyser.*;
 import antlr.WaccParser;
 import antlr.WaccParser.ExprContext;
 import antlr.WaccParser.FuncContext;
+import antlr.WaccParser.Func_ifContext;
 import antlr.WaccParser.Func_standardContext;
 import antlr.WaccParser.ParamContext;
 import antlr.WaccParser.StatContext;
@@ -197,7 +198,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     public T visitFunc_if(@NotNull WaccParser.Func_ifContext ctx) {
     	System.out.println("visitFunc");
 		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
-		if(id != null) System.exit(200);
+		if(((FUNCTION) id).symtab != null) System.exit(200);
 
 		visit(ctx.type());
 
@@ -763,22 +764,43 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 		List<FuncContext> list = ctx.func();
 		for(FuncContext func : list) {
-			Func_standardContext f = (Func_standardContext) func;
-			System.out.println("IDENT: " + f.ident().getText());
-			visit(f.type());
-			FUNCTION newFunc = new FUNCTION(f.type().typename);
-			if(f.param_list() != null){
-				currentTable = new SymbolTable(currentTable);
-				visit(f.param_list());
-				currentTable = currentTable.encSymTable;
-				
-				List <ParamContext> params = f.param_list().param();
-				for(ParamContext p : params){
-					newFunc.formals.add(p.paramObj);
-				}
-			} 
+			try {
+				Func_standardContext f = (Func_standardContext) func;
+				System.out.println("IDENT: " + f.ident().getText());
+				visit(f.type());
+				FUNCTION newFunc = new FUNCTION(f.type().typename);
+				if(f.param_list() != null){
+					currentTable = new SymbolTable(currentTable);
+					visit(f.param_list());
+					currentTable = currentTable.encSymTable;
+					
+					List <ParamContext> params = f.param_list().param();
+					for(ParamContext p : params){
+						newFunc.formals.add(p.paramObj);
+					}
+				} 
 
-			currentTable.funcadd(f.ident().getText(), newFunc);
+				currentTable.funcadd(f.ident().getText(), newFunc);
+			} catch (ClassCastException e) {
+				Func_ifContext f = (Func_ifContext) func;
+				System.out.println("IDENT: " + f.ident().getText());
+				visit(f.type());
+				FUNCTION newFunc = new FUNCTION(f.type().typename);
+				if(f.param_list() != null){
+					currentTable = new SymbolTable(currentTable);
+					visit(f.param_list());
+					currentTable = currentTable.encSymTable;
+					
+					List <ParamContext> params = f.param_list().param();
+					for(ParamContext p : params){
+						newFunc.formals.add(p.paramObj);
+					}
+				} 
+
+				currentTable.funcadd(f.ident().getText(), newFunc);
+			}
+			
+
 			
 		}
 		visitChildren(ctx);
