@@ -480,8 +480,11 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitAssign_lhs_array(@NotNull WaccParser.Assign_lhs_arrayContext ctx) {
     	System.out.println("visitAssign_lhs_array");
 		visit(ctx.array_elem().ident());
+		System.out.println("arrayelem ident typename " + ctx.array_elem().ident().typename);
 		if (ctx.array_elem().ident().typename instanceof STRING) {
 			ctx.typename = new CHAR();
+		} else if (ctx.array_elem().ident().typename instanceof ARRAY_TYPE){
+			ctx.typename = ((ARRAY_TYPE)ctx.array_elem().ident().typename).TYPE();
 		} else {
 			ctx.typename = ctx.array_elem().ident().typename;
 		}
@@ -805,6 +808,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		List<TerminalNode> list = ctx.INTEGER();
 		Iterator<TerminalNode> it = list.iterator();
 		String number = "";
+		if (ctx.int_sign() != null) {
+			number = number + "-";
+		}
 		while (it.hasNext()) {
 			number = number + it.next().getText();
 		}
