@@ -178,7 +178,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 			visit(ctx.stat_return());
 
 			if(!SharedMethods.assignCompat(ctx.stat_return().typename, returntypename)) {//throw new Error("statement return type not match function return type");
-			System.out.println("typename STAT = " + ctx.stat().typename);
+//			System.out.println("typename STAT = " + ctx.stat().typename);
 
 				System.exit(200);
 			}
@@ -879,12 +879,15 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitExpr_bin_math_atom(@NotNull WaccParser.Expr_bin_math_atomContext ctx) {
 		System.out.println("visitExpr_bin_math_atom");
 		visit(ctx.atom(0));
+		System.out.println("HERE");
 		visit(ctx.atom(1));
+		System.out.println("THERE");
 		ctx.returntype = new INT();
 		ctx.argtype = new INT();
 		if(!SharedMethods.assignCompat(ctx.atom(0).typename, ctx.argtype)) {
 			System.exit(200);
 		}
+		System.out.println("HERE: " + ctx.atom(1).typename);
 		if(!SharedMethods.assignCompat(ctx.atom(1).typename, ctx.argtype)) {
 			System.exit(200);
 		}
