@@ -451,6 +451,10 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		System.out.println("visitPair_elem_fst");
 
 		visit(ctx.expr());
+		if(ctx.expr().typename instanceof NULL) {
+			ctx.typename = new NULL();
+			return null;
+		}
 		PAIR_TYPE pair = (PAIR_TYPE) ctx.expr().typename;
 		ctx.typename = pair.firstType();
 		return null; 
@@ -461,6 +465,10 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		System.out.println("visitPair_elem_snd");
 		visit(ctx.expr());
 //		ctx.typename = ctx.expr().typename;
+		if(ctx.expr().typename instanceof NULL) {
+			ctx.typename = new NULL();
+			return null;
+		}
 		PAIR_TYPE pair = (PAIR_TYPE) ctx.expr().typename;
 		ctx.typename = pair.secondType();
 		return null; 
