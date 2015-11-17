@@ -88,6 +88,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
       visit(rhs);
       System.out.println("SEP: ");
       visit(ctx.type());
+      System.out.println("After visit declare lhs and rhs");
 
       System.out.println("declare rhs: " + rhs.typename);
       System.out.println("declare lhs: " + ctx.type().typename);
@@ -111,9 +112,6 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
       
       if(!SharedMethods.assignCompat(ctx.type().typename, rhs.typename)) {
  //   	  throw new Error("Different type");
-        
-          System.out.println("declare Different Type");
-
       	  System.exit(200);
       }
 
@@ -132,7 +130,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     @Override
     public T visitFunc(@NotNull WaccParser.FuncContext ctx) {
     	System.out.println("visitFunc");
-		IDENTIFIER id = currentTable.lookupAll(ctx.ident().getText());
+		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
 		if(id != null) System.exit(200);
 
 		visit(ctx.type());
@@ -144,7 +142,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 		//currentTable = newST;
 		ctx.funObj = new FUNCTION(returntypename);
-		currentTable.add(ctx.ident().getText(), ctx.funObj);
+		currentTable.funcadd(ctx.ident().getText(), ctx.funObj);
 		ctx.funObj.symtab = newST;
 		
 		if(ctx.param_list() != null){
@@ -189,7 +187,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		String funcname = ctx.ident().getText();
 		List<ExprContext> actuals = ctx.arg_list().expr();
 
-		IDENTIFIER F = currentTable.lookupAll(funcname);
+		IDENTIFIER F = currentTable.lookupAllFunc(funcname);
 
 		if (F == null) {
         	System.exit(200); //throw new Error("unknown function" + funcname);
@@ -219,7 +217,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override public T visitAssign_rhs_call_empty(@NotNull WaccParser.Assign_rhs_call_emptyContext ctx) {
     	System.out.println("visitAssign_rhs_	@Override public T visitAtom_char(@NotNull WaccParser.Atom_charContext ctx) { return visitChildren(ctx); }call_empty");
 		String funcname = ctx.ident().getText();
-		IDENTIFIER F = currentTable.lookupAll(funcname);
+		IDENTIFIER F = currentTable.lookupAllFunc(funcname);
 
 		if (F == null) {
         	System.exit(200);//throw new Error("unknown function" + funcname);
@@ -345,7 +343,9 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
         	System.exit(200);//throw new Error("while condition is not of type bool.");
 		}
+
 		visit(ctx.stat());
+
 		return null; 
 	}
 
@@ -359,8 +359,12 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		return null;
 		
 		*/
-		
+
 		System.out.println("visitIdent");
+		if(ctx.getText().equals("null")) {
+			ctx.typename = new NULL();
+			return null;
+		}
 		IDENTIFIER id = currentTable.lookupAll(ctx.getText());
 		if(id == null) System.out.println("visitIndent: LHS IS NULLLLL");	//REMOVE
 		if(id instanceof VARIABLE){
@@ -609,13 +613,15 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	}
 
 	@Override public T visitStat_free(@NotNull WaccParser.Stat_freeContext ctx) {
+		System.out.println("visitStat_free");
 		visit(ctx.expr());
 		ctx.typename = ctx.expr().typename;
 		if(ctx.typename instanceof NULL) {
 
 			return null;
 		}
-		if (!(ctx.typename instanceof PAIR_TYPE) || !(ctx.typename instanceof ARRAY_TYPE)){
+		if (!(ctx.typename instanceof PAIR_TYPE) && !(ctx.typename instanceof ARRAY_TYPE)){
+
         	System.exit(200);//throw new Error("Cannot free TYPE " + ctx.typename.toString() + ", ARRAY_TYPE or PAIR_TYPE expected.");
 		}
 
@@ -763,10 +769,12 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 		ctx.typename = ctx.ident().typename;
 		String id = ctx.ident().getText();
-		if(ctx.typename == null) {
+
+		if(ctx.typename == null || ctx.typename instanceof NULL) {
 			return null;
 		}
 		//also check if the ident has been declared
+
 		if (currentTable.lookupAll(id) == null) System.exit(200);//throw new Error(id + "has not been declared");
 		// do we have static variable in Wacc language. ^this would not support static var usage in stat in function declaration
 
