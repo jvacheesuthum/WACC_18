@@ -160,7 +160,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 			currentTable = newST;
 
 			visit(ctx.stat());
-
+			System.out.println("typename STAT = " + ctx.stat().typename);
 			if(!SharedMethods.assignCompat(ctx.stat().typename, returntypename)) {//throw new Error("statement return type not match function return type");
 
 				System.exit(200);
@@ -255,6 +255,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		for (StatContext s : stats){
 			visit(s);
 		}
+		ctx.typename = stats.get(0).typename;
 		return null;
 	}
 
@@ -794,7 +795,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	
 	@Override public T visitBin_compare(@NotNull WaccParser.Bin_compareContext ctx) { 
 		System.out.println("visitBin_compare");
-		ctx.argtype = new INT(); ctx.returntype = new BOOL(); return null; }
+		ctx.argtype = new EQUALITY(); ctx.returntype = new BOOL(); return null; }
 	
 	@Override public T visitBin_logic(@NotNull WaccParser.Bin_logicContext ctx) { 
 		System.out.println("visitBin_logic");
