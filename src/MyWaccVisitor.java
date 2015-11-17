@@ -70,6 +70,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
         if ((!SharedMethods.assignCompat(lhs.typename, rhs.typename)))  {
 //        	throw new Error("Assign not of the same type");
+            System.out.println("HERE");
         	System.exit(200);
         }
         
