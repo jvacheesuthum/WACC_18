@@ -21,14 +21,14 @@ import java.util.List;
 public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     SymbolTable currentTable = new SymbolTable(null);
     
-    public MyWaccVisitor() {
+/*    public MyWaccVisitor() {
         currentTable.add("int",new TYPE());
         currentTable.add("char",new TYPE());
         currentTable.add("bool",new TYPE());
         currentTable.add("string", new TYPE());
         currentTable.add("array", new TYPE());
         currentTable.add("pair", new TYPE());
-    }
+    } */
 
 
     @Override 
@@ -483,10 +483,15 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     	System.out.println("visitStat_while");
 		visit(ctx.expr());
 
-		if ((ctx.expr().typename != currentTable.lookup("bool")) &&
+		/*if ((ctx.expr().typename != currentTable.lookup("bool")) &&
 				!(ctx.expr().typename instanceof BOOL)){
 
         	System.exit(200);//throw new Error("while condition is not of type bool.");
+		}*/
+		
+		if(!(SharedMethods.assignCompat(ctx.expr().typename, new BOOL()))){
+			System.out.print("if condition is not of type bool");
+			System.exit(200);
 		}
 
 		visit(ctx.stat());
