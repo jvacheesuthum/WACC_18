@@ -23,8 +23,8 @@ public class SharedMethods {
 	  
 	  
 		
-		System.out.println("AssignCompat lhs: " + lhs);
-		System.out.println("AssignCompat rhs: " + rhs);
+		System.out.println("AssignCompat lhs: " + lhs.getClass().toString());
+		System.out.println("AssignCompat rhs: " + rhs.getClass().toString());
 		if (rhs instanceof NULL || lhs instanceof NULL) {
 			return true;
 		}

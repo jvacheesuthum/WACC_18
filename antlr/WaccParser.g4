@@ -31,20 +31,42 @@ int_liter: (int_sign)? (INTEGER)+ ;
 array_elem: ident (OPEN_SQUARE_BRACKET expr CLOSE_SQUARE_BRACKET)+ ;
 
 binary_oper
+: MULTIPLY
+| DIVIDE
+| MOD
+| PLUS
+| MINUS
+| GREATER
+| GREATER_EQUAL
+| LESS
+| LESS_EQUAL
+| IS_EQUAL
+| NOT_EQUAL
+| AND
+| OR
+;
+
+atom
+locals[TYPE typename]
+: int_liter #atom_int
+| bool_liter #atom_bool
+| char_liter #atom_char
+| ident #atom_ident
+| OPEN_PARENTHESES expr CLOSE_PARENTHESES #atom_brackets
+;
+
+math
 locals[TYPE argtype, TYPE returntype]
-: MULTIPLY #bin_math
-| DIVIDE #bin_math
-| MOD #bin_math
-| PLUS #bin_math
-| MINUS #bin_math
-| GREATER #bin_compare
-| GREATER_EQUAL #bin_compare
-| LESS #bin_compare
-| LESS_EQUAL #bin_compare
-| IS_EQUAL #bin_bool
-| NOT_EQUAL #bin_bool
-| AND #bin_logic
-| OR #bin_logic
+: math (MULTIPLY | DIVIDE | MOD | PLUS | MINUS) math #expr_bin_math_math
+| atom (MULTIPLY | DIVIDE | MOD | PLUS | MINUS) atom #expr_bin_math_atom
+| atom #expr_bin_atom
+;
+
+bin_bool
+locals[TYPE argtype, TYPE returntype]
+: bin_bool (AND | OR) bin_bool #expr_bin_bool_bool
+| math (GREATER | GREATER_EQUAL| LESS | LESS_EQUAL | IS_EQUAL | NOT_EQUAL) math #expr_bin_bool_math
+| math #expr_bin_math
 ;
 
 unary_oper
@@ -66,7 +88,7 @@ locals[TYPE typename]
 | ident #expr_ident
 | array_elem #expr_array_elem
 | unary_oper expr #expr_unary
-| expr binary_oper expr #expr_binary
+| bin_bool #expr_binary
 | OPEN_PARENTHESES expr CLOSE_PARENTHESES #expr_brackets
 ;
 
@@ -140,7 +162,6 @@ locals[TYPE typename]
 | assign_lhs EQUAL_ASSIGN assign_rhs	#stat_assign
 | READ assign_lhs 			#stat_read
 | FREE expr				#stat_free
-| RETURN expr				#stat_return
 | EXIT expr 				#stat_exit
 | PRINT expr				#stat_print
 | PRINTLN expr 				#stat_println
@@ -148,6 +169,11 @@ locals[TYPE typename]
 | WHILE expr DO stat DONE 		#stat_while
 | BEGIN stat END 			#stat_begin_end
 | stat SEMI_COLON stat			#stat_stat
+;
+
+stat_return
+locals[TYPE typename]
+: RETURN expr
 ;
 
 
@@ -159,7 +185,7 @@ param_list: param (COMMA param)* ;
 
 func
 locals[FUNCTION funObj]
-: type ident OPEN_PARENTHESES (param_list)? CLOSE_PARENTHESES IS stat END ;
+: type ident OPEN_PARENTHESES (param_list)? CLOSE_PARENTHESES IS (stat SEMI_COLON)? stat_return END ;
 
 // EOF indicates that the program must consume to the end of the input.
 program: BEGIN (func)* stat END EOF;
