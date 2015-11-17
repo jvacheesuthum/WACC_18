@@ -87,8 +87,6 @@ WS: [ \r\n\t]+ -> skip ;
 
 ESCAPED_CHAR: '0' | 'b' | 't' | 'n' | 'f' | 'r' | SINGLE_QUOTATION | DOUBLE_QUOTATION | BACK_SLASH ;
 
-
-
 //comment
 fragment HASH : '#';
 COMMENT: HASH ~[\r\n]* EOL -> skip ;

@@ -6,10 +6,12 @@ import antlr.WaccParser.StatContext;
 import antlr.WaccParserBaseVisitor;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 //import sun.jvm.hotspot.debugger.cdbg.Sym;
 
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
@@ -697,7 +699,22 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 		return null; 
 	}
 
-	@Override public T visitInt_liter(@NotNull WaccParser.Int_literContext ctx) { return visitChildren(ctx); }
+	@Override public T visitInt_liter(@NotNull WaccParser.Int_literContext ctx) { 
+		List<TerminalNode> list = ctx.INTEGER();
+		Iterator<TerminalNode> it = list.iterator();
+		String number = "";
+		while (it.hasNext()) {
+			number = number + it.next().getText();
+		}
+		System.out.println("i got the number :" + number);
+		try {
+		Integer i = Integer.parseInt(number);
+		} catch (NumberFormatException e) {
+			System.out.println("Number exceed limit");
+			System.exit(100);
+		}
+		return null;
+	}
 
 	@Override public T visitStat_println(@NotNull WaccParser.Stat_printlnContext ctx) {
 		System.out.println("visitStat_println");
@@ -714,6 +731,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 	@Override 
 	public T visitExpr_int(@NotNull WaccParser.Expr_intContext ctx) { 
 		System.out.println("visitExpr_int");
+		visit(ctx.int_liter());
 		//ctx.typename = (TYPE) currentTable.lookup("int");
 		ctx.typename = new INT();
 		
