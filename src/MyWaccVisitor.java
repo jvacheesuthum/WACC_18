@@ -1,25 +1,36 @@
 import SemanticAnalyser.*;
+import backEnd.*;
 import antlr.WaccParser;
 import antlr.WaccParser.ExprContext;
 import antlr.WaccParser.FuncContext;
 import antlr.WaccParser.Func_ifContext;
 import antlr.WaccParser.Func_standardContext;
 import antlr.WaccParser.ParamContext;
-import antlr.WaccParser.StatContext;
-import antlr.WaccParser.Stat_returnContext;
 import antlr.WaccParserBaseVisitor;
+
 import org.antlr.v4.runtime.misc.NotNull;
-import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 //import sun.jvm.hotspot.debugger.cdbg.Sym;
 
 
+
+
+
+
+
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
     SymbolTable currentTable = new SymbolTable(null);
+    
+    List<Instruction> instrList = new ArrayList<Instruction>();
+    int stackTotal = 0;
+    Map<String, Integer> stackMap = new HashMap<String, Integer>();
     
     boolean prints = false;
 
@@ -108,11 +119,19 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
       VARIABLE var = new VARIABLE(rhs.typename);
       currentTable.add(ctx.ident().getText(), var);
+      PositionFragment position= new PositionFragment(typeSize(rhs.typename));
+      stackTotal += typeSize(rhs.typename);
+      instrList.add(new Instruction(Arrays.asList(new StringFragment("STR r4, [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
       
   	  return null;
     }
 
-    @Override
+    private int typeSize(TYPE typename) {
+		// TODO Auto-generated method stub
+		return 4;
+	}
+
+	@Override
     public T visitFunc_standard(@NotNull WaccParser.Func_standardContext ctx) {
     	if (prints) System.out.println("visitFunc_std");
 		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
@@ -746,12 +765,31 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 			
 		}
+		instrList.add(new Instruction("main:\nPUSH {lr}\n"));
+		VariableFragment total = new VariableFragment("total");
+		instrList.add(new Instruction(Arrays.asList(new StringFragment("SUB sp, sp"), total, new StringFragment("\n")), total));
 		visitChildren(ctx);
-
+		instrList.add(new Instruction(Arrays.asList(new StringFragment("ADD sp, sp"), total, new StringFragment("\n")), total));
+		instrList.add(new Instruction("LDR r0, =0\nPOP{pc}\n.ltorg"));
+		printInstructions();
 		return null; 
 	}
 
 	
+	private void printInstructions() {
+		stackMap.put("total", stackTotal);
+		for(Instruction instr: instrList) {
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, stackMap);
+			}
+			if (instr.needsVarPos()) {
+				instr.varsToPos(stackMap);
+			}
+			System.out.print(instr);
+		}
+		System.out.println();
+	}
+
 	@Override 
 	public T visitPair_elem_base_type(@NotNull WaccParser.Pair_elem_base_typeContext ctx) { 
 		if (prints) System.out.println("visitPair_elem_base_type");
@@ -820,6 +858,7 @@ public class MyWaccVisitor<T> extends WaccParserBaseVisitor<T> {
 
 		try {
 		Integer i = Integer.parseInt(number);
+	    instrList.add(new Instruction("LDR r4, =" + i + "\n"));
 		} catch (NumberFormatException e) {
 			if (prints) System.out.println("Number exceed limit");
 			System.exit(100);
