@@ -710,17 +710,17 @@ public class WaccParser extends Parser {
 		}
 	}
 	public static class Expr_bin_math_mathContext extends MathContext {
-		public List<MathContext> math() {
-			return getRuleContexts(MathContext.class);
+		public MathContext math() {
+			return getRuleContext(MathContext.class,0);
 		}
 		public TerminalNode MINUS() { return getToken(WaccParser.MINUS, 0); }
 		public TerminalNode MULTIPLY() { return getToken(WaccParser.MULTIPLY, 0); }
 		public TerminalNode PLUS() { return getToken(WaccParser.PLUS, 0); }
-		public MathContext math(int i) {
-			return getRuleContext(MathContext.class,i);
-		}
 		public TerminalNode DIVIDE() { return getToken(WaccParser.DIVIDE, 0); }
 		public TerminalNode MOD() { return getToken(WaccParser.MOD, 0); }
+		public AtomContext atom() {
+			return getRuleContext(AtomContext.class,0);
+		}
 		public Expr_bin_math_mathContext(MathContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
@@ -811,7 +811,7 @@ public class WaccParser extends Parser {
 					_errHandler.recoverInline(this);
 					}
 					consume();
-					setState(126); math(4);
+					setState(126); atom();
 					}
 					} 
 				}
@@ -3263,7 +3263,7 @@ public class WaccParser extends Parser {
 		"\2\2tl\3\2\2\2tm\3\2\2\2tn\3\2\2\2to\3\2\2\2tp\3\2\2\2u\27\3\2\2\2vw\b"+
 		"\r\1\2wx\5\26\f\2xy\t\5\2\2yz\5\26\f\2z}\3\2\2\2{}\5\26\f\2|v\3\2\2\2"+
 		"|{\3\2\2\2}\u0083\3\2\2\2~\177\f\5\2\2\177\u0080\t\5\2\2\u0080\u0082\5"+
-		"\30\r\6\u0081~\3\2\2\2\u0082\u0085\3\2\2\2\u0083\u0081\3\2\2\2\u0083\u0084"+
+		"\26\f\2\u0081~\3\2\2\2\u0082\u0085\3\2\2\2\u0083\u0081\3\2\2\2\u0083\u0084"+
 		"\3\2\2\2\u0084\31\3\2\2\2\u0085\u0083\3\2\2\2\u0086\u0087\b\16\1\2\u0087"+
 		"\u0088\5\30\r\2\u0088\u0089\t\6\2\2\u0089\u008a\5\30\r\2\u008a\u0091\3"+
 		"\2\2\2\u008b\u008c\5\30\r\2\u008c\u008d\t\7\2\2\u008d\u008e\5\30\r\2\u008e"+
