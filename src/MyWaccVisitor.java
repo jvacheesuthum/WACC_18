@@ -1063,7 +1063,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		visit(ctx.atom());
 		ctx.returntype = new INT();
 		ctx.argtype = new INT();
-		if(!SharedMethods.assignCompat(ctx.math(0).returntype, ctx.argtype)) {
+		if(!SharedMethods.assignCompat(ctx.math().returntype, ctx.argtype)) {
 			System.exit(200);
 		}
 		if(!SharedMethods.assignCompat(ctx.atom().typename, ctx.argtype)) {

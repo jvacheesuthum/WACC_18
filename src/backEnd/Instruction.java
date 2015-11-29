@@ -12,7 +12,7 @@ public class Instruction {
 	
 	public Instruction(String s) {
 		// when no variables and positions are needed
-		instructions = Arrays.asList(new StringFragment(s));
+		instructions = Arrays.asList((InstructionFragment)new StringFragment(s));
 	}
 	
 	public Instruction(List<InstructionFragment> instr, List<VariableFragment> vars){
