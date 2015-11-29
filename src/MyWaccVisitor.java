@@ -169,19 +169,54 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 			
 
-			if (!(ctx.stat() == null)){
-				visit(ctx.stat());
-			}
-			visit(ctx.stat_return());
+		if (!(ctx.stat() == null)){
+			visit(ctx.stat());
 
-			if(!SharedMethods.assignCompat(ctx.stat_return().typename, returntypename)) {
+			//backend
+			int tempTotal = stackTotal;
+			makeInstrReady();
+			//making a function block
+			String functionStr = "";
 
-				System.exit(200);
+			Iterator<Instruction> it = instrList.iterator();
+			while(it.hasNext()){
+				Instruction each = it.next();
+				if(!(each instanceof Instruction_Function)) {
+					functionStr += each.toString();
+				}
+				it.remove();
 			}
-			
-			currentTable = currentTable.encSymTable;
+
+			if(tempTotal > 0){
+				functionStr = "SUB sp, sp, #" + tempTotal + "\n" + functionStr + "ADD sp, sp, #" + tempTotal + "\n";
+			}
+
+			functionStr = ctx.ident().getText() + ":\n" + "PUSH {lr}\n" + functionStr + "POP {pc}\nPOP {pc}\n.ltorg\n";
+			instrList.add(new Instruction_Function(functionStr));
+			//backend end
+		}
+		visit(ctx.stat_return());
+
+		if(!SharedMethods.assignCompat(ctx.stat_return().typename, returntypename)) {
+
+			System.exit(200);
+		}
+
+		currentTable = currentTable.encSymTable;
 		return null;
     }
+
+	private void makeInstrReady(){
+		stackMap.put("total", stackTotal);
+		for(Instruction instr: instrList) {
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, stackMap);
+			}
+			if (instr.needsVarPos()) {
+				instr.varsToPos(stackMap);
+			}
+		}
+	}
     
     @Override
     public Info visitFunc_if(@NotNull WaccParser.Func_ifContext ctx) {
@@ -773,12 +808,12 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 			
 		}
-		instrList.add(new Instruction(".text\n\n.global main\nmain:\nPUSH {lr}\n"));
-		VariableFragment total = new VariableFragment("total");
-		instrList.add(new Instruction(Arrays.asList(new StringFragment("SUB sp, sp"), total, new StringFragment("\n")), total));
+		//instrList.add(new Instruction(".text\n\n.global main\nmain:\nPUSH {lr}\n"));
+		//VariableFragment total = new VariableFragment("total");
+		//instrList.add(new Instruction(Arrays.asList(new StringFragment("SUB sp, sp"), total, new StringFragment("\n")), total));
 		visitChildren(ctx);
-		instrList.add(new Instruction(Arrays.asList(new StringFragment("ADD sp, sp"), total, new StringFragment("\n")), total));
-		instrList.add(new Instruction("LDR r0, =0\nPOP{pc}\n.ltorg"));
+		//instrList.add(new Instruction(Arrays.asList(new StringFragment("ADD sp, sp"), total, new StringFragment("\n")), total));
+		//instrList.add(new Instruction("LDR r0, =0\nPOP{pc}\n.ltorg"));
 		printInstructions();
 		return null; 
 	}
