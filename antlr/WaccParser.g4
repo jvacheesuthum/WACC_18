@@ -59,7 +59,7 @@ locals[TYPE typename]
 
 math
 locals[TYPE argtype, TYPE returntype]
-: math (MULTIPLY | DIVIDE | MOD | PLUS | MINUS) math #expr_bin_math_math
+: math (MULTIPLY | DIVIDE | MOD | PLUS | MINUS) atom #expr_bin_math_atom
 | atom (MULTIPLY | DIVIDE | MOD | PLUS | MINUS) atom #expr_bin_math_atom
 | atom #expr_bin_atom
 ;

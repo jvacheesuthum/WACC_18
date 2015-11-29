@@ -51,10 +51,11 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	if (prints) System.out.println("visitStat_assign");
         WaccParser.Assign_lhsContext lhs = ctx.assign_lhs();
         WaccParser.Assign_rhsContext rhs = ctx.assign_rhs();
-
+        
+        // derek changed this to visit rhs first. don't know if it will mess up front end
+        visit(rhs);
         visit(lhs);    
 
-        visit(rhs);
         if(lhs.typename == null){
           if (prints) System.out.println("assign to unknown");
           System.exit(200);
@@ -486,6 +487,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 			ctx.typename = ((VARIABLE) id).TYPE();
 		}
+		
+		VariableFragment v = new VariableFragment(ctx.ident().getText());
+        if (typeSize(((WaccParser.Stat_assignContext)ctx.parent).assign_rhs().typename) == 1) {
+        	 instrList.add(new Instruction(Arrays.asList(new StringFragment("STRB r4, [sp"), v, new StringFragment("]\n")), v));
+          } else {
+        	 instrList.add(new Instruction(Arrays.asList(new StringFragment("STR r4, [sp"), v, new StringFragment("]\n")), v));
+          }
 	
 		return null;
 }
@@ -777,8 +785,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		VariableFragment total = new VariableFragment("total");
 		instrList.add(new Instruction(Arrays.asList(new StringFragment("SUB sp, sp"), total, new StringFragment("\n")), total));
 		visitChildren(ctx);
-		instrList.add(new Instruction(Arrays.asList(new StringFragment("ADD sp, sp"), total, new StringFragment("\n")), total));
-		instrList.add(new Instruction("LDR r0, =0\nPOP{pc}\n.ltorg"));
 		printInstructions();
 		return null; 
 	}
@@ -789,7 +795,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			System.out.print(instr);
 		}
 		System.out.println();
-		stackMap.put("total", stackTotal);
+		
+		if (stackTotal == 0) {
+			instrList.remove(1);
+		} else {
+			stackMap.put("total", stackTotal);
+			instrList.add(new Instruction("ADD sp, sp, #" + stackTotal +"\n"));
+		}
+		instrList.add(new Instruction("LDR r0, =0\nPOP{pc}\n.ltorg"));
 		for(Instruction instr: instrList) {
 			if (instr.toDeclare()) {
 				stackTotal = instr.allocateStackPos(stackTotal, stackMap);
@@ -948,7 +961,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 		if (currentTable.lookupAll(id) == null) System.exit(200);//throw new Error(id + "has not been declared");
 		// do we have static variable in Wacc language. ^this would not support static var usage in stat in function declaration
-
+		VariableFragment v = new VariableFragment(ctx.ident().getText());
+		instrList.add(new Instruction(Arrays.asList(new StringFragment("LDR r4, [sp"), v, new StringFragment("]\n")),v));
 		return null;
 	}
 	
@@ -1038,21 +1052,21 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	@Override public Info visitExpr_bin_math(@NotNull WaccParser.Expr_bin_mathContext ctx) {
 		if (prints) System.out.println("visitExpr_bin_math");
-		visit(ctx.math());
+		Info i = visit(ctx.math());
 		ctx.returntype = ctx.math().returntype;
-		return null; 
+		return i; 
 	}
 	
 	@Override public Info visitExpr_bin_math_math(@NotNull WaccParser.Expr_bin_math_mathContext ctx) {
 		if (prints) System.out.println("visitExpr_bin_math_math");
-		visit(ctx.math(0));
-		visit(ctx.math(1));
+		visit(ctx.math());
+		visit(ctx.atom());
 		ctx.returntype = new INT();
 		ctx.argtype = new INT();
 		if(!SharedMethods.assignCompat(ctx.math(0).returntype, ctx.argtype)) {
 			System.exit(200);
 		}
-		if(!SharedMethods.assignCompat(ctx.math(1).returntype, ctx.argtype)) {
+		if(!SharedMethods.assignCompat(ctx.atom().typename, ctx.argtype)) {
 			System.exit(200);
 		}
 		return null; 
@@ -1076,37 +1090,40 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	@Override public Info visitExpr_bin_atom(@NotNull WaccParser.Expr_bin_atomContext ctx) {
 		if (prints) System.out.println("visitExpr_bin_atom");
-		visit(ctx.atom());
+		Info i = visit(ctx.atom());
 		ctx.returntype = ctx.atom().typename;
-		return null; 
+		return i; 
 	}
 	
 	@Override public Info visitAtom_int(@NotNull WaccParser.Atom_intContext ctx) {
-		visit(ctx.int_liter());
 		ctx.typename = new INT();
-		return null;
+		return visit(ctx.int_liter());
 	}
 	
 	@Override public Info visitAtom_char(@NotNull WaccParser.Atom_charContext ctx) {
 		ctx.typename = new CHAR();
-		return null;
+		return (new Info(ctx.char_liter().CHARACTER().getText())).setType("char");
 	}
 	
 	@Override public Info visitAtom_bool(@NotNull WaccParser.Atom_boolContext ctx) {
 		ctx.typename = new BOOL();
-		return null;
+		boolean b = false;
+		if (ctx.bool_liter().TRUE() != null) {
+			b = true;
+		}
+		return new Info(b);
 	}
 	
 	@Override public Info visitAtom_ident(@NotNull WaccParser.Atom_identContext ctx) {
 		visit(ctx.ident());
 		ctx.typename = ctx.ident().typename;
-		return null;
+		return (new Info(ctx.ident().VARIABLE().getText())).setType("var");
 	}
 	
 	@Override public Info visitAtom_brackets(@NotNull WaccParser.Atom_bracketsContext ctx) {
 		visit(ctx.expr());
 		ctx.typename = ctx.expr().typename;
-		return null;
+		return (new Info("")).setType("brackets");
 	}
 	
 	
