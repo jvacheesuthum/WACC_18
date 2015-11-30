@@ -171,31 +171,33 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 		if (!(ctx.stat() == null)){
 			visit(ctx.stat());
-
-			//backend
-			int tempTotal = stackTotal;
-			makeInstrReady();
-			//making a function block
-			String functionStr = "";
-
-			Iterator<Instruction> it = instrList.iterator();
-			while(it.hasNext()){
-				Instruction each = it.next();
-				if(!(each instanceof Instruction_Function)) {
-					functionStr += each.toString();
-				}
-				it.remove();
-			}
-
-			if(tempTotal > 0){
-				functionStr = "SUB sp, sp, #" + tempTotal + "\n" + functionStr + "ADD sp, sp, #" + tempTotal + "\n";
-			}
-
-			functionStr = ctx.ident().getText() + ":\n" + "PUSH {lr}\n" + functionStr + "POP {pc}\nPOP {pc}\n.ltorg\n";
-			instrList.add(new Instruction_Function(functionStr));
-			//backend end
 		}
 		visit(ctx.stat_return());
+
+		//backend
+		assert stackTotal == 0 : "stackTotal not equals to 0 at the beginning of function declare";
+		final int tempTotal = stackTotal;
+		makeInstrReady();
+		//making a function block
+		String functionStr = "";
+
+		Iterator<Instruction> it = instrList.iterator();
+		while(it.hasNext()){
+			Instruction each = it.next();
+			if(!(each instanceof Instruction_Function)) {
+				functionStr += each.toString();
+				//System.out.println("EACH: " + each.toString());
+				it.remove();
+			}
+		}
+
+		if(tempTotal > 0){
+			functionStr = "SUB sp, sp, #" + tempTotal + "\n" + functionStr + "ADD sp, sp, #" + tempTotal + "\n";
+		}
+
+		functionStr = ctx.ident().getText() + ":\n" + "PUSH {lr}\n" + functionStr + "POP {pc}\nPOP {pc}\n.ltorg\n";
+		instrList.add(new Instruction_Function(functionStr));
+		//backend end
 
 		if(!SharedMethods.assignCompat(ctx.stat_return().typename, returntypename)) {
 
@@ -560,6 +562,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if(currentTable.encSymTable == null) {
 			System.exit(200);
 		}
+
+		instrList.add(new Instruction("MOV r0, r4\n"));
 		return null; 
 		
 	}
@@ -808,12 +812,16 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 			
 		}
-		//instrList.add(new Instruction(".text\n\n.global main\nmain:\nPUSH {lr}\n"));
-		//VariableFragment total = new VariableFragment("total");
-		//instrList.add(new Instruction(Arrays.asList(new StringFragment("SUB sp, sp"), total, new StringFragment("\n")), total));
-		visitChildren(ctx);
-		//instrList.add(new Instruction(Arrays.asList(new StringFragment("ADD sp, sp"), total, new StringFragment("\n")), total));
-		//instrList.add(new Instruction("LDR r0, =0\nPOP{pc}\n.ltorg"));
+		List<FuncContext> funcCon = ctx.func();
+		for(FuncContext each : funcCon){
+			visit(each);
+		}
+		instrList.add(new Instruction(".text\n\n.global main\nmain:\nPUSH {lr}\n"));
+		VariableFragment total = new VariableFragment("total");
+		instrList.add(new Instruction(Arrays.asList(new StringFragment("SUB sp, sp"), total, new StringFragment("\n")), total));
+		visitChildren(ctx.stat());
+		instrList.add(new Instruction(Arrays.asList(new StringFragment("ADD sp, sp"), total, new StringFragment("\n")), total));
+		instrList.add(new Instruction("LDR r0, =0\nPOP{pc}\n.ltorg"));
 		printInstructions();
 		return null; 
 	}
@@ -983,7 +991,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 		if (currentTable.lookupAll(id) == null) System.exit(200);//throw new Error(id + "has not been declared");
 		// do we have static variable in Wacc language. ^this would not support static var usage in stat in function declaration
-
+		VariableFragment varLocation= new VariableFragment(ctx.ident().getText());
+		instrList.add(new Instruction(Arrays.asList(new StringFragment("LDR r4, [sp"), varLocation, new StringFragment("]\n")), varLocation));
 		return null;
 	}
 	
