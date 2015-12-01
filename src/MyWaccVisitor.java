@@ -990,6 +990,38 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		return null;
 	}
 	
+	@Override public Info visitExpr_bin_bool(@NotNull WaccParser.Expr_bin_boolContext ctx) {
+		if (prints) System.out.println("visitExpr_bin_bool_bool");
+		Info one = visit(ctx.bin_bool(0));
+		if (one.type.equals("reg")) {
+			regCount ++;
+			System.out.println("5");
+		} else {assert false;}
+		Info two = visit(ctx.bin_bool(1));
+		if (two.type.equals("reg"))  {
+			regCount ++;
+			System.out.println("6");
+		} else {assert false;}
+		
+		ctx.returntype = new BOOL();
+		ctx.argtype = new BOOL();
+		if(!SharedMethods.assignCompat(ctx.bin_bool(0).returntype, ctx.argtype)) {
+			System.exit(200);
+		}
+		if(!SharedMethods.assignCompat(ctx.bin_bool(1).returntype, ctx.argtype)) {
+			System.exit(200);
+		}
+		
+		if (ctx.AND() != null) {
+			instrList.add(new Instruction("AND r" + (regCount-2) + ", r" + (regCount-2) + ", r" + (regCount-1) + "\n"));
+		}
+		if (ctx.OR() != null) {
+			instrList.add(new Instruction("ORR r" + (regCount-2) + ", r" + (regCount-2) + ", r" + (regCount-1) + "\n"));
+		}
+		regCount = regCount -2;
+		return new Info("r" + regCount).setType("reg"); 
+	}
+	
 	@Override public Info visitExpr_bin_bool_bool(@NotNull WaccParser.Expr_bin_bool_boolContext ctx) {
 		if (prints) System.out.println("visitExpr_bin_bool_bool");
 		Info b = visit(ctx.bin_bool());
