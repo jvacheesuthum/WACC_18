@@ -59,14 +59,16 @@ locals[TYPE typename]
 
 math
 locals[TYPE argtype, TYPE returntype]
-: math (MULTIPLY | DIVIDE | MOD | PLUS | MINUS) math #expr_bin_math_math
+: math (MULTIPLY | DIVIDE | MOD | PLUS | MINUS) atom #expr_bin_math_math
 | atom (MULTIPLY | DIVIDE | MOD | PLUS | MINUS) atom #expr_bin_math_atom
 | atom #expr_bin_atom
 ;
 
 bin_bool
 locals[TYPE argtype, TYPE returntype]
-: bin_bool (AND | OR) bin_bool #expr_bin_bool_bool
+: bin_bool (AND | OR) math #expr_bin_bool_bool
+| math (AND | OR) bin_bool #expr_bin_bool_bool
+| bin_bool (AND | OR) bin_bool #expr_bin_bool
 | math (IS_EQUAL | NOT_EQUAL) math #expr_bin_bool_math_eq
 | math (GREATER | GREATER_EQUAL| LESS | LESS_EQUAL) math #expr_bin_bool_math_moreless
 | math #expr_bin_math
