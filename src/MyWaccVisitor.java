@@ -992,8 +992,17 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	@Override public Info visitExpr_bin_bool_bool(@NotNull WaccParser.Expr_bin_bool_boolContext ctx) {
 		if (prints) System.out.println("visitExpr_bin_bool_bool");
-		visit(ctx.bin_bool());
-		visit(ctx.math());
+		Info b = visit(ctx.bin_bool());
+		if (b.type.equals("reg")) {
+			regCount ++;
+			System.out.println("5");
+		}
+		Info m = visit(ctx.math());
+		if (m.type.equals("reg"))  {
+			regCount ++;
+			System.out.println("6");
+		}
+		
 		ctx.returntype = new BOOL();
 		ctx.argtype = new BOOL();
 		if(!SharedMethods.assignCompat(ctx.bin_bool().returntype, ctx.argtype)) {
@@ -1002,14 +1011,51 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if(!SharedMethods.assignCompat(ctx.math().returntype, ctx.argtype)) {
 			System.exit(200);
 		}
-		return null; 
+		
+		if (b.type.equals("bool")) {
+			instrList.add(new Instruction("MOV r" + regCount + ", #" + (b.b_value?1:0) + "\n"));
+			regCount ++;
+			System.out.println("1");
+		} else if (b.type.equals("var")){
+			VariableFragment v  = new VariableFragment(b.stringinfo);
+			instrList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", [sp"), v, new StringFragment("]\n")) ,v));
+			regCount++;
+			System.out.println("2");
+		}
+		if(m.type.equals("bool")) {
+			instrList.add(new Instruction("MOV r" + regCount + ", #" + (m.b_value?1:0) + "\n"));
+			regCount ++;
+			System.out.println("3");
+		} else if (m.type.equals("var")){
+			VariableFragment v  = new VariableFragment(m.stringinfo);
+			instrList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", [sp"), v, new StringFragment("]\n")) ,v));
+			regCount++;
+			System.out.println("4");
+		}
+		
+		if (ctx.AND() != null) {
+			instrList.add(new Instruction("AND r" + (regCount-2) + ", r" + (regCount-2) + ", r" + (regCount-1) + "\n"));
+		}
+		if (ctx.OR() != null) {
+			instrList.add(new Instruction("ORR r" + (regCount-2) + ", r" + (regCount-2) + ", r" + (regCount-1) + "\n"));
+		}
+		regCount = regCount -2;
+		return new Info("r" + regCount).setType("reg"); 
 	}
 	
 	@Override 
 	public Info visitExpr_bin_bool_math_eq(@NotNull WaccParser.Expr_bin_bool_math_eqContext ctx) { 
 		if (prints) System.out.println("visitExpr_bin_bool_math");
-		visit(ctx.math(0));
-		visit(ctx.math(1));
+		Info one = visit(ctx.math(0));
+		if (one.type.equals("reg")) {
+			regCount ++;
+			System.out.println("5");
+		}
+		Info two = visit(ctx.math(1));
+		if (two.type.equals("reg"))  {
+			regCount ++;
+			System.out.println("6");
+		}
 
 		ctx.returntype = new BOOL();
 		ctx.argtype = new EQUALITY();
@@ -1022,7 +1068,53 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 			System.exit(200);
 		}
-		return null; 
+		
+		if (one.type.equals("int")) {
+			instrList.add(new Instruction("LDR r" + regCount + ", =" + one.int_value + "\n"));
+			regCount ++;
+			System.out.println("1");
+		} else if (one.type.equals("bool")) {
+			instrList.add(new Instruction("MOV r" + regCount + ", #" + (one.b_value?1:0) + "\n"));
+			regCount ++;
+			System.out.println("1");
+		} else if (one.type.equals("char")) {
+			instrList.add(new Instruction("MOV r" + regCount + ", #" + one.stringinfo + "\n"));
+			regCount ++;
+			System.out.println("1");
+		} else if (one.type.equals("var")){
+			VariableFragment v  = new VariableFragment(one.stringinfo);
+			instrList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", [sp"), v, new StringFragment("]\n")) ,v));
+			regCount++;
+			System.out.println("2");
+		}
+		if (two.type.equals("int")) {
+			instrList.add(new Instruction("LDR r" + regCount + ", =" + two.int_value + "\n"));
+			regCount++;
+			System.out.println("3");
+		} else if(two.type.equals("bool")) {
+			instrList.add(new Instruction("MOV r" + regCount + ", #" + (two.b_value?1:0) + "\n"));
+			regCount ++;
+			System.out.println("3");
+		} else if(two.type.equals("char")) {
+			instrList.add(new Instruction("MOV r" + regCount + ", #" + two.stringinfo + "\n"));
+			regCount ++;
+			System.out.println("3");
+		} else if (two.type.equals("var")){
+			VariableFragment v  = new VariableFragment(two.stringinfo);
+			instrList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", [sp"), v, new StringFragment("]\n")) ,v));
+			regCount++;
+			System.out.println("4");
+		}
+		
+		instrList.add(new Instruction("CMP r" + (regCount-2) + ", r" + (regCount-1) + "\n"));
+		if (ctx.IS_EQUAL() != null) {
+			instrList.add(new Instruction("MOVEQ r" + (regCount-2) + ", #1\nMOVNE r" + (regCount-2) + ", #0\n"));
+		}
+		if (ctx.NOT_EQUAL() != null) {
+			instrList.add(new Instruction("MOVNE r" + (regCount-2) + ", #1\nMOVEQ r" + (regCount-2) + ", #0\n"));
+		}
+		regCount = regCount -2;
+		return new Info("r" + regCount).setType("reg"); 
 	}
 
 	@Override 
@@ -1070,7 +1162,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			System.out.println("2");
 		}
 		if (two.type.equals("int")) {
-			instrList.add(new Instruction("LDR r" + regCount + ", =" + one.int_value + "\n"));
+			instrList.add(new Instruction("LDR r" + regCount + ", =" + two.int_value + "\n"));
 			regCount++;
 			System.out.println("3");
 		} else if (two.type.equals("var")){
@@ -1236,8 +1328,11 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	}
 	
 	@Override public Info visitAtom_brackets(@NotNull WaccParser.Atom_bracketsContext ctx) {
-		visit(ctx.expr());
+		Info i = visit(ctx.expr());
 		ctx.typename = ctx.expr().typename;
+		if (i != null && i.type != null) {
+			return i;
+		}
 		return (new Info("")).setType("brackets");
 	}
 	
