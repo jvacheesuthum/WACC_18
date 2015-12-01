@@ -560,6 +560,13 @@ public class WaccParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> implem
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public T visitExpr_bin_bool(@NotNull WaccParser.Expr_bin_boolContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public T visitUnary_ord(@NotNull WaccParser.Unary_ordContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}

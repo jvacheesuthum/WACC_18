@@ -539,6 +539,13 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpr_int(@NotNull WaccParser.Expr_intContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code expr_bin_bool}
+	 * labeled alternative in {@link WaccParser#bin_bool}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpr_bin_bool(@NotNull WaccParser.Expr_bin_boolContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code unary_ord}
 	 * labeled alternative in {@link WaccParser#unary_oper}.
 	 * @param ctx the parse tree
