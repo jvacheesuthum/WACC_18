@@ -197,6 +197,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 		functionStr = ctx.ident().getText() + ":\n" + "PUSH {lr}\n" + functionStr + "POP {pc}\nPOP {pc}\n.ltorg\n";
 		instrList.add(new Instruction_Function(functionStr));
+		//clear stackMap
+		stackMap.clear();
 		//backend end
 
 		if(!SharedMethods.assignCompat(ctx.stat_return().typename, returntypename)) {
