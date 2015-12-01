@@ -13,12 +13,7 @@ import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.TerminalNode;
 //import sun.jvm.hotspot.debugger.cdbg.Sym;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     SymbolTable currentTable = new SymbolTable(null);
@@ -34,11 +29,12 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     int msgCount = 11;
     int regCount = 4;
     Map<String, Integer> stackMap = new HashMap<String, Integer>();
-    
+    Map<String, Integer> paramOffsetMap = new HashMap<String, Integer>();
     boolean prints = false;
+	private Integer paramSizeCount = -999;
 
 
-    @Override 
+	@Override
     public Info visitStat_stat(@NotNull WaccParser.Stat_statContext ctx) {
 
         WaccParser.StatContext first = ctx.stat(0); 
@@ -147,7 +143,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	@Override
     public Info visitFunc_standard(@NotNull WaccParser.Func_standardContext ctx) {
-    	if (prints) System.out.println("visitFunc_std");
+		if (prints) System.out.println("visitFunc_std");
 		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
 		if(((FUNCTION) id).symtab != null) System.exit(200);
 
@@ -156,15 +152,19 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		TYPE returntypename = ctx.type().typename;
 
 		SymbolTable newST = new SymbolTable(currentTable);
-		
 
 
 		ctx.funObj = new FUNCTION(returntypename);
 		currentTable.funcadd(ctx.ident().getText(), ctx.funObj);
 		ctx.funObj.symtab = newST;
 		currentTable = newST;
-		
+
+
 		if(ctx.param_list() != null){
+
+			//backend
+			paramSizeCount = 0;
+			//
 			visit(ctx.param_list());
 
 			List <ParamContext> params = ctx.param_list().param();
@@ -181,31 +181,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		visit(ctx.stat_return());
 
 		//backend
-		assert stackTotal == 0 : "stackTotal not equals to 0 at the beginning of function declare";
-		final int tempTotal = stackTotal;
-		makeInstrReady();
-		//making a function block
-		String functionStr = "";
-
-		Iterator<Instruction> it = currentList.iterator();
-		while(it.hasNext()){
-			Instruction each = it.next();
-			if(!(each instanceof Instruction_Function)) {
-				functionStr += each.toString();
-				//System.out.println("EACH: " + each.toString());
-				it.remove();
-			}
-		}
-
-		if(tempTotal > 0){
-			functionStr = "SUB sp, sp, #" + tempTotal + "\n" + functionStr + "ADD sp, sp, #" + tempTotal + "\n";
-		}
-
-		functionStr = ctx.ident().getText() + ":\n" + "PUSH {lr}\n" + functionStr + "POP {pc}\nPOP {pc}\n.ltorg\n";
-		currentList.add(new Instruction_Function(functionStr));
-		//clear stackMap
-		stackMap.clear();
-		//backend end
+		wrapFunctInstr(ctx.ident().getText());
+		//
 
 		if(!SharedMethods.assignCompat(ctx.stat_return().typename, returntypename)) {
 
@@ -216,9 +193,38 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		return null;
     }
 
-	private void makeInstrReady(){
+
+	private void wrapFunctInstr(String funcName){
+		assert stackTotal == 0 : "stackTotal not equals to 0 at the beginning of function declare";
+		int tempTotal = stackTotal;
+		makeInstrReady(functList);
+
+		String functionStr = "";
+		Iterator<Instruction> it = functList.iterator();
+		while(it.hasNext()){
+			Instruction each = it.next();
+			if(!(each instanceof Instruction_Function)) {
+				functionStr += each.toString();
+				it.remove();
+			}
+		}
+		if(tempTotal > 0){
+			functionStr = "SUB sp, sp, #" + tempTotal + "\n" + functionStr + "ADD sp, sp, #" + tempTotal + "\n";
+		}
+		functionStr = funcName + ":\n" + "PUSH {lr}\n" + functionStr + "POP {pc}\nPOP {pc}\n.ltorg\n";
+		currentList.add(new Instruction_Function(functionStr));
+		stackMap.clear();
+	}
+
+
+	private void makeInstrReady(List<Instruction> in){
+		Set<String> keys = paramOffsetMap.keySet();
+		for(String eachKeys : keys){
+			stackMap.put(eachKeys, paramOffsetMap.get(eachKeys) + stackTotal);
+		}
+
 		stackMap.put("total", stackTotal);
-		for(Instruction instr: currentList) {
+		for(Instruction instr: in) {
 			if (instr.toDeclare()) {
 				stackTotal = instr.allocateStackPos(stackTotal, stackMap);
 			}
@@ -226,6 +232,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 				instr.varsToPos(stackMap);
 			}
 		}
+		stackMap.remove("total");
 	}
     
     @Override
@@ -403,6 +410,12 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		PARAM p = new PARAM(ctx.type().typename);
 		currentTable.add(param_name, p);
 		ctx.paramObj = p;
+
+		//backend
+		Integer param_size = typeSize(ctx.type().typename);
+		paramOffsetMap.put(param_name, paramSizeCount + param_size);
+		paramSizeCount += param_size;
+		//
 
 		return null;
 	}
