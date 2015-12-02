@@ -29,9 +29,17 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     int msgCount = 11;
     int regCount = 4;
     Map<String, Integer> stackMap = new HashMap<String, Integer>();
-    Map<String, Integer> paramOffsetMap = new HashMap<String, Integer>();
-    boolean prints = false;
+	Map<String, Integer> currentStackMap = stackMap;
+
+
+	Map<String, Integer> paramOffsetMap = new HashMap<String, Integer>();
 	private Integer paramSizeCount = -999;
+
+	IfInstrSection ifSection = new IfInstrSection();
+
+	boolean prints = false;
+
+
 
 
 	@Override
@@ -123,9 +131,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
       PositionFragment position= new PositionFragment(i);
       stackTotal += i;
       if (i == 1) {
-    	  currentList.add(new Instruction(Arrays.asList(new StringFragment("STRB r4, [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
+    	  currentList.add(new Instruction(Arrays.asList(new StringFragment("STRB r"+ regCount + ", [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
       } else {
-    	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r4, [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
+    	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r"+ regCount +", [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
       }
   	  return null;
     }
@@ -213,26 +221,26 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 		functionStr = funcName + ":\n" + "PUSH {lr}\n" + functionStr + "POP {pc}\nPOP {pc}\n.ltorg\n";
 		currentList.add(new Instruction_Function(functionStr));
-		stackMap.clear();
+		currentStackMap.clear();
 	}
 
 
 	private void makeInstrReady(List<Instruction> in){
 		Set<String> keys = paramOffsetMap.keySet();
 		for(String eachKeys : keys){
-			stackMap.put(eachKeys, paramOffsetMap.get(eachKeys) + stackTotal);
+			currentStackMap.put(eachKeys, paramOffsetMap.get(eachKeys) + stackTotal);
 		}
 
-		stackMap.put("total", stackTotal);
+		currentStackMap.put("total", stackTotal);
 		for(Instruction instr: in) {
 			if (instr.toDeclare()) {
-				stackTotal = instr.allocateStackPos(stackTotal, stackMap);
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
 			}
 			if (instr.needsVarPos()) {
-				instr.varsToPos(stackMap);
+				instr.varsToPos(currentStackMap);
 			}
 		}
-		stackMap.remove("total");
+		currentStackMap.remove("total");
 	}
     
     @Override
@@ -420,24 +428,125 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		return null;
 	}
 
-	@Override public Info visitStat_if(@NotNull WaccParser.Stat_ifContext ctx) { 
+	@Override public Info visitStat_if(@NotNull WaccParser.Stat_ifContext ctx) {
+		//backend
+		ifSection.ifLayerCount++ ;
+		//
+
     	if (prints) System.out.println("visitStat_if");
 		visit(ctx.expr());
 		if (prints) System.out.println("expr = "+ ctx.expr().toString());
+
+		//backend - after visit expr
+		int currentIfLable = ifSection.ifLayerCount * 2;
+		currentList.add(new Instruction("CMP r" + regCount + ", #0\n"));
+		currentList.add(new Instruction("BEQ L" + (currentIfLable) + "\n"));
+		//
 
 		if(!(SharedMethods.assignCompat(ctx.expr().typename, new BOOL()))){
 			System.out.print("if condition is not of type bool");
 			System.exit(200);
 		}
 
+		//backend - before visit then-stat
+		int encStackCount = stackTotal;
+		stackTotal = 0;
+		Map<String, Integer> encStackMap = currentStackMap;
+		Map<String,Integer> scopedStackMap = new HashMap<>(currentStackMap);
+		currentStackMap = scopedStackMap;
+		List<Instruction> encInstr = currentList;
+		List<Instruction> scopedInstr = new ArrayList<Instruction>();
+		currentList = scopedInstr;
+		//
+
 		currentTable = new SymbolTable(currentTable);
 		visit(ctx.stat(0));
 		currentTable = currentTable.encSymTable;
-		
+
+		//backend - after visit first stat
+		//locating variables from outer scope correctly when there is a change in stack pointer
+		int hasDeclare = stackTotal;
+		if(hasDeclare > 0){
+			for (String eachKey : scopedStackMap.keySet()){
+				int eachValue = scopedStackMap.get(eachKey);
+				scopedStackMap.put(eachKey, eachValue + stackTotal);
+			}
+		}
+
+		currentStackMap.put("total", stackTotal);
+		for(Instruction instr: currentList) {
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
+			}
+			if (instr.needsVarPos()) {
+				instr.varsToPos(currentStackMap);
+			}
+		}
+		//adding to encInstrList
+		if(hasDeclare > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclare + "\n"));
+		for(Instruction in : currentList){
+			encInstr.add(in);
+		}
+		if(hasDeclare > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclare + "\n"));
+		currentList = encInstr;
+		currentStackMap = encStackMap;
+		stackTotal = encStackCount;
+
+		currentList.add(new Instruction("B L" + (currentIfLable+1) + "\n"));
+		//
+
+
+		//backend - before visit else-stat
+		currentList.add(new Instruction("L"+ currentIfLable +":\n"));
+		encStackCount = stackTotal;
+		stackTotal = 0;
+		encStackMap = currentStackMap;
+		scopedStackMap = new HashMap<>(currentStackMap);
+		currentStackMap = scopedStackMap;
+		encInstr = currentList;
+		scopedInstr = new ArrayList<Instruction>();
+		currentList = scopedInstr;
+		//
+
+
 		currentTable = new SymbolTable(currentTable);
 		visit(ctx.stat(1));
 		currentTable = currentTable.encSymTable;
-		
+
+		//backend - after visit else-stat
+		//locating variables from outer scope correctly when there is a change in stack pointer
+		hasDeclare = stackTotal;
+		if(hasDeclare > 0){
+			for (String eachKey : scopedStackMap.keySet()){
+				int eachValue = scopedStackMap.get(eachKey);
+				scopedStackMap.put(eachKey, eachValue + stackTotal);
+			}
+		}
+
+		currentStackMap.put("total", stackTotal);
+		for(Instruction instr: currentList) {
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
+			}
+			if (instr.needsVarPos()) {
+				instr.varsToPos(currentStackMap);
+			}
+		}
+		//adding to encInstrList
+		if(hasDeclare > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclare + "\n"));
+		for(Instruction in : currentList){
+			encInstr.add(in);
+		}
+		if(hasDeclare > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclare + "\n"));
+		currentList = encInstr;
+		currentStackMap = encStackMap;
+		stackTotal = encStackCount;
+
+		currentList.add(new Instruction("L"+ (currentIfLable+1) +":\n"));
+		//
+
+		ifSection.ifLayerCount-- ;
+
 		ctx.typename = ctx.stat(0).typename;
 		return null;
 	}
@@ -877,16 +986,16 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (stackTotal == 0) {
 			instrList.remove(1);
 		} else {
-			stackMap.put("total", stackTotal);
+			currentStackMap.put("total", stackTotal);
 			instrList.add(new Instruction("ADD sp, sp, #" + stackTotal + "\n"));
 		}
 		instrList.add(new Instruction("LDR r0, =0\nPOP{pc}\n.ltorg"));
 		for(Instruction instr: instrList) {
 			if (instr.toDeclare()) {
-				stackTotal = instr.allocateStackPos(stackTotal, stackMap);
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
 			}
 			if (instr.needsVarPos()) {
-				instr.varsToPos(stackMap);
+				instr.varsToPos(currentStackMap);
 			}
 			System.out.print(instr);
 		}
