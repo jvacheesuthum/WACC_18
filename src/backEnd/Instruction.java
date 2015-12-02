@@ -1,7 +1,5 @@
 package backEnd;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class Instruction {
@@ -24,13 +22,17 @@ public class Instruction {
 	public Instruction(List<InstructionFragment> instr, VariableFragment var) {
 		// when one previously declared variable is used eg print x; var(x)
 		instructions = instr;
-		variables = Arrays.asList(var);
+		//variables = Arrays.asList(var);
+		variables = new LinkedList<>();
+		variables.add(var);
 	}
 	
 	public Instruction(List<InstructionFragment> instr, VariableFragment var, PositionFragment pos) {
 		// declaration eg int x = 0; var(x), pos(size = 4);
 		instructions = instr;
-		variables = Arrays.asList(var);
+		//variables = Arrays.asList(var);
+		variables = new LinkedList<>();
+		variables.add(var);
 		this.pos = pos;
 	}
 	
@@ -46,11 +48,19 @@ public class Instruction {
 	
 	public void varsToPos(Map<String, Integer> st) {
 		// given stack map, gives a position string to all variables in this instruction
-		for (VariableFragment v : variables) {
-			System.out.println(v.getVariable());
-			v.pointToStackPosition(st.get(v.getVariable()));
+
+		Iterator<VariableFragment> it = variables.iterator();
+		while(it.hasNext()){
+			VariableFragment v = it.next();
+			Integer varPosition = st.get(v.getVariable());
+			// varPosition can be null when in 'if' scope u tried to access outer-scoped variable
+			// that is declared but not yet known the position
+			if(varPosition != null) {
+				v.pointToStackPosition(varPosition);
+				it.remove();
+			}
 		}
-		variables = null;
+		if(variables.isEmpty()) variables = null;
 	}
 	
 	public int sizeOnStack() {

@@ -35,7 +35,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	Map<String, Integer> paramOffsetMap = new HashMap<String, Integer>();
 	private Integer paramSizeCount = -999;
 
-	IfInstrSection ifSection = new IfInstrSection();
+	private int ifLayerCount = -1;
 
 	boolean prints = false;
 
@@ -430,7 +430,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	@Override public Info visitStat_if(@NotNull WaccParser.Stat_ifContext ctx) {
 		//backend
-		ifSection.ifLayerCount++ ;
+		ifLayerCount++ ;
 		//
 
     	if (prints) System.out.println("visitStat_if");
@@ -438,7 +438,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("expr = "+ ctx.expr().toString());
 
 		//backend - after visit expr
-		int currentIfLable = ifSection.ifLayerCount * 2;
+		int currentIfLable = ifLayerCount * 2;
 		currentList.add(new Instruction("CMP r" + regCount + ", #0\n"));
 		currentList.add(new Instruction("BEQ L" + (currentIfLable) + "\n"));
 		//
@@ -479,7 +479,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
 			}
 			if (instr.needsVarPos()) {
-				System.out.println();
 				instr.varsToPos(currentStackMap);
 			}
 		}
@@ -545,7 +544,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 		currentList.add(new Instruction("L"+ (currentIfLable+1) +":\n"));
 
-		ifSection.ifLayerCount-- ;
+		ifLayerCount-- ;
 		//
 
 		ctx.typename = ctx.stat(0).typename;
