@@ -47,6 +47,7 @@ public class Instruction {
 	public void varsToPos(Map<String, Integer> st) {
 		// given stack map, gives a position string to all variables in this instruction
 		for (VariableFragment v : variables) {
+			System.out.println(v.getVariable());
 			v.pointToStackPosition(st.get(v.getVariable()));
 		}
 		variables = null;

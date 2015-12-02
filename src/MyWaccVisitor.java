@@ -479,6 +479,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
 			}
 			if (instr.needsVarPos()) {
+				System.out.println();
 				instr.varsToPos(currentStackMap);
 			}
 		}
@@ -543,9 +544,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		stackTotal = encStackCount;
 
 		currentList.add(new Instruction("L"+ (currentIfLable+1) +":\n"));
-		//
 
 		ifSection.ifLayerCount-- ;
+		//
 
 		ctx.typename = ctx.stat(0).typename;
 		return null;
