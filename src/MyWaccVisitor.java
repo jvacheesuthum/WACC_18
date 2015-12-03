@@ -36,6 +36,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	private Integer paramSizeCount = -999;
 
 	private int ifLayerCount = -1;
+	private boolean arrayDeclaration = false; //for storing array 
 
 	boolean prints = true;
 
@@ -132,6 +133,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
       stackTotal += i;
       if (i == 1) {
     	  currentList.add(new Instruction(Arrays.asList(new StringFragment("STRB r"+ regCount + ", [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
+      } else if (arrayDeclaration) {
+     	 currentList.add(new Instruction("STR r"+ regCount +", [sp] \n"));
+     	 arrayDeclaration = false;
       } else {
     	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r"+ regCount +", [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
       }
@@ -144,6 +148,11 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 		if (t instanceof CHAR || t instanceof BOOL) {
 			return 1;
+		}
+		if (t instanceof ARRAY_TYPE){
+			//nops - might only work for 1st array dec for now
+			arrayDeclaration = true;
+			return 4;
 		}
 		if (prints) System.out.println("failed to get typeSize");;
 		return 0;
@@ -665,9 +674,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 }
 	
 	@Override public Info visitAssign_lhs_array(@NotNull WaccParser.Assign_lhs_arrayContext ctx) {
-		//nops backend //---------
-		stackTotal += 4; //every array takes 4 in the stack
-		//------------------
+		
 		
     	if (prints) System.out.println("visitAssign_lhs_array");
 		
@@ -794,7 +801,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	@Override public Info visitAssign_rhs_ar_liter(@NotNull WaccParser.Assign_rhs_ar_literContext ctx) { 
 		
-		//nops backend //-----------------------------------------------
 		
 		//getting total space, each array elem = 4, and 1*4 space for array.length
 		int arrSize = ctx.array_liter().expr().size();
@@ -824,7 +830,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		//nops backend ---------------------
 		//last space stores the array length
 		currentList.add(new Instruction(("LDR r" + regCount + ", =" + arrSize + '\n' + "STR r" + regCount + ", [r" + (regCount -1) + "] \n")));
-		
+		regCount--; //need this as reg use for storing array elem is free now
 		return null;
 	}
 	
@@ -1079,7 +1085,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 				if(!SharedMethods.assignCompat(ctx.expr().get(0).typename, e.typename)){
 		        	System.exit(200);//throw new Error("Array elem not the same type.");
 				}
-				//nops backend
+				//nops backend - store for each array elem
 				currentList.add(new Instruction(("STR r" + regCount + ", [r" + (regCount -1) + ", #" + (4*count +4)+"] \n")));
 				count++;
 			}
