@@ -22,16 +22,14 @@ public class Instruction {
 	public Instruction(List<InstructionFragment> instr, VariableFragment var) {
 		// when one previously declared variable is used eg print x; var(x)
 		instructions = instr;
-		//variables = Arrays.asList(var);
-		variables = new LinkedList<>();
+		variables = new ArrayList<>();
 		variables.add(var);
 	}
 	
 	public Instruction(List<InstructionFragment> instr, VariableFragment var, PositionFragment pos) {
 		// declaration eg int x = 0; var(x), pos(size = 4);
 		instructions = instr;
-		//variables = Arrays.asList(var);
-		variables = new LinkedList<>();
+		variables = new ArrayList<>();
 		variables.add(var);
 		this.pos = pos;
 	}

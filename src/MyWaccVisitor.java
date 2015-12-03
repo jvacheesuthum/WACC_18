@@ -996,7 +996,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		currentList.add(new Instruction(".text\n\n.global main\nmain:\nPUSH {lr}\n"));
 		VariableFragment total = new VariableFragment("total");
 		currentList.add(new Instruction(Arrays.asList(new StringFragment("SUB sp, sp"), total, new StringFragment("\n")), total));
-		visitChildren(ctx.stat());
+		visit(ctx.stat());
 
 		printInstructions();
 		return null; 
