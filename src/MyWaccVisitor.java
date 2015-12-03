@@ -36,7 +36,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	private Integer paramSizeCount = -999;
 
 	private int ifLayerCount = -1;
-	private boolean arrayDeclaration = false; //for storing array 
 
 	boolean prints = true;
 
@@ -133,9 +132,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
       stackTotal += i;
       if (i == 1) {
     	  currentList.add(new Instruction(Arrays.asList(new StringFragment("STRB r"+ regCount + ", [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
-      } else if (arrayDeclaration) {
-     	 currentList.add(new Instruction("STR r"+ regCount +", [sp] \n"));
-     	 arrayDeclaration = false;
       } else {
     	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r"+ regCount +", [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
       }
@@ -143,16 +139,11 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     }
 
     private int typeSize(TYPE t) {
-		if (t instanceof INT || t instanceof STRING) {
+		if (t instanceof INT || t instanceof STRING || t instanceof ARRAY_TYPE) {
 			return 4;
 		}
 		if (t instanceof CHAR || t instanceof BOOL) {
 			return 1;
-		}
-		if (t instanceof ARRAY_TYPE){
-			//nops - might only work for 1st array dec for now
-			arrayDeclaration = true;
-			return 4;
 		}
 		if (prints) System.out.println("failed to get typeSize");;
 		return 0;
