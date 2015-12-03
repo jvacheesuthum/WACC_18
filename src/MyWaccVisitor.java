@@ -1,5 +1,4 @@
 import SemanticAnalyser.*;
-import backEnd.Info;
 import backEnd.*;
 import antlr.WaccParser;
 import antlr.WaccParser.ExprContext;
@@ -12,6 +11,7 @@ import antlr.WaccParserBaseVisitor;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.TerminalNode;
 //import sun.jvm.hotspot.debugger.cdbg.Sym;
+
 
 import java.util.*;
 
@@ -37,7 +37,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	private int ifLayerCount = -1;
 
-	boolean prints = false;
+	boolean prints = true;
 
 
 
@@ -665,12 +665,17 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 }
 	
 	@Override public Info visitAssign_lhs_array(@NotNull WaccParser.Assign_lhs_arrayContext ctx) {
+		//nops backend //---------
+		stackTotal += 4; //every array takes 4 in the stack
+		//------------------
+		
     	if (prints) System.out.println("visitAssign_lhs_array");
 		
-    	
     	visit(ctx.array_elem());
     	
     	ctx.typename = ctx.array_elem().typename;
+    	
+
     	
 		return null;
 	}
@@ -788,9 +793,38 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	}
 	
 	@Override public Info visitAssign_rhs_ar_liter(@NotNull WaccParser.Assign_rhs_ar_literContext ctx) { 
-    	if (prints) System.out.println("visitAssign_rhs_ar_liter");
+		
+		//nops backend //-----------------------------------------------
+		
+		//getting total space, each array elem = 4, and 1*4 space for array.length
+		int arrSize = ctx.array_liter().expr().size();
+		int spaceForArr = 4 * arrSize + 4;
+		currentList.add(new Instruction(("LDR r0, =" + spaceForArr + '\n')));
+
+		currentList.add(new Instruction("BL malloc \n"));
+		currentList.add(new Instruction("MOV r" + regCount + ", r0 \n"));
+		//at this point the array is in regCount !!!
+		//if declare is right this should be done properly ?
+		regCount++;
+		
+		// elem declarations here
+		/*for (int i = 0; i < arrSize; i++) {
+		currentList.add(new Instruction(("LDR r" + regCount + ", =" + ctx.array_liter().expr(i).getText() + '\n' + "STR r" + regCount +
+				", [r" + (regCount -1) + ", #" + (4*i +4)+"] \n")));
+		}*/
+		
+		
+				
+		//------------------
+		
+		if (prints) System.out.println("visitAssign_rhs_ar_liter");
 		visit(ctx.array_liter());
 		ctx.typename = new ARRAY_TYPE(ctx.array_liter().typename);
+		
+		//nops backend ---------------------
+		//last space stores the array length
+		currentList.add(new Instruction(("LDR r" + regCount + ", =" + arrSize + '\n' + "STR r" + regCount + ", [r" + (regCount -1) + "] \n")));
+		
 		return null;
 	}
 	
@@ -1037,6 +1071,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			ctx.typename = null;
 		} else {
 			
+			int count = 0;
 			for (ExprContext e : list){
 				visit(e);
 
@@ -1044,12 +1079,17 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 				if(!SharedMethods.assignCompat(ctx.expr().get(0).typename, e.typename)){
 		        	System.exit(200);//throw new Error("Array elem not the same type.");
 				}
+				//nops backend
+				currentList.add(new Instruction(("STR r" + regCount + ", [r" + (regCount -1) + ", #" + (4*count +4)+"] \n")));
+				count++;
 			}
 			ctx.typename = ctx.expr().get(0).typename;
+			
 		}
-
 		return null;
+		
 	}
+	
 
 	@Override public Info visitStat_print(@NotNull WaccParser.Stat_printContext ctx) {
 		if (prints) System.out.println("visitStat_print");
@@ -1095,7 +1135,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	public Info visitExpr_int(@NotNull WaccParser.Expr_intContext ctx) { 
 		if (prints) System.out.println("visitExpr_int");
 		Info i = visit(ctx.int_liter());
-		currentList.add(new Instruction("LDR r4, =" + i.int_value + "\n"));
+		currentList.add(new Instruction("LDR r" + regCount + ", =" + i.int_value + "\n"));
 		ctx.typename = new INT();
 		
 		return null; 
@@ -1158,10 +1198,15 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	}
 	
 	@Override public Info visitExpr_array_elem(@NotNull WaccParser.Expr_array_elemContext ctx) {
+		
+		if (prints) System.out.println("visitExpr_array_elem");
+		
+		
 		visit(ctx.array_elem().ident());
-
 		ARRAY_TYPE ar = (ARRAY_TYPE) ctx.array_elem().ident().typename;
 		ctx.typename = ar.TYPE();
+
+		
 		return null;
 	}
 	
