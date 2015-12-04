@@ -683,6 +683,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     			"ADD r" + (regCount -1) + ", r" + (regCount -1) + ", #4 \nADD r" + (regCount -1) + ", r" + (regCount -1) +
     			", r" + regCount + ", LSL #2 \nSTR r4, [r" + (regCount -1) + "] \n"));
     	regCount--;
+    	
+    	//add error msg
+    	err.pArray();
+    	err.addErrorMessages(header, footer);
 
     	//-------
     	
