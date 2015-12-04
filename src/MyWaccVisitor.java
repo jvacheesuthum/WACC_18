@@ -220,7 +220,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if(tempTotal > 0){
 			functionStr = "SUB sp, sp, #" + tempTotal + "\n" + functionStr + "ADD sp, sp, #" + tempTotal + "\n";
 		}
-		functionStr = "f_" + funcName + ":\n" + "PUSH {lr}\n" + functionStr + "POP {pc}\nPOP {pc}\n.ltorg\n";
+		functionStr = "f_" + funcName + ":\n" + "PUSH {lr}\n" + functionStr + "POP {pc}\n.ltorg\n";
 		currentList.add(new Instruction_Function(functionStr));
 		currentStackMap.clear();
 		paramOffsetMap.clear();
@@ -752,6 +752,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 
 		currentList.add(new Instruction("MOV r0, r4\n"));
+		currentList.add(new Instruction("POP {pc}\n"));
 		return null; 
 		
 	}
