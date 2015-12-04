@@ -668,8 +668,23 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		
 		
     	if (prints) System.out.println("visitAssign_lhs_array");
-		
     	visit(ctx.array_elem());
+    	
+    	//nops backend --------------------
+    	regCount++;
+    	int index = Integer.parseInt(ctx.array_elem().getText().replaceAll("[^0-9]", ""));
+    	currentList.add(new Instruction("ADD r" + regCount + ", sp, #0\n"));
+    	regCount++;
+    	currentList.add(new Instruction("LDR r" + regCount + ", =" + index + '\n'));
+    	currentList.add(new Instruction("LDR r" + (regCount -1) + ", [r" + (regCount -1) + "] \n"));
+    	currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
+    	currentList.add(new Instruction("MOV r1, r" + (regCount -1) + "\n"));
+    	currentList.add(new Instruction("BL p_check_array_bounds \n" +
+    			"ADD r" + (regCount -1) + ", r" + (regCount -1) + ", #4 \nADD r" + (regCount -1) + ", r" + (regCount -1) +
+    			", r" + regCount + ", LSL #2 \nSTR r4, [r" + (regCount -1) + "] \n"));
+    	regCount--;
+
+    	//-------
     	
     	ctx.typename = ctx.array_elem().typename;
     	
