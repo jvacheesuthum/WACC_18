@@ -37,7 +37,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	private int ifLayerCount = -1;
 
-	boolean prints = true;
+	boolean prints = false;
 
 
 
@@ -151,6 +151,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	@Override
     public Info visitFunc_standard(@NotNull WaccParser.Func_standardContext ctx) {
+		// backend: current is set to functList at visitProgram
 		if (prints) System.out.println("visitFunc_std");
 		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
 		if(((FUNCTION) id).symtab != null) System.exit(200);
@@ -171,7 +172,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if(ctx.param_list() != null){
 
 			//backend
-			paramSizeCount = 0;
+			paramSizeCount = 4;
 			//
 			visit(ctx.param_list());
 
@@ -219,9 +220,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if(tempTotal > 0){
 			functionStr = "SUB sp, sp, #" + tempTotal + "\n" + functionStr + "ADD sp, sp, #" + tempTotal + "\n";
 		}
-		functionStr = funcName + ":\n" + "PUSH {lr}\n" + functionStr + "POP {pc}\nPOP {pc}\n.ltorg\n";
+		functionStr = "f_" + funcName + ":\n" + "PUSH {lr}\n" + functionStr + "POP {pc}\nPOP {pc}\n.ltorg\n";
 		currentList.add(new Instruction_Function(functionStr));
 		currentStackMap.clear();
+		paramOffsetMap.clear();
 	}
 
 
@@ -369,25 +371,37 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
         	System.exit(200);//throw new Error ("wrong number of parameters");
 		}
 
-		//backend
-		int argCount = 0;
-		//
+		/*
 		for(int i = 0; i < actuals.size(); i++){
 			ExprContext each = actuals.get(i);
 			visit(each);
-			//backend
-			argCount ++;
-			currentList.add(new Instruction("STR r" + regCount + " [sp, #-" + argCount*4 + "]!\n"));
-			//
 			if (!SharedMethods.assignCompat(((FUNCTION) F).formals.get(i).TYPE(), each.typename)){
 	        	System.exit(200);//throw new Error("type of func param " + i + " incompatible with declaration");
 			}
+		}*/
+
+		//switch to go through actuals list in reverse
+
+		//backend
+		int argSizeCount = 0;
+		for(int i = actuals.size() -1 ; i >= 0; i--){
+			ExprContext each = actuals.get(i);
+			argSizeCount += typeSize(each.typename);
+			visit(each);
+			//frontend
+			if (!SharedMethods.assignCompat(((FUNCTION) F).formals.get(i).TYPE(), each.typename)){
+				System.exit(200);//throw new Error("type of func param " + i + " incompatible with declaration");
+			}
+			//
+			currentList.add(new Instruction("STR r" + regCount + " [sp, #-" + typeSize(each.typename) + "]!\n"));
 		}
+
+
 		FUNCTION fun = (FUNCTION) F;
 		ctx.typename = fun.returntype;
-		//backend
+
 		currentList.add(new Instruction("BL f_" + ctx.ident().getText() + "\n"));
-		currentList.add(new Instruction("ADD sp, sp, #"+ argCount*4 + "\n"));
+		currentList.add(new Instruction("ADD sp, sp, #"+ argSizeCount + "\n"));
 		currentList.add(new Instruction("MOV r" + regCount + ", r0\n"));
 		//
 		return null;
@@ -436,7 +450,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 		//backend
 		Integer param_size = typeSize(ctx.type().typename);
-		paramOffsetMap.put(param_name, paramSizeCount + param_size);
+		paramOffsetMap.put(param_name, paramSizeCount);
 		paramSizeCount += param_size;
 		//
 
