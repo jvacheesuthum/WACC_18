@@ -400,6 +400,11 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 		FUNCTION fun = (FUNCTION) F;
 		ctx.typename = fun.returntype;
+
+		//backend
+		currentList.add(new Instruction("BL f_" + ctx.ident().getText() + "\n"));
+		currentList.add(new Instruction("MOV r" + regCount + ",r0\n"));
+		//
 		return null;
 	}
 
