@@ -37,7 +37,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	private int ifLayerCount = -1;
 
-	boolean prints = false;
+	boolean prints = true;
 
 
 
@@ -839,19 +839,18 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	}
 	
 	@Override public Info visitAssign_rhs_ar_liter(@NotNull WaccParser.Assign_rhs_ar_literContext ctx) { 
-		
-		
-		//getting total space, each array elem = 4, and 1*4 space for array.length
+		if (prints) System.out.println("visitAssign_rhs_ar_liter");
+		visit(ctx.array_liter());
+		ctx.typename = new ARRAY_TYPE(ctx.array_liter().typename);
+		//the visit needs to be done first to get typename
+		//have to add the instructions in between 
+		//nops getting total space, each array elem = 4, and 1*4 space for array.length
 		int arrSize = ctx.array_liter().expr().size();
-		int spaceForArr = 4 * arrSize + 4;
-		currentList.add(new Instruction(("LDR r0, =" + spaceForArr + '\n')));
-
-		currentList.add(new Instruction("BL malloc \n"));
-		currentList.add(new Instruction("MOV r" + regCount + ", r0 \n"));
-		//at this point the array is in regCount !!!
-		//if declare is right this should be done properly ?
+		int spaceForArr = typeSize(ctx.array_liter().expr(0).typename) * arrSize + 4;
+		int addAtIndex = currentList.size() - 2 * ctx.array_liter().expr().size();
+		currentList.add(addAtIndex , new Instruction(("LDR r0, =" + spaceForArr + '\n' +
+				"BL malloc \n" + "MOV r" + regCount + ", r0 \n")));
 		regCount++;
-		
 		// elem declarations here
 		/*for (int i = 0; i < arrSize; i++) {
 		currentList.add(new Instruction(("LDR r" + regCount + ", =" + ctx.array_liter().expr(i).getText() + '\n' + "STR r" + regCount +
@@ -862,12 +861,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 				
 		//------------------
 		
-		if (prints) System.out.println("visitAssign_rhs_ar_liter");
-		visit(ctx.array_liter());
-		ctx.typename = new ARRAY_TYPE(ctx.array_liter().typename);
 		
-		//nops backend ---------------------
-		//last space stores the array length
+		//nops ----- last space stores the array length
 		currentList.add(new Instruction(("LDR r" + regCount + ", =" + arrSize + '\n' + "STR r" + regCount + ", [r" + (regCount -1) + "] \n")));
 		regCount--; //need this as reg use for storing array elem is free now
 		return null;
@@ -1118,14 +1113,22 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			
 			int count = 0;
 			for (ExprContext e : list){
+				regCount++;
 				visit(e);
-
+				regCount--;
+				
 //				if (!(e.typename.equals(ctx.expr().get(0).typename))){
 				if(!SharedMethods.assignCompat(ctx.expr().get(0).typename, e.typename)){
 		        	System.exit(200);//throw new Error("Array elem not the same type.");
 				}
 				//nops backend - store for each array elem
-				currentList.add(new Instruction(("STR r" + regCount + ", [r" + (regCount -1) + ", #" + (4*count +4)+"] \n")));
+				regCount++;
+				if (typeSize(e.typename) == 1) {
+					currentList.add(new Instruction(("STRB r" + regCount + ", [r" + (regCount -1) + ", #" + (count +4)+"] \n")));
+				} else {
+					currentList.add(new Instruction(("STR r" + regCount + ", [r" + (regCount -1) + ", #" + (4*count +4)+"] \n")));
+				}
+				regCount--;
 				count++;
 			}
 			ctx.typename = ctx.expr().get(0).typename;
@@ -1194,7 +1197,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (ctx.bool_liter().TRUE() != null) {
 			i = 1;
 		}
-		currentList.add(new Instruction("MOV r4, #" + i + "\n"));
+		currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
 		return null; 
 	}
 	
