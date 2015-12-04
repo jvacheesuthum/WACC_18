@@ -370,14 +370,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 
 		//backend
-		int argCount = 0;
+		int argSizeCount = 0;
 		//
 		for(int i = 0; i < actuals.size(); i++){
 			ExprContext each = actuals.get(i);
 			visit(each);
 			//backend
-			argCount ++;
-			currentList.add(new Instruction("STR r" + regCount + " [sp, #-" + argCount*4 + "]!\n"));
+			argSizeCount += typeSize(each.typename);
+			currentList.add(new Instruction("STR r" + regCount + " [sp, #-" + typeSize(each.typename) + "]!\n"));
 			//
 			if (!SharedMethods.assignCompat(((FUNCTION) F).formals.get(i).TYPE(), each.typename)){
 	        	System.exit(200);//throw new Error("type of func param " + i + " incompatible with declaration");
@@ -387,7 +387,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		ctx.typename = fun.returntype;
 		//backend
 		currentList.add(new Instruction("BL f_" + ctx.ident().getText() + "\n"));
-		currentList.add(new Instruction("ADD sp, sp, #"+ argCount*4 + "\n"));
+		currentList.add(new Instruction("ADD sp, sp, #"+ argSizeCount + "\n"));
 		currentList.add(new Instruction("MOV r" + regCount + ", r0\n"));
 		//
 		return null;
