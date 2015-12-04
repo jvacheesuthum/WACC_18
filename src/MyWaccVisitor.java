@@ -368,18 +368,28 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
         	System.exit(200);//throw new Error ("wrong number of parameters");
 		}
+
+		//backend
+		int argCount = 0;
+		//
 		for(int i = 0; i < actuals.size(); i++){
 			ExprContext each = actuals.get(i);
 			visit(each);
-
+			//backend
+			argCount ++;
+			currentList.add(new Instruction("STR r" + regCount + " [sp, #-" + argCount*4 + "]!\n"));
+			//
 			if (!SharedMethods.assignCompat(((FUNCTION) F).formals.get(i).TYPE(), each.typename)){
 	        	System.exit(200);//throw new Error("type of func param " + i + " incompatible with declaration");
 			}
 		}
 		FUNCTION fun = (FUNCTION) F;
 		ctx.typename = fun.returntype;
-
-
+		//backend
+		currentList.add(new Instruction("BL f_" + ctx.ident().getText() + "\n"));
+		currentList.add(new Instruction("ADD sp, sp, #"+ argCount*4 + "\n"));
+		currentList.add(new Instruction("MOV r" + regCount + ", r0\n"));
+		//
 		return null;
 	}
 
@@ -400,6 +410,11 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 		FUNCTION fun = (FUNCTION) F;
 		ctx.typename = fun.returntype;
+
+		//backend
+		currentList.add(new Instruction("BL f_" + ctx.ident().getText() + "\n"));
+		currentList.add(new Instruction("MOV r" + regCount + ",r0\n"));
+		//
 		return null;
 	}
 
@@ -1039,7 +1054,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			currentStackMap.put("total", stackTotal);
 			instrList.add(new Instruction("ADD sp, sp, #" + stackTotal + "\n"));
 		}
-		instrList.add(new Instruction("LDR r0, =0\nPOP{pc}\n.ltorg"));
+		instrList.add(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg"));
 		for(Instruction instr: instrList) {
 			if (instr.toDeclare()) {
 				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
