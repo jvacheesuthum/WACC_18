@@ -386,8 +386,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		int argSizeCount = 0;
 		for(int i = actuals.size() -1 ; i >= 0; i--){
 			ExprContext each = actuals.get(i);
-			argSizeCount += typeSize(each.typename);
 			visit(each);
+			argSizeCount += typeSize(each.typename);
 			//frontend
 			if (!SharedMethods.assignCompat(((FUNCTION) F).formals.get(i).TYPE(), each.typename)){
 				System.exit(200);//throw new Error("type of func param " + i + " incompatible with declaration");
