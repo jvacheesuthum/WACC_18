@@ -31,16 +31,31 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     Map<String, Integer> stackMap = new HashMap<String, Integer>();
 	Map<String, Integer> currentStackMap = stackMap;
 
+	Map<String, Integer> msgPosition = new HashMap<String, Integer>();
 
 	Map<String, Integer> paramOffsetMap = new HashMap<String, Integer>();
 	private Integer paramSizeCount = -999;
 
 	private int ifCount = -1;
 
-	boolean prints = true;
+	private boolean[] definedPrintsFunc = new boolean[5]; //for footer
+	private boolean[] definedPrintsMsg = new boolean[6]; //for header
+	// String = 0, Bool = 1, Char = 2, Int = 3, Pair/array = 4, printlnMsg = 5
+	private boolean inPrint = false;
+	private boolean[] definedRead = new boolean[5];
+	// Int = 0, Char = 1, IntMsg = 2, CharMsg = 3, inRead = 4
+	
+	boolean prints = false;
 
-
-
+	public MyWaccVisitor() {
+		
+		for(int i = 0; i < 5; i++) {
+			definedPrintsFunc[i] = false;
+			definedPrintsMsg[i] = false;
+			definedRead[i] = false;
+		}
+		definedPrintsMsg[5] = false;
+	}
 
 	@Override
     public Info visitStat_stat(@NotNull WaccParser.Stat_statContext ctx) {
@@ -1030,16 +1045,45 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	@Override public Info visitStat_read(@NotNull WaccParser.Stat_readContext ctx) { 
     	if (prints) System.out.println("visitStat_read");
-		
+    	definedRead[4] = true; //inRead
 		visit(ctx.assign_lhs());
 		if(ctx.assign_lhs().typename instanceof NULL) {
 			return null;
 		}
 
-
 		if((!(ctx.assign_lhs().typename instanceof INT)) &&
 		(!(ctx.assign_lhs().typename instanceof CHAR)))
         	System.exit(200);
+		
+		instrList.add(new Instruction("MOV r0, r4\n"));
+		if(ctx.assign_lhs().typename instanceof INT) {
+			instrList.add(new Instruction("BL p_read_int\n"));
+			if(!definedRead[0]) {
+				footer.add(new Instruction("p_read_int:\n" +
+				"PUSH {lr}\n" +
+				"MOV r1, r0\n" +
+				"LDR r0, =msg_" + msgPosition.get("Int") + "\n" +
+				"ADD r0, r0, #4\n" +
+				"BL scanf\n" +
+				"POP {pc}\n"));
+				definedRead[0] = true;
+			}
+		} else
+		if(ctx.assign_lhs().typename instanceof CHAR) {
+			instrList.add(new Instruction("BL p_read_char\n"));
+			if(!definedRead[1]){
+				footer.add(new Instruction("p_read_char:\n" +
+				"PUSH {lr}\n" +
+				"MOV r1, r0" +
+				"LDR r0, =msg_" + msgPosition.get("Char") + "\n" +
+				"ADD r0, r0, #4\n" +
+				"BL scanf\n" +
+				"POP {pc}\n"));
+				definedRead[1] = true;
+			}
+		}
+		
+    	definedRead[4] = false;
 
 		return null;
 	}
@@ -1132,12 +1176,26 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 		
 		VariableFragment v = new VariableFragment(ctx.ident().getText());
-        if (typeSize(((WaccParser.Stat_assignContext)ctx.parent).assign_rhs().typename) == 1) {
+        if (typeSize(((WaccParser.Stat_assignContext)ctx.parent).assign_rhs().typename) == 1) { //<----class cast exception when read
         	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STRB r4, [sp"), v, new StringFragment("]\n")), v));
           } else {
         	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r4, [sp"), v, new StringFragment("]\n")), v));
           }
 	
+		if(ctx.typename instanceof CHAR && !definedRead[3] && definedRead[4]) {
+			header.add(new Instruction("msg_" + msgCount + ":\n.word 4\n.ascii " +
+			'\"' + " %c" + "\\" + "0" + '\"' + "\n"));
+			msgPosition.put("Char", msgCount);
+			definedRead[3] = true;
+			msgCount++;
+		} else
+		if(ctx.typename instanceof INT && !definedRead[2] && definedRead[4]) {
+			header.add(new Instruction("msg_" + msgCount + ":\n.word 3\n.ascii " + '\"' + "%d" + "\\" + "0" + '\"' + "\n"));
+			msgPosition.put("Int", msgCount);
+			definedRead[2] = true;
+			msgCount++;
+		}
+        
 		return null;
 }
 	
@@ -1595,14 +1653,153 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	@Override public Info visitStat_print(@NotNull WaccParser.Stat_printContext ctx) {
 		if (prints) System.out.println("visitStat_print");
+		inPrint = true;
 		visit(ctx.expr());
 		if(ctx.expr().typename == null) {
 			System.exit(200);
 		}
+		checkPrintFunc(ctx.expr().typename);
+		inPrint = false;
 
 		return null; 
 	}
+	
+	private void checkPrintFunc(TYPE typename) {
+		//back end
+		instrList.add(new Instruction("MOV r0, r4\n"));
+		if(typename instanceof STRING) {
+			instrList.add(new Instruction("BL p_print_string\n"));
+			if(!definedPrintsFunc[0]) {
+				addPrintStr();
+			}
+		} else
+		if(typename instanceof BOOL) {
+			instrList.add(new Instruction("BL p_print_bool\n"));
+			if(!definedPrintsFunc[1]) {
+				addPrintBool();
+			}
+		} else
+		if(typename instanceof CHAR) { 
+			instrList.add(new Instruction("BL putchar\n"));
+			if(!definedPrintsFunc[2]) {
+				addPrintChar();
+			}
+		} else
+		if(typename instanceof INT) {
+			instrList.add(new Instruction("BL p_print_int\n"));
+			if(!definedPrintsFunc[3]) {
+				addPrintInt();
+			}
+		} else
+		if(typename instanceof PAIR_TYPE ||
+				typename instanceof ARRAY_TYPE ||
+				typename instanceof NULL) {
+			instrList.add(new Instruction("BL p_print_reference\n"));
+			if(!definedPrintsFunc[4]) {
+				addPrintRef();
+			}
+		}
+	}
 
+	private void addPrintStr() {
+		footer.add(new Instruction("p_print_string:" + "\n" +
+		"PUSH {lr}" + "\n" +
+		"LDR r1, [r0]" + "\n" +
+		"ADD r2, r0, #4" + "\n" +
+		"LDR r0, =msg_" + msgPosition.get("String") + "\n" +
+		"ADD r0, r0, #4" + "\n" +
+		"BL printf" + "\n" +
+		"MOV r0, #0" + "\n" +
+		"BL fflush" + "\n" +
+		"POP {pc}" + "\n"));
+		definedPrintsFunc[0] = true;
+	}
+	
+	private void addPrintBool() {
+		footer.add(new Instruction("p_print_bool:" + "\n" +
+		"PUSH {lr}" + "\n" +
+		"CMP r0, #0" + "\n" +
+		"LDRNE r0, =msg_" + msgPosition.get("True") + "\n" +
+		"LDREQ r0, =msg_" + msgPosition.get("False") + "\n" +
+		"ADD r0, r0, #4" + "\n" +
+		"BL printf" + "\n" +
+		"MOV r0, #0" + "\n" +
+		"BL fflush" + "\n" +
+		"POP {pc}" + "\n"));
+		definedPrintsFunc[1] = true;
+	}
+	
+	private void addPrintChar() {
+		instrList.add(new Instruction("MOV r0, r4\n" + "BL putchar\n"));
+		definedPrintsFunc[2] = true;
+	}
+	
+	private void addPrintInt() {
+		footer.add(new Instruction("p_print_int:" + "\n" +
+		"PUSH {lr}" + "\n" +
+		"MOV r1, r0" + "\n" +
+		"LDR r0, =msg_" + msgPosition.get("Int") + "\n" +
+		"ADD r0, r0, #4" + "\n" +
+		"BL printf" + "\n" +
+		"MOV r0, #0" + "\n" +
+		"BL fflush" + "\n" +
+		"POP {pc}" + "\n"));
+		definedPrintsFunc[3] = true;
+	}
+	
+	private void addPrintRef() {
+		footer.add(new Instruction("p_print_reference: \n" +
+		"PUSH {lr}\n" +
+		"MOV r1, r0\n" + 
+		"LDR r0, =msg_" + msgPosition.get("ref") + "\n" +
+		"ADD r0, r0, #4\n" +
+		"BL printf\n" +
+		"MOV r0, #0\n" +
+		"BL fflush\n" +
+		"POP {pc}\n"));
+		definedPrintsFunc[4] = true;
+	}
+
+	private void checkPrintMsg(TYPE typename) {
+		if(typename instanceof STRING) {
+			if(!definedPrintsMsg[0] && inPrint) {
+				header.add(new Instruction("msg_" + msgCount + ":\n.word 5\n.ascii " + '\"' + "%.*s" + "\\" + "0" + '\"' + "\n"));
+				msgPosition.put("String", msgCount);
+				definedPrintsMsg[0] = true;
+				msgCount++;
+			}
+		} else
+		if(typename instanceof BOOL) {
+			if(!definedPrintsMsg[1] && inPrint) {
+				header.add(new Instruction("msg_" + msgCount + ":\n.word 5\n.ascii " + '\"' + "true" + "\\" + "0" + '\"' + "\n"));
+				msgPosition.put("True", msgCount);
+				msgCount++;
+				header.add(new Instruction("msg_" + msgCount + ":\n.word 6\n.ascii " + '\"' + "false" + "\\" + "0" + '\"' + "\n"));
+				msgPosition.put("False", msgCount);
+				definedPrintsMsg[1] = true;
+				msgCount++;
+			}
+		} else
+		if(typename instanceof INT) {
+			if(!definedPrintsMsg[3] && inPrint) {//instead of !definedPrints so only enabled after print
+				header.add(new Instruction("msg_" + msgCount + ":\n.word 3\n.ascii " + '\"' + "%d" + "\\" + "0" + '\"' + "\n"));
+				msgPosition.put("Int", msgCount);
+				definedPrintsMsg[3] = true;
+				msgCount++;
+			}
+		} else
+		if(typename instanceof PAIR_TYPE ||
+				typename instanceof ARRAY_TYPE ||
+				typename instanceof NULL) {
+			if(!definedPrintsMsg[4] && inPrint) {
+				header.add(new Instruction("msg_" + msgCount + ":\n.word 3\n.ascii " + '\"' + "%p" + "\\" + "0" + '\"' + "\n"));
+				msgPosition.put("ref", msgCount);
+				definedPrintsMsg[4] = true;
+				msgCount++;
+			}
+		}
+	}
+	
 	@Override public Info visitInt_liter(@NotNull WaccParser.Int_literContext ctx) { 
 		List<TerminalNode> list = ctx.INTEGER();
 		Iterator<TerminalNode> it = list.iterator();
@@ -1625,11 +1822,31 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	@Override public Info visitStat_println(@NotNull WaccParser.Stat_printlnContext ctx) {
 		if (prints) System.out.println("visitStat_println");
+		inPrint = true;
 		visit(ctx.expr());
 		if(ctx.expr().typename == null) {
 			System.exit(200);
 		}
-
+		
+		//back-end
+		checkPrintFunc(ctx.expr().typename);
+		instrList.add(new Instruction("BL p_print_ln\n"));
+		
+		if(!definedPrintsMsg[5]) {
+			header.add(new Instruction("msg_" + msgCount + ":\n.word 1\n.ascii " + '\"' + "\\" + "0" + '\"' + "\n"));
+			definedPrintsMsg[5] = true;
+			msgCount++;
+			footer.add(new Instruction("p_print_ln:\n" +
+			"PUSH {lr}\n" +
+			"LDR r0, =msg_" + (msgCount - 1) + "\n" +
+			"ADD r0, r0, #4\n" +
+			"BL puts\n" +
+			"MOV r0, #0\n" +
+			"BL fflush\n" +
+			"POP {pc}\n"));
+		}
+		inPrint = false;
+		
 		return null;
 	}
 	
@@ -1640,6 +1857,12 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		currentList.add(new Instruction("LDR r" + regCount + ", =" + i.int_value + "\n"));
 		ctx.typename = new INT();
 		
+		if(!definedPrintsMsg[3] && inPrint) {//instead of !definedPrints so only enabled after print
+			header.add(new Instruction("msg_" + msgCount + ":\n.word 3\n.ascii " + '\"' + "%d" + "\\" + "0" + '\"' + "\n"));
+			msgPosition.put("Int", msgCount);
+			definedPrintsMsg[3] = true;
+			msgCount++;
+		}
 		return null; 
 	}
 	
@@ -1652,6 +1875,16 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			i = 1;
 		}
 		currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
+		
+		if(!definedPrintsMsg[1] && inPrint) {
+			header.add(new Instruction("msg_" + msgCount + ":\n.word 5\n.ascii " + '\"' + "true" + "\\" + "0" + '\"' + "\n"));
+			msgPosition.put("True", msgCount);
+			msgCount++;
+			header.add(new Instruction("msg_" + msgCount + ":\n.word 6\n.ascii " + '\"' + "false" + "\\" + "0" + '\"' + "\n"));
+			msgPosition.put("False", msgCount);
+			definedPrintsMsg[1] = true;
+			msgCount++;
+		}
 		return null; 
 	}
 	
@@ -1667,6 +1900,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	public Info visitExpr_str(@NotNull WaccParser.Expr_strContext ctx) { 
 		if (prints) System.out.println("visitExpr_str");
 		ctx.typename = new STRING();
+		
+		if(!definedPrintsMsg[0] && inPrint) {
+			header.add(new Instruction("msg_" + msgCount + ":\n.word 5\n.ascii " + '\"' + "%.*s" + "\\" + "0" + '\"' + "\n"));
+			msgPosition.put("String", msgCount);
+			definedPrintsMsg[0] = true;
+			msgCount++;
+		}
+		
 		String s = ctx.str_liter().STR().getText();
 		header.add(new Instruction("msg_" + msgCount + ":\n.word " + (s.length()-2) + "\n.ascii " + s + "\n"));
 		currentList.add(new Instruction("LDR r4, =msg_" + msgCount + "\n"));
@@ -1689,6 +1930,15 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (currentTable.lookupAll(id) == null) System.exit(200);//throw new Error(id + "has not been declared");
 		// do we have static variable in Wacc language. ^this would not support static var usage in stat in function declaration
 
+		checkPrintMsg(ctx.typename);
+/*
+		if(!definedPrintsMsg[4] && inPrint) {
+			header.add(new Instruction("msg_" + msgCount + ":\n.word 3\n.ascii " + '\"' + "%d" + "\\" + "0" + '\"' + "\n"));
+			msgPosition.put("ref", msgCount);
+			definedPrintsMsg[4] = true;
+			msgCount++;
+		}
+*/	
 		VariableFragment v = new VariableFragment(ctx.ident().getText());
 		currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r4, [sp"), v, new StringFragment("]\n")), v));
 		return null;
@@ -1696,6 +1946,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	@Override public Info visitExpr_pair(@NotNull WaccParser.Expr_pairContext ctx) { 
 		ctx.typename = new PAIR_TYPE();
+		
+		if(!definedPrintsMsg[4] && inPrint) {
+			header.add(new Instruction("msg_" + msgCount + ":\n.word 3\n.ascii " + '\"' + "%p" + "\\" + "0" + '\"' + "\n"));
+			msgPosition.put("ref", msgCount);
+			definedPrintsMsg[4] = true;
+			msgCount++;
+		}
 		return null;
 	}
 	
