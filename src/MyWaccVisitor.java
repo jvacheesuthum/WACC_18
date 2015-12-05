@@ -218,7 +218,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			}
 		}
 		if(tempTotal > 0){
-			functionStr = "SUB sp, sp, #" + tempTotal + "\n" + functionStr + "ADD sp, sp, #" + tempTotal + "\n";
+			functionStr = "SUB sp, sp, #" + tempTotal + "\n" + functionStr;
 		}
 		functionStr = "f_" + funcName + ":\n" + "PUSH {lr}\n" + functionStr + "POP {pc}\n.ltorg\n";
 		currentList.add(new Instruction_Function(functionStr));
@@ -752,6 +752,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 
 		currentList.add(new Instruction("MOV r0, r4\n"));
+		if (stackTotal != 0) currentList.add(new Instruction("ADD sp, sp, #" + stackTotal + "\n"));
 		currentList.add(new Instruction("POP {pc}\n"));
 		return null; 
 		
