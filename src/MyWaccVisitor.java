@@ -35,7 +35,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	Map<String, Integer> paramOffsetMap = new HashMap<String, Integer>();
 	private Integer paramSizeCount = -999;
 
-	private int ifLayerCount = -1;
+	private int ifCount = -1;
 
 	boolean prints = true;
 
@@ -171,9 +171,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 		if(ctx.param_list() != null){
 
-			//backend
-			paramSizeCount = 4;
-			//
 			visit(ctx.param_list());
 
 			List <ParamContext> params = ctx.param_list().param();
@@ -206,7 +203,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	private void wrapFunctInstr(String funcName){
 		assert stackTotal == 0 : "stackTotal not equals to 0 at the beginning of function declare";
 		int tempTotal = stackTotal;
-		makeInstrReady(functList);
+		makeFuncReady();
 
 		String functionStr = "";
 		Iterator<Instruction> it = functList.iterator();
@@ -227,14 +224,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	}
 
 
-	private void makeInstrReady(List<Instruction> in){
+	private void makeFuncReady(){
 		Set<String> keys = paramOffsetMap.keySet();
 		for(String eachKeys : keys){
 			currentStackMap.put(eachKeys, paramOffsetMap.get(eachKeys) + stackTotal);
 		}
 
 		currentStackMap.put("total", stackTotal);
-		for(Instruction instr: in) {
+		for(Instruction instr: functList) {
 			if (instr.toDeclare()) {
 				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
 			}
@@ -292,14 +289,92 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("visitLayer_s_s");
 		currentTable = new SymbolTable(currentTable);
 
+		//backend
+		ifCount++ ;
+		//
+
+		if (prints) System.out.println("visitStat_if");
+		visit(ctx.expr());
+		if (prints) System.out.println("expr = "+ ctx.expr().toString());
+
+		//backend - after visit expr
+		int currentIfLable = ifCount * 2;
+		currentList.add(new Instruction("CMP r" + regCount + ", #0\n"));
+		currentList.add(new Instruction("BEQ L" + (currentIfLable) + "\n"));
+		//
+
+		if(!(SharedMethods.assignCompat(ctx.expr().typename, new BOOL()))){
+			System.out.print("if condition is not of type bool");
+			System.exit(200);
+		}
+
+		//add scope + also for param
+		//backend - before visit then-stat
+		int encStackCount = stackTotal;
+		stackTotal = 0;
+		Map<String, Integer> encStackMap = currentStackMap;
+		Map<String,Integer> scopedStackMap = new HashMap<>(currentStackMap);
+		currentStackMap = scopedStackMap;
+		List<Instruction> encInstr = currentList;
+		List<Instruction> scopedInstr = new ArrayList<Instruction>();
+		currentList = scopedInstr;
+		//param
+		Map<String, Integer> encParamOffsetMap = paramOffsetMap;
+		paramOffsetMap = new HashMap<String, Integer>();
+		//
 		if (ctx.stat(0) != null) {
 			visit(ctx.stat(0));
 		}
+		visit(ctx.stat_return(0));
+		//prapagate up the scope
+		//backend - after visit first stat
+		//locating variables from outer scope correctly when there is a change in stack pointer
+		int hasDeclare = stackTotal;
+		if(hasDeclare > 0){
+			for (String eachKey : scopedStackMap.keySet()){
+				int eachValue = scopedStackMap.get(eachKey);
+				scopedStackMap.put(eachKey, eachValue + stackTotal);
+			}
+			for (String eachKey : paramOffsetMap.keySet()){
+				int eachValue = paramOffsetMap.get(eachKey);
+				paramOffsetMap.put(eachKey, eachValue + stackTotal);
+			}
+		}
+
+		currentStackMap.put("total", stackTotal);
+		for(Instruction instr: currentList) {
+			if (instr instanceof Instruction_Return){
+				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
+				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
+			}
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
+			}
+			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
+				// variable total is propagated up the if scopes
+				instr.varsToPos(currentStackMap);
+			}
+		}
+		//adding to encInstrList
+		if(hasDeclare > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclare + "\n"));
+		for(Instruction in : currentList){
+			encInstr.add(in);
+		}
+		if(hasDeclare > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclare + "\n"));
+		currentList = encInstr;
+		currentStackMap = encStackMap;
+		stackTotal = encStackCount;
+
+		currentList.add(new Instruction("B L" + (currentIfLable+1) + "\n"));
+		//
+
+
 		if (ctx.stat(1) != null) {
 			visit(ctx.stat(1));
 		}
-		visit(ctx.stat_return(0));
 		visit(ctx.stat_return(1));
+
+
 		if (!SharedMethods.assignCompat(ctx.stat_return(0).typename, ctx.stat_return(1).typename)){
         	System.exit(200);
 		}
@@ -459,7 +534,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	@Override public Info visitStat_if(@NotNull WaccParser.Stat_ifContext ctx) {
 		//backend
-		ifLayerCount++ ;
+		ifCount++ ;
 		//
 
     	if (prints) System.out.println("visitStat_if");
@@ -467,7 +542,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("expr = "+ ctx.expr().toString());
 
 		//backend - after visit expr
-		int currentIfLable = ifLayerCount * 2;
+		int currentIfLable = ifCount * 2;
 		currentList.add(new Instruction("CMP r" + regCount + ", #0\n"));
 		currentList.add(new Instruction("BEQ L" + (currentIfLable) + "\n"));
 		//
@@ -481,7 +556,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		int encStackCount = stackTotal;
 		stackTotal = 0;
 		Map<String, Integer> encStackMap = currentStackMap;
-		Map<String,Integer> scopedStackMap = new HashMap<>(currentStackMap);
+		Map<String,Integer> scopedStackMap = new HashMap<>();
 		currentStackMap = scopedStackMap;
 		List<Instruction> encInstr = currentList;
 		List<Instruction> scopedInstr = new ArrayList<Instruction>();
@@ -494,16 +569,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 		//backend - after visit first stat
 		//locating variables from outer scope correctly when there is a change in stack pointer
-		int hasDeclare = stackTotal;
-		if(hasDeclare > 0){
-			for (String eachKey : scopedStackMap.keySet()){
-				int eachValue = scopedStackMap.get(eachKey);
-				scopedStackMap.put(eachKey, eachValue + stackTotal);
-			}
-		}
-
+		int hasDeclared = stackTotal;
 		currentStackMap.put("total", stackTotal);
+
 		for(Instruction instr: currentList) {
+			if (instr.isScoped()){
+				instr.addScopeDepth(hasDeclared);
+			}
 			if (instr instanceof Instruction_Return){
 				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
 				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
@@ -517,11 +589,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			}
 		}
 		//adding to encInstrList
-		if(hasDeclare > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclare + "\n"));
+		if(hasDeclared > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclared + "\n"));
 		for(Instruction in : currentList){
+			//for newly created scopedInstruction
+			if(in.isScoped() && (in.scopeDepth() == 0)) in.addScopeDepth(hasDeclared);
 			encInstr.add(in);
 		}
-		if(hasDeclare > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclare + "\n"));
+		if(hasDeclared > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclared + "\n"));
 		currentList = encInstr;
 		currentStackMap = encStackMap;
 		stackTotal = encStackCount;
@@ -549,7 +623,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 		//backend - after visit else-stat
 		//locating variables from outer scope correctly when there is a change in stack pointer
-		hasDeclare = stackTotal;
+		int hasDeclare = stackTotal;
 		if(hasDeclare > 0){
 			for (String eachKey : scopedStackMap.keySet()){
 				int eachValue = scopedStackMap.get(eachKey);
@@ -582,7 +656,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 		currentList.add(new Instruction("L"+ (currentIfLable+1) +":\n"));
 
-		ifLayerCount-- ;
 		//
 
 		ctx.typename = ctx.stat(0).typename;
@@ -935,7 +1008,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		return null;
 	}
 
-	@Override public Info visitParam_list(@NotNull WaccParser.Param_listContext ctx) { 
+	@Override public Info visitParam_list(@NotNull WaccParser.Param_listContext ctx) {
+		//backend
+		paramSizeCount = 4;
+		//
 		List<ParamContext> pctx = ctx.param();
 		for (ParamContext p : pctx){
 			visit(p);

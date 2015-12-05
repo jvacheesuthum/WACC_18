@@ -7,6 +7,9 @@ public class Instruction {
 	protected List<InstructionFragment> instructions;
 	protected List<VariableFragment> variables;
 	protected PositionFragment pos;
+
+	protected boolean isScoped = false;
+	protected int scopedDepth = 0;
 	
 	public Instruction(String s) {
 		// when no variables and positions are needed
@@ -43,6 +46,14 @@ public class Instruction {
 		// check if this instruction requires information on where things are stored on the stack
 		return variables != null;
 	}
+
+	public boolean isScoped(){
+		return isScoped;
+	}
+
+	public void addScopeDepth(int x){
+		scopedDepth += x;
+	}
 	
 	public void varsToPos(Map<String, Integer> st) {
 		// given stack map, gives a position string to all variables in this instruction
@@ -54,11 +65,17 @@ public class Instruction {
 			// varPosition can be null when in 'if' scope u tried to access outer-scoped variable
 			// that is declared but not yet known the position
 			if(varPosition != null) {
+				varPosition += scopedDepth;
 				v.pointToStackPosition(varPosition);
 				it.remove();
 			}
+			else{
+				isScoped = true;
+			}
 		}
-		if(variables.isEmpty()) variables = null;
+		if(variables.isEmpty()){
+			variables = null;
+		}
 	}
 	
 	public int sizeOnStack() {
@@ -84,5 +101,9 @@ public class Instruction {
 			result += instr.getString();
 		}
 		return result;
+	}
+
+	public int scopeDepth() {
+		return scopedDepth;
 	}
 }
