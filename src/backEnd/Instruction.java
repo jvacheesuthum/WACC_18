@@ -55,7 +55,7 @@ public class Instruction {
 		scopedDepth += x;
 	}
 	
-	public void varsToPos(Map<String, Integer> st) {
+	public void varsToPos(Map<String, Integer> st, int scopedStackTotal) {
 		// given stack map, gives a position string to all variables in this instruction
 
 		Iterator<VariableFragment> it = variables.iterator();
@@ -70,7 +70,12 @@ public class Instruction {
 				it.remove();
 			}
 			else{
-				isScoped = true;
+				if(!isScoped){
+					isScoped = true;
+				}
+				else{
+					addScopeDepth(scopedStackTotal);
+				}
 			}
 		}
 		if(variables.isEmpty()){

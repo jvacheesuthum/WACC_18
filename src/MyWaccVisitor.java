@@ -236,7 +236,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
 			}
 			if (instr.needsVarPos()) {
-				instr.varsToPos(currentStackMap);
+				instr.varsToPos(currentStackMap, 0);
 			}
 		}
 		currentStackMap.remove("total");
@@ -352,7 +352,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			}
 			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
 				// variable total is propagated up the if scopes
-				instr.varsToPos(currentStackMap);
+				instr.varsToPos(currentStackMap, 99999);
 			}
 		}
 		//adding to encInstrList
@@ -573,9 +573,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		currentStackMap.put("total", stackTotal);
 
 		for(Instruction instr: currentList) {
-			if (instr.isScoped()){
-				instr.addScopeDepth(hasDeclared);
-			}
+			//if (instr.isScoped()){
+			//	instr.addScopeDepth(hasDeclared);
+			//}
 			if (instr instanceof Instruction_Return){
 				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
 				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
@@ -585,7 +585,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			}
 			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
 				// variable total is propagated up the if scopes
-				instr.varsToPos(currentStackMap);
+				instr.varsToPos(currentStackMap, hasDeclared);
 			}
 		}
 		//adding to encInstrList
@@ -627,9 +627,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		hasDeclared = stackTotal;
 		currentStackMap.put("total", stackTotal);
 		for(Instruction instr: currentList) {
-			if (instr.isScoped()){
-				instr.addScopeDepth(hasDeclared);
-			}
+			//if (instr.isScoped()){
+			//	instr.addScopeDepth(hasDeclared);
+			//}
 			if (instr instanceof Instruction_Return){
 				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
 				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
@@ -638,7 +638,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
 			}
 			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
-				instr.varsToPos(currentStackMap);
+				instr.varsToPos(currentStackMap, hasDeclared);
 			}
 		}
 		//adding to encInstrList
@@ -1157,7 +1157,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
 			}
 			if (instr.needsVarPos()) {
-				instr.varsToPos(currentStackMap);
+				instr.varsToPos(currentStackMap, 0);
 			}
 			System.out.print(instr);
 		}

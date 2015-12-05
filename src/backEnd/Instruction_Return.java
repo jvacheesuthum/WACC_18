@@ -16,7 +16,7 @@ public class Instruction_Return extends Instruction{
     }
 
     @Override
-    public void varsToPos(Map<String, Integer> st) {
+    public void varsToPos(Map<String, Integer> st, int willneverbeused) {
         // given stack map, gives a position string to all variables in this instruction
         VariableFragment v = variables.get(0);
         Integer varPosition = st.get(v.getVariable());
