@@ -4,9 +4,9 @@ import java.util.*;
 
 public class Instruction {
 	
-	private List<InstructionFragment> instructions;
-	private List<VariableFragment> variables;
-	private PositionFragment pos;
+	protected List<InstructionFragment> instructions;
+	protected List<VariableFragment> variables;
+	protected PositionFragment pos;
 	
 	public Instruction(String s) {
 		// when no variables and positions are needed
@@ -85,5 +85,4 @@ public class Instruction {
 		}
 		return result;
 	}
-
 }
