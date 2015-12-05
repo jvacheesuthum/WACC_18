@@ -559,10 +559,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 		currentStackMap.put("total", stackTotal);
 		for(Instruction instr: currentList) {
+			if (instr instanceof Instruction_Return){
+				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
+				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
+			}
 			if (instr.toDeclare()) {
 				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
 			}
-			if (instr.needsVarPos()) {
+			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
 				instr.varsToPos(currentStackMap);
 			}
 		}
