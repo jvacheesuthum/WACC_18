@@ -195,7 +195,7 @@ locals[TYPE typename]
 : (IF expr THEN (stat SEMI_COLON)? stat_return ELSE (stat SEMI_COLON)? stat_return FI) #layer_s_s
 | (IF expr THEN (stat SEMI_COLON)? if_layers ELSE (stat SEMI_COLON)? if_layers FI) #layer_i_i
 | (IF expr THEN (stat SEMI_COLON)? stat_return ELSE (stat SEMI_COLON)? if_layers FI) #layer_s_i
-| (IF expr THEN (stat SEMI_COLON)? if_layers ELSE (stat SEMI_COLON)? stat_return FI) #layer_s_i
+| (IF expr THEN (stat SEMI_COLON)? if_layers ELSE (stat SEMI_COLON)? stat_return FI) #layer_i_s
 ;
 
 func

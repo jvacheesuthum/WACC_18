@@ -133,7 +133,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
       if (i == 1) {
     	  currentList.add(new Instruction(Arrays.asList(new StringFragment("STRB r"+ regCount + ", [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
       } else {
-    	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r"+ regCount +", [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
+    	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r" + regCount + ", [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
       }
   	  return null;
     }
@@ -151,7 +151,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	@Override
     public Info visitFunc_standard(@NotNull WaccParser.Func_standardContext ctx) {
-		// backend: current is set to functList at visitProgram
+		// backend: currentList is set to functList at visitProgram
 		if (prints) System.out.println("visitFunc_std");
 		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
 		if(((FUNCTION) id).symtab != null) System.exit(200);
@@ -244,6 +244,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     
     @Override
     public Info visitFunc_if(@NotNull WaccParser.Func_ifContext ctx) {
+		//currentList is now set to functList by visitProgram
     	if (prints) System.out.println("visitFunc_if");
 		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
 		if(((FUNCTION) id).symtab != null) System.exit(200);
@@ -276,6 +277,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			visit(ctx.stat());
 		}
 		visit(ctx.if_layers());
+
+		//backend
+		wrapFunctInstr(ctx.ident().getText());
+		//
 		
 		if (!SharedMethods.assignCompat(ctx.if_layers().typename, returntypename)){
         	System.exit(200);
@@ -287,7 +292,136 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     
 	@Override public Info visitLayer_s_s(@NotNull WaccParser.Layer_s_sContext ctx) {
 		if (prints) System.out.println("visitLayer_s_s");
+		//backend
+		ifCount++ ;
+		//
+		if (prints) System.out.println("visitStat_if");
+		visit(ctx.expr());
+		if (prints) System.out.println("expr = "+ ctx.expr().toString());
+
 		currentTable = new SymbolTable(currentTable);
+
+		//backend - after visit expr
+		int currentIfLable = ifCount * 2;
+		currentList.add(new Instruction("CMP r" + regCount + ", #0\n"));
+		currentList.add(new Instruction("BEQ L" + (currentIfLable) + "\n"));
+		//
+
+		if(!(SharedMethods.assignCompat(ctx.expr().typename, new BOOL()))){
+			System.out.print("if condition is not of type bool");
+			System.exit(200);
+		}
+
+		//backend - before visit then-stat
+		int encStackCount = stackTotal;
+		stackTotal = 0;
+		Map<String, Integer> encStackMap = currentStackMap;
+		Map<String,Integer> scopedStackMap = new HashMap<>();
+		currentStackMap = scopedStackMap;
+		List<Instruction> encInstr = currentList;
+		List<Instruction> scopedInstr = new ArrayList<Instruction>();
+		currentList = scopedInstr;
+		//
+
+		if (ctx.stat(0) != null) {
+			visit(ctx.stat(0));
+		}
+		visit(ctx.stat_return(0));
+
+		//backend - after visit first stat
+		//locating variables from outer scope correctly when there is a change in stack pointer
+		int hasDeclared = stackTotal;
+		currentStackMap.put("total", stackTotal);
+
+		for(Instruction instr: currentList) {
+			if (instr instanceof Instruction_Return){
+				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
+				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
+			}
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
+			}
+			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
+				// variable total is propagated up the if scopes
+				instr.varsToPos(currentStackMap, hasDeclared);
+			}
+		}
+		//adding to encInstrList
+		if(hasDeclared > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclared + "\n"));
+		for(Instruction in : currentList){
+			//for newly created scopedInstruction
+			if(in.isScoped() && (in.scopeDepth() == 0)) in.addScopeDepth(hasDeclared);
+			encInstr.add(in);
+		}
+		if(hasDeclared > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclared + "\n"));
+		currentList = encInstr;
+		currentStackMap = encStackMap;
+		stackTotal = encStackCount;
+
+		currentList.add(new Instruction("B L" + (currentIfLable+1) + "\n"));
+		//
+
+
+		//backend - before visit else-stat
+		currentList.add(new Instruction("L"+ currentIfLable +":\n"));
+		encStackCount = stackTotal;
+		stackTotal = 0;
+		encStackMap = currentStackMap;
+		scopedStackMap = new HashMap<>();
+		currentStackMap = scopedStackMap;
+		encInstr = currentList;
+		scopedInstr = new ArrayList<Instruction>();
+		currentList = scopedInstr;
+		//
+		if (ctx.stat(1) != null) {
+			visit(ctx.stat(1));
+		}
+		visit(ctx.stat_return(1));
+
+		//backend - after visit else-stat
+		//locating variables from outer scope correctly when there is a change in stack pointer
+
+		hasDeclared = stackTotal;
+		currentStackMap.put("total", stackTotal);
+		for(Instruction instr: currentList) {
+			if (instr instanceof Instruction_Return){
+				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
+				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
+			}
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
+			}
+			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
+				instr.varsToPos(currentStackMap, hasDeclared);
+			}
+		}
+		//adding to encInstrList
+		if(hasDeclared > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclared + "\n"));
+		for(Instruction in : currentList){
+			//for newly created scopedInstruction
+			if(in.isScoped() && (in.scopeDepth() == 0)) in.addScopeDepth(hasDeclared);
+			encInstr.add(in);
+		}
+		if(hasDeclared > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclared + "\n"));
+		currentList = encInstr;
+		currentStackMap = encStackMap;
+		stackTotal = encStackCount;
+
+		currentList.add(new Instruction("L"+ (currentIfLable+1) +":\n"));
+
+		//
+
+		if (!SharedMethods.assignCompat(ctx.stat_return(0).typename, ctx.stat_return(1).typename)){
+        	System.exit(200);
+		}
+		ctx.typename = ctx.stat_return(0).typename;
+
+		currentTable = currentTable.encSymTable;
+		return null;
+	}
+	
+	@Override public Info visitLayer_i_i(@NotNull WaccParser.Layer_i_iContext ctx) {
+		if (prints) System.out.println("visitLayer_i_i");
 
 		//backend
 		ifCount++ ;
@@ -303,45 +437,30 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		currentList.add(new Instruction("BEQ L" + (currentIfLable) + "\n"));
 		//
 
-		if(!(SharedMethods.assignCompat(ctx.expr().typename, new BOOL()))){
-			System.out.print("if condition is not of type bool");
-			System.exit(200);
-		}
+		currentTable = new SymbolTable(currentTable);
 
-		//add scope + also for param
+
 		//backend - before visit then-stat
 		int encStackCount = stackTotal;
 		stackTotal = 0;
 		Map<String, Integer> encStackMap = currentStackMap;
-		Map<String,Integer> scopedStackMap = new HashMap<>(currentStackMap);
+		Map<String,Integer> scopedStackMap = new HashMap<>();
 		currentStackMap = scopedStackMap;
 		List<Instruction> encInstr = currentList;
 		List<Instruction> scopedInstr = new ArrayList<Instruction>();
 		currentList = scopedInstr;
-		//param
-		Map<String, Integer> encParamOffsetMap = paramOffsetMap;
-		paramOffsetMap = new HashMap<String, Integer>();
 		//
+
 		if (ctx.stat(0) != null) {
 			visit(ctx.stat(0));
 		}
-		visit(ctx.stat_return(0));
-		//prapagate up the scope
-		//backend - after visit first stat
-		//locating variables from outer scope correctly when there is a change in stack pointer
-		int hasDeclare = stackTotal;
-		if(hasDeclare > 0){
-			for (String eachKey : scopedStackMap.keySet()){
-				int eachValue = scopedStackMap.get(eachKey);
-				scopedStackMap.put(eachKey, eachValue + stackTotal);
-			}
-			for (String eachKey : paramOffsetMap.keySet()){
-				int eachValue = paramOffsetMap.get(eachKey);
-				paramOffsetMap.put(eachKey, eachValue + stackTotal);
-			}
-		}
+		visit(ctx.if_layers(0));
 
+		//backend - after visit first/then stat
+		//locating variables from outer scope correctly when there is a change in stack pointer
+		int hasDeclared = stackTotal;
 		currentStackMap.put("total", stackTotal);
+
 		for(Instruction instr: currentList) {
 			if (instr instanceof Instruction_Return){
 				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
@@ -352,15 +471,17 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			}
 			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
 				// variable total is propagated up the if scopes
-				instr.varsToPos(currentStackMap, 99999);
+				instr.varsToPos(currentStackMap, hasDeclared);
 			}
 		}
 		//adding to encInstrList
-		if(hasDeclare > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclare + "\n"));
+		if(hasDeclared > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclared + "\n"));
 		for(Instruction in : currentList){
+			//for newly created scopedInstruction
+			if(in.isScoped() && (in.scopeDepth() == 0)) in.addScopeDepth(hasDeclared);
 			encInstr.add(in);
 		}
-		if(hasDeclare > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclare + "\n"));
+		if(hasDeclared > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclared + "\n"));
 		currentList = encInstr;
 		currentStackMap = encStackMap;
 		stackTotal = encStackCount;
@@ -368,34 +489,55 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		currentList.add(new Instruction("B L" + (currentIfLable+1) + "\n"));
 		//
 
-
+		//backend - before visit else-stat
+		currentList.add(new Instruction("L"+ currentIfLable +":\n"));
+		encStackCount = stackTotal;
+		stackTotal = 0;
+		encStackMap = currentStackMap;
+		scopedStackMap = new HashMap<>();
+		currentStackMap = scopedStackMap;
+		encInstr = currentList;
+		scopedInstr = new ArrayList<Instruction>();
+		currentList = scopedInstr;
+		//
 		if (ctx.stat(1) != null) {
 			visit(ctx.stat(1));
 		}
-		visit(ctx.stat_return(1));
-
-
-		if (!SharedMethods.assignCompat(ctx.stat_return(0).typename, ctx.stat_return(1).typename)){
-        	System.exit(200);
-		}
-		ctx.typename = ctx.stat_return(0).typename;
-
-		currentTable = currentTable.encSymTable;
-		return null;
-	}
-	
-	@Override public Info visitLayer_i_i(@NotNull WaccParser.Layer_i_iContext ctx) {
-		if (prints) System.out.println("visitLayer_i_i");
-		currentTable = new SymbolTable(currentTable);
-
-		if (ctx.stat(0) != null) {
-			visit(ctx.stat(0));
-		}
-		if (ctx.stat(1) != null) {
-			visit(ctx.stat(1));
-		}
-		visit(ctx.if_layers(0));
 		visit(ctx.if_layers(1));
+
+		//backend - after visit else-stat
+		//locating variables from outer scope correctly when there is a change in stack pointer
+
+		hasDeclared = stackTotal;
+		currentStackMap.put("total", stackTotal);
+		for(Instruction instr: currentList) {
+			if (instr instanceof Instruction_Return){
+				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
+				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
+			}
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
+			}
+			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
+				instr.varsToPos(currentStackMap, hasDeclared);
+			}
+		}
+		//adding to encInstrList
+		if(hasDeclared > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclared + "\n"));
+		for(Instruction in : currentList){
+			//for newly created scopedInstruction
+			if(in.isScoped() && (in.scopeDepth() == 0)) in.addScopeDepth(hasDeclared);
+			encInstr.add(in);
+		}
+		if(hasDeclared > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclared + "\n"));
+		currentList = encInstr;
+		currentStackMap = encStackMap;
+		stackTotal = encStackCount;
+
+		currentList.add(new Instruction("L"+ (currentIfLable+1) +":\n"));
+
+		//
+
 		if (!SharedMethods.assignCompat(ctx.if_layers(0).typename, ctx.if_layers(1).typename)){
         	System.exit(200);
 		}
@@ -407,18 +549,243 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	@Override public Info visitLayer_s_i(@NotNull WaccParser.Layer_s_iContext ctx) {
 		if (prints) System.out.println("visitLayer_s_i");
+
+		//backend
+		ifCount++ ;
+		//
+
+		if (prints) System.out.println("visitStat_if");
+		visit(ctx.expr());
+		if (prints) System.out.println("expr = "+ ctx.expr().toString());
+
+		//backend - after visit expr
+		int currentIfLable = ifCount * 2;
+		currentList.add(new Instruction("CMP r" + regCount + ", #0\n"));
+		currentList.add(new Instruction("BEQ L" + (currentIfLable) + "\n"));
+		//
+
 		currentTable = new SymbolTable(currentTable);
 
+		//backend - before visit then-stat
+		int encStackCount = stackTotal;
+		stackTotal = 0;
+		Map<String, Integer> encStackMap = currentStackMap;
+		Map<String,Integer> scopedStackMap = new HashMap<>();
+		currentStackMap = scopedStackMap;
+		List<Instruction> encInstr = currentList;
+		List<Instruction> scopedInstr = new ArrayList<Instruction>();
+		currentList = scopedInstr;
+		//
 		if (ctx.stat(0) != null) {
 			visit(ctx.stat(0));
 		}
+		visit(ctx.stat_return());
+
+		//backend - after visit first stat
+		//locating variables from outer scope correctly when there is a change in stack pointer
+		int hasDeclared = stackTotal;
+		currentStackMap.put("total", stackTotal);
+
+		for(Instruction instr: currentList) {
+			if (instr instanceof Instruction_Return){
+				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
+				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
+			}
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
+			}
+			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
+				// variable total is propagated up the if scopes
+				instr.varsToPos(currentStackMap, hasDeclared);
+			}
+		}
+		//adding to encInstrList
+		if(hasDeclared > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclared + "\n"));
+		for(Instruction in : currentList){
+			//for newly created scopedInstruction
+			if(in.isScoped() && (in.scopeDepth() == 0)) in.addScopeDepth(hasDeclared);
+			encInstr.add(in);
+		}
+		if(hasDeclared > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclared + "\n"));
+		currentList = encInstr;
+		currentStackMap = encStackMap;
+		stackTotal = encStackCount;
+
+		currentList.add(new Instruction("B L" + (currentIfLable+1) + "\n"));
+		//
+
+		//backend - before visit else-stat
+		currentList.add(new Instruction("L"+ currentIfLable +":\n"));
+		encStackCount = stackTotal;
+		stackTotal = 0;
+		encStackMap = currentStackMap;
+		scopedStackMap = new HashMap<>();
+		currentStackMap = scopedStackMap;
+		encInstr = currentList;
+		scopedInstr = new ArrayList<Instruction>();
+		currentList = scopedInstr;
+		//
 		if (ctx.stat(1) != null) {
 			visit(ctx.stat(1));
 		}
 		visit(ctx.if_layers());
-		visit(ctx.stat_return());
+		//backend - after visit else-stat
+		//locating variables from outer scope correctly when there is a change in stack pointer
+		hasDeclared = stackTotal;
+		currentStackMap.put("total", stackTotal);
+		for(Instruction instr: currentList) {
+			if (instr instanceof Instruction_Return){
+				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
+				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
+			}
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
+			}
+			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
+				instr.varsToPos(currentStackMap, hasDeclared);
+			}
+		}
+		//adding to encInstrList
+		if(hasDeclared > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclared + "\n"));
+		for(Instruction in : currentList){
+			//for newly created scopedInstruction
+			if(in.isScoped() && (in.scopeDepth() == 0)) in.addScopeDepth(hasDeclared);
+			encInstr.add(in);
+		}
+		if(hasDeclared > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclared + "\n"));
+		currentList = encInstr;
+		currentStackMap = encStackMap;
+		stackTotal = encStackCount;
+
+		currentList.add(new Instruction("L"+ (currentIfLable+1) +":\n"));
+
+		//
+
+
 		if (!SharedMethods.assignCompat(ctx.if_layers().typename, ctx.stat_return().typename)){
         	System.exit(200);
+		}
+		ctx.typename = ctx.stat_return().typename;
+
+		currentTable = currentTable.encSymTable;
+		return null;
+	}
+
+	@Override public Info visitLayer_i_s(@NotNull WaccParser.Layer_i_sContext ctx) {
+		if (prints) System.out.println("visitLayer_s_i");
+
+		//backend
+		ifCount++ ;
+		//
+
+		if (prints) System.out.println("visitStat_if");
+		visit(ctx.expr());
+		if (prints) System.out.println("expr = "+ ctx.expr().toString());
+
+		//backend - after visit expr
+		int currentIfLable = ifCount * 2;
+		currentList.add(new Instruction("CMP r" + regCount + ", #0\n"));
+		currentList.add(new Instruction("BEQ L" + (currentIfLable) + "\n"));
+		//
+
+		currentTable = new SymbolTable(currentTable);
+
+
+		//backend - before visit then-stat
+		int encStackCount = stackTotal;
+		stackTotal = 0;
+		Map<String, Integer> encStackMap = currentStackMap;
+		Map<String,Integer> scopedStackMap = new HashMap<>();
+		currentStackMap = scopedStackMap;
+		List<Instruction> encInstr = currentList;
+		List<Instruction> scopedInstr = new ArrayList<Instruction>();
+		currentList = scopedInstr;
+		//
+		if (ctx.stat(0) != null) {
+			visit(ctx.stat(0));
+		}
+		visit(ctx.if_layers());
+		//backend - after visit first stat
+		//locating variables from outer scope correctly when there is a change in stack pointer
+		int hasDeclared = stackTotal;
+		currentStackMap.put("total", stackTotal);
+
+		for(Instruction instr: currentList) {
+			if (instr instanceof Instruction_Return){
+				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
+				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
+			}
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
+			}
+			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
+				// variable total is propagated up the if scopes
+				instr.varsToPos(currentStackMap, hasDeclared);
+			}
+		}
+		//adding to encInstrList
+		if(hasDeclared > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclared + "\n"));
+		for(Instruction in : currentList){
+			//for newly created scopedInstruction
+			if(in.isScoped() && (in.scopeDepth() == 0)) in.addScopeDepth(hasDeclared);
+			encInstr.add(in);
+		}
+		if(hasDeclared > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclared + "\n"));
+		currentList = encInstr;
+		currentStackMap = encStackMap;
+		stackTotal = encStackCount;
+
+		currentList.add(new Instruction("B L" + (currentIfLable+1) + "\n"));
+		//
+
+		//backend - before visit else-stat
+		currentList.add(new Instruction("L"+ currentIfLable +":\n"));
+		encStackCount = stackTotal;
+		stackTotal = 0;
+		encStackMap = currentStackMap;
+		scopedStackMap = new HashMap<>();
+		currentStackMap = scopedStackMap;
+		encInstr = currentList;
+		scopedInstr = new ArrayList<Instruction>();
+		currentList = scopedInstr;
+		//
+		if (ctx.stat(1) != null) {
+			visit(ctx.stat(1));
+		}
+		visit(ctx.stat_return());
+		//backend - after visit else-stat
+		//locating variables from outer scope correctly when there is a change in stack pointer
+		hasDeclared = stackTotal;
+		currentStackMap.put("total", stackTotal);
+		for(Instruction instr: currentList) {
+			if (instr instanceof Instruction_Return){
+				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
+				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
+			}
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
+			}
+			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
+				instr.varsToPos(currentStackMap, hasDeclared);
+			}
+		}
+		//adding to encInstrList
+		if(hasDeclared > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclared + "\n"));
+		for(Instruction in : currentList){
+			//for newly created scopedInstruction
+			if(in.isScoped() && (in.scopeDepth() == 0)) in.addScopeDepth(hasDeclared);
+			encInstr.add(in);
+		}
+		if(hasDeclared > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclared + "\n"));
+		currentList = encInstr;
+		currentStackMap = encStackMap;
+		stackTotal = encStackCount;
+
+		currentList.add(new Instruction("L"+ (currentIfLable+1) +":\n"));
+		//
+
+		if (!SharedMethods.assignCompat(ctx.if_layers().typename, ctx.stat_return().typename)){
+			System.exit(200);
 		}
 		ctx.typename = ctx.stat_return().typename;
 
@@ -833,7 +1200,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 
 		currentList.add(new Instruction("MOV r0, r4\n"));
-		//if (stackTotal != 0) currentList.add(new Instruction("ADD sp, sp, #" + stackTotal + "\n"));
 		VariableFragment total = new VariableFragment("total");
 		currentList.add(new Instruction_Return(Arrays.asList(new StringFragment("ADD sp, sp"), total, new StringFragment("\n")), total));
 		currentList.add(new Instruction("POP {pc}\n"));
