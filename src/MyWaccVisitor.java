@@ -609,7 +609,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		encStackCount = stackTotal;
 		stackTotal = 0;
 		encStackMap = currentStackMap;
-		scopedStackMap = new HashMap<>(currentStackMap);
+		scopedStackMap = new HashMap<>();
 		currentStackMap = scopedStackMap;
 		encInstr = currentList;
 		scopedInstr = new ArrayList<Instruction>();
@@ -623,16 +623,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 		//backend - after visit else-stat
 		//locating variables from outer scope correctly when there is a change in stack pointer
-		int hasDeclare = stackTotal;
-		if(hasDeclare > 0){
-			for (String eachKey : scopedStackMap.keySet()){
-				int eachValue = scopedStackMap.get(eachKey);
-				scopedStackMap.put(eachKey, eachValue + stackTotal);
-			}
-		}
 
+		hasDeclared = stackTotal;
 		currentStackMap.put("total", stackTotal);
 		for(Instruction instr: currentList) {
+			if (instr.isScoped()){
+				instr.addScopeDepth(hasDeclared);
+			}
 			if (instr instanceof Instruction_Return){
 				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
 				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
@@ -645,11 +642,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			}
 		}
 		//adding to encInstrList
-		if(hasDeclare > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclare + "\n"));
+		if(hasDeclared > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclared + "\n"));
 		for(Instruction in : currentList){
+			//for newly created scopedInstruction
+			if(in.isScoped() && (in.scopeDepth() == 0)) in.addScopeDepth(hasDeclared);
 			encInstr.add(in);
 		}
-		if(hasDeclare > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclare + "\n"));
+		if(hasDeclared > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclared + "\n"));
 		currentList = encInstr;
 		currentStackMap = encStackMap;
 		stackTotal = encStackCount;
@@ -678,7 +677,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		return null;
 	}
 
-	@Override 
+	@Override
 	public Info visitType_pairtype(@NotNull WaccParser.Type_pairtypeContext ctx) { 
     	if (prints) System.out.println("visitType_pairtype");
 		visit(ctx.pair_type());
@@ -695,7 +694,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		return null;
 	}
 	
-	@Override 
+	@Override
 	public Info visitType_basetype(@NotNull WaccParser.Type_basetypeContext ctx) {
     	if (prints) System.out.println("visitType_basetype");
 		visit(ctx.base_type());
