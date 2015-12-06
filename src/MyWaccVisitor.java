@@ -1117,6 +1117,11 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	@Override public Info visitStat_exit(@NotNull WaccParser.Stat_exitContext ctx) {
     	if (prints) System.out.println("visitStat_exit");
 		visit(ctx.expr());
+
+		//backend
+		currentList.add(new Instruction("BL exit\n"));
+		//
+
 		ctx.typename = ctx.expr().typename;
 		if(!SharedMethods.assignCompat(ctx.typename, new INT())) {
 			System.exit(200);
