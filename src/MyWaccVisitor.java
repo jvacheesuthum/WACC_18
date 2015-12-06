@@ -91,6 +91,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
         if (prints) System.out.println("lhs typename " + lhs.typename);
         if (prints) System.out.println("rhs typename " + rhs.typename);
 
+        //nops -> eg on null.wacc
+        if(rhs.typename instanceof NULL){
+        	currentList.add(new Instruction("LDR r" + regCount + ", [sp]\n"));
+        }
         if ((!SharedMethods.assignCompat(lhs.typename, rhs.typename)))  {
             if (prints) System.out.println("HERE");
         	System.exit(200);
@@ -107,6 +111,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
       visit(rhs);
       if (prints) System.out.println("SEP: ");
       visit(ctx.type());
+
       if (prints) System.out.println("After visit declare lhs and rhs");
       if (prints) System.out.println("declare rhs: " + rhs.typename);
       if (prints) System.out.println("declare lhs: " + ctx.type().typename);
@@ -141,7 +146,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
       VARIABLE var = new VARIABLE(rhs.typename);
       currentTable.add(ctx.ident().getText(), var);
-      int i = typeSize(rhs.typename);
+      int i = typeSize(ctx.type().typename);
       PositionFragment position= new PositionFragment(i);
       stackTotal += i;
       if (i == 1) {
@@ -149,7 +154,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
       } else {
     	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r" + regCount + ", [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
       }
-
+      
+      if (rhs.typename instanceof NULL) {
+          currentList.add(new Instruction("LDR r4, [sp]\n"));
+      }
   	  return null;
     }
 
@@ -1156,6 +1164,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("visitIdent");
 		if(ctx.getText().equals("null")) {
 			ctx.typename = new NULL();
+			currentList.add(new Instruction("LDR r4, =0\n"));
 			return null;
 		}
 		IDENTIFIER id = currentTable.lookupAll(ctx.getText());
@@ -1305,6 +1314,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("visitPair_elem_fst");
 
 		visit(ctx.expr());
+		
+		currentList.add(new Instruction("MOV r0, r" + regCount + "\nBL p_check_null_pointer\n"));
+		currentList.add(new Instruction("LDR r" + regCount + ", [r" + regCount + "]\n" +
+		"STR r" + (regCount -1) + ", [r" + regCount + "]\n"));
+		
+		err.pNullPointer();
+
 		if(ctx.expr().typename instanceof NULL) {
 			ctx.typename = new NULL();
 			return null;
@@ -1318,6 +1334,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	public Info visitPair_elem_snd(@NotNull WaccParser.Pair_elem_sndContext ctx) {
 		if (prints) System.out.println("visitPair_elem_snd");
 		visit(ctx.expr());
+		
+		currentList.add(new Instruction("MOV r0, r" + regCount + "\nBL p_check_null_pointer\n"));
+		currentList.add(new Instruction("LDR r" + regCount + ", [r" + regCount + ", #4]\n" +
+		"STR r" + (regCount -1) + ", [r" + regCount + "]\n"));
+		
+		err.pNullPointer();
+		
 		if(ctx.expr().typename instanceof NULL) {
 			ctx.typename = new NULL();
 			return null;
@@ -1339,11 +1362,15 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	regCount++;
     	
 		visit(ctx.expr(0));
-		currentList.add(new Instruction("LDR r0, =" + typeSize(ctx.expr(0).typename) + "\n" + "BL malloc \n"));
-		currentList.add(new Instruction("STR 5" + ", [r0]\n" + "STR r0, [r4]\n"));
+		//hacky way to fix -------
+		int size = (ctx.expr(0).typename instanceof NULL) ? 4 :typeSize(ctx.expr(0).typename);
+		int size2 = (ctx.expr(1).typename == null) ? 4 :typeSize(ctx.expr(1).typename);
+		//---------------
+		currentList.add(new Instruction("LDR r0, =" + size + "\n" + "BL malloc \n"));
+		currentList.add(new Instruction("STR r5" + ", [r0]\n" + "STR r0, [r4]\n"));
 
 		visit(ctx.expr(1));
-		currentList.add(new Instruction("LDR r0, =" + typeSize(ctx.expr(1).typename) + "\n" + "BL malloc \n"));
+		currentList.add(new Instruction("LDR r0, =" + size2 + "\n" + "BL malloc \n"));
 		currentList.add(new Instruction("STR r5" + ", [r0]\n" + "STR r0, [r4, #4]\n"));
 
 		if(ctx.expr(0).typename == null) {
@@ -1999,10 +2026,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			definedPrintsMsg[4] = true;
 			msgCount++;
 		}
-*/	
+*/		
 		VariableFragment v = new VariableFragment(ctx.ident().getText());
 		//CHECK : bug in functionmanyarguments.wacc -> ref compiler line 122
-		currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r4, [sp"), v, new StringFragment("]\n")), v));
+		currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", [sp"), v, new StringFragment("]\n")), v));
 
 		return null;
 	}
