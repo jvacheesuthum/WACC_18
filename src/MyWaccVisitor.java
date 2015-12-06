@@ -1448,8 +1448,49 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		SymbolTable table = new SymbolTable(currentTable);
 		currentTable = table;
 
+		//backend - before visit scoped stat => creating all new lists and map for new scope
+		int encStackCount = stackTotal;
+		stackTotal = 0;
+		Map<String, Integer> encStackMap = currentStackMap;
+		Map<String,Integer> scopedStackMap = new HashMap<>();
+		currentStackMap = scopedStackMap;
+		List<Instruction> encInstr = currentList;
+		List<Instruction> scopedInstr = new ArrayList<Instruction>();
+		currentList = scopedInstr;
+		//
 
 		visit(ctx.stat());
+
+		//backend - after visited first stat
+		//locating variables from outer scope correctly when there is a change in stack pointer
+		int hasDeclared = stackTotal;
+		currentStackMap.put("total", stackTotal);
+
+		for(Instruction instr: currentList) {
+			if (instr instanceof Instruction_Return){
+				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
+				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
+			}
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
+			}
+			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
+				// variable total is propagated up the if scopes
+				instr.varsToPos(currentStackMap, hasDeclared);
+			}
+		}
+		//adding to encInstrList
+		if(hasDeclared > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclared + "\n"));
+		for(Instruction in : currentList){
+			//for newly created scopedInstruction
+			if(in.isScoped() && (in.scopeDepth() == 0)) in.addScopeDepth(hasDeclared);
+			encInstr.add(in);
+		}
+		if(hasDeclared > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclared + "\n"));
+		currentList = encInstr;
+		currentStackMap = encStackMap;
+		stackTotal = encStackCount;
+		//
 
 		currentTable = table.encSymTable;
 		return null; 
