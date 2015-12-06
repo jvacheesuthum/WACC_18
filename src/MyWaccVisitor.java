@@ -1514,7 +1514,12 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	@Override public Info visitStat_free(@NotNull WaccParser.Stat_freeContext ctx) {
 		if (prints) System.out.println("visitStat_free");
+		
 		visit(ctx.expr());
+		
+		currentList.add(new Instruction("MOV r0, r" + regCount + "\nBL p_free_pair\n"));
+		err.pFreepair();
+		
 		ctx.typename = ctx.expr().typename;
 		if(ctx.typename instanceof NULL) {
 
