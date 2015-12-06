@@ -45,7 +45,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	private boolean[] definedRead = new boolean[5];
 	// Int = 0, Char = 1, IntMsg = 2, CharMsg = 3, inRead = 4
 	
-	boolean prints = false;
+	boolean prints = true;
 
 	public MyWaccVisitor() {
 		
@@ -154,7 +154,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     }
 
     private int typeSize(TYPE t) {
-		if (t instanceof INT || t instanceof STRING || t instanceof ARRAY_TYPE) {
+		if (t instanceof INT || t instanceof PAIR_TYPE || t instanceof STRING || t instanceof ARRAY_TYPE) {
 			return 4;
 		}
 		if (t instanceof CHAR || t instanceof BOOL) {
@@ -1332,14 +1332,27 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	@Override 
 	public Info visitAssign_rhs_newpair(@NotNull WaccParser.Assign_rhs_newpairContext ctx) { 
     	if (prints) System.out.println("visitAssign_rhs_newpair");
+    	//nops -------------------------
+    	
+    	currentList.add(new Instruction(("LDR r0, =8" + '\n' +
+    			"BL malloc \n" + "MOV r" + regCount + ", r0 \n")));
+    	regCount++;
+    	
 		visit(ctx.expr(0));
+		currentList.add(new Instruction("LDR r0, =4\n" + "BL malloc \n"));
+		currentList.add(new Instruction("STR r5" + ", [r0]\n" + "STR r0, [r4]\n"));
+
 		visit(ctx.expr(1));
+		currentList.add(new Instruction("LDR r0, =4\n" + "BL malloc \n"));
+		currentList.add(new Instruction("STR r5" + ", [r0]\n" + "STR r0, [r4, #4]\n"));
+
 		if(ctx.expr(0).typename == null) {
 			ctx.expr(0).typename = new NULL();
 		}
 		if(ctx.expr(1).typename == null) {
 			ctx.expr(1).typename = new NULL();
 		}
+		regCount--;
 		ctx.typename = new PAIR_TYPE(ctx.expr(0).typename, ctx.expr(1).typename);
 		return null;
 	}
