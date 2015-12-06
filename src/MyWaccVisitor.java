@@ -108,7 +108,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
       if (prints) System.out.println("SEP: ");
       visit(ctx.type());
       if (prints) System.out.println("After visit declare lhs and rhs");
-
       if (prints) System.out.println("declare rhs: " + rhs.typename);
       if (prints) System.out.println("declare lhs: " + ctx.type().typename);
       
@@ -150,6 +149,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
       } else {
     	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r" + regCount + ", [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
       }
+
   	  return null;
     }
 
@@ -1158,7 +1158,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if(id instanceof VARIABLE){
 			ctx.typename = ((VARIABLE) id).TYPE();
 		}
-		
 		return null;
 	
 	}
@@ -1394,7 +1393,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	@Override 
 	public Info visitBase_type_int(@NotNull WaccParser.Base_type_intContext ctx) { 
     	if (prints) System.out.println("visitBase_type_int");
-
     	ctx.typename = new INT();
 		return null;
 	}
@@ -1948,7 +1946,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			definedPrintsMsg[0] = true;
 			msgCount++;
 		}
-		
 		String s = ctx.str_liter().STR().getText();
 		header.add(new Instruction("msg_" + msgCount + ":\n.word " + (s.length()-2) + "\n.ascii " + s + "\n"));
 		currentList.add(new Instruction("LDR r4, =msg_" + msgCount + "\n"));
@@ -1981,7 +1978,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 */	
 		VariableFragment v = new VariableFragment(ctx.ident().getText());
+		//CHECK : bug in functionmanyarguments.wacc -> ref compiler line 122
 		currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r4, [sp"), v, new StringFragment("]\n")), v));
+
 		return null;
 	}
 	
