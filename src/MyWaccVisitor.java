@@ -2443,6 +2443,22 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		return (new Info("")).setType("brackets");
 	}
 	
+	@Override public Info visitAtom_unary(@NotNull WaccParser.Atom_unaryContext ctx) {
+		if (prints) System.out.println("visitAtom_unary");
+		visit(ctx.unary_oper());
+		visit(ctx.expr());
+		if(ctx.expr().typename == null) {
+			System.exit(200);
+		}
+
+		if(!((ctx.unary_oper().argtype.getClass()) == (ctx.expr().typename.getClass()))){
+			System.exit(200);
+		}
+	
+		ctx.typename = ctx.unary_oper().returntype;
+		return null;
+	}
+	
 	
 	
 	@Override public Info visitExpr_unary(@NotNull WaccParser.Expr_unaryContext ctx) {
