@@ -1339,11 +1339,11 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	regCount++;
     	
 		visit(ctx.expr(0));
-		currentList.add(new Instruction("LDR r0, =4\n" + "BL malloc \n"));
-		currentList.add(new Instruction("STR r5" + ", [r0]\n" + "STR r0, [r4]\n"));
+		currentList.add(new Instruction("LDR r0, =" + typeSize(ctx.expr(0).typename) + "\n" + "BL malloc \n"));
+		currentList.add(new Instruction("STR 5" + ", [r0]\n" + "STR r0, [r4]\n"));
 
 		visit(ctx.expr(1));
-		currentList.add(new Instruction("LDR r0, =4\n" + "BL malloc \n"));
+		currentList.add(new Instruction("LDR r0, =" + typeSize(ctx.expr(1).typename) + "\n" + "BL malloc \n"));
 		currentList.add(new Instruction("STR r5" + ", [r0]\n" + "STR r0, [r4, #4]\n"));
 
 		if(ctx.expr(0).typename == null) {
@@ -1949,7 +1949,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	public Info visitExpr_char(@NotNull WaccParser.Expr_charContext ctx) { 
 		if (prints) System.out.println("visitExpr_char");
 		ctx.typename = new CHAR();
-		currentList.add(new Instruction("MOV r4, #" + ctx.char_liter().CHARACTER().getText() + "\n"));
+		currentList.add(new Instruction("MOV r" + regCount +", #" + ctx.char_liter().CHARACTER().getText() + "\n"));
 		return null; 
 	}
 	
