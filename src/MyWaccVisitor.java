@@ -1055,9 +1055,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		(!(ctx.assign_lhs().typename instanceof CHAR)))
         	System.exit(200);
 		
-		instrList.add(new Instruction("MOV r0, r4\n"));
+		currentList.add(new Instruction("MOV r0, r4\n"));
 		if(ctx.assign_lhs().typename instanceof INT) {
-			instrList.add(new Instruction("BL p_read_int\n"));
+			currentList.add(new Instruction("BL p_read_int\n"));
 			if(!definedRead[0]) {
 				footer.add(new Instruction("p_read_int:\n" +
 				"PUSH {lr}\n" +
@@ -1070,7 +1070,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			}
 		} else
 		if(ctx.assign_lhs().typename instanceof CHAR) {
-			instrList.add(new Instruction("BL p_read_char\n"));
+			currentList.add(new Instruction("BL p_read_char\n"));
 			if(!definedRead[1]){
 				footer.add(new Instruction("p_read_char:\n" +
 				"PUSH {lr}\n" +
@@ -1707,27 +1707,27 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	private void checkPrintFunc(TYPE typename) {
 		//back end
-		instrList.add(new Instruction("MOV r0, r4\n"));
+		currentList.add(new Instruction("MOV r0, r4\n"));
 		if(typename instanceof STRING) {
-			instrList.add(new Instruction("BL p_print_string\n"));
+			currentList.add(new Instruction("BL p_print_string\n"));
 			if(!definedPrintsFunc[0]) {
 				addPrintStr();
 			}
 		} else
 		if(typename instanceof BOOL) {
-			instrList.add(new Instruction("BL p_print_bool\n"));
+			currentList.add(new Instruction("BL p_print_bool\n"));
 			if(!definedPrintsFunc[1]) {
 				addPrintBool();
 			}
 		} else
 		if(typename instanceof CHAR) { 
-			instrList.add(new Instruction("BL putchar\n"));
+			currentList.add(new Instruction("BL putchar\n"));
 			if(!definedPrintsFunc[2]) {
 				addPrintChar();
 			}
 		} else
 		if(typename instanceof INT) {
-			instrList.add(new Instruction("BL p_print_int\n"));
+			currentList.add(new Instruction("BL p_print_int\n"));
 			if(!definedPrintsFunc[3]) {
 				addPrintInt();
 			}
@@ -1735,7 +1735,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if(typename instanceof PAIR_TYPE ||
 				typename instanceof ARRAY_TYPE ||
 				typename instanceof NULL) {
-			instrList.add(new Instruction("BL p_print_reference\n"));
+			currentList.add(new Instruction("BL p_print_reference\n"));
 			if(!definedPrintsFunc[4]) {
 				addPrintRef();
 			}
@@ -1771,7 +1771,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	}
 	
 	private void addPrintChar() {
-		instrList.add(new Instruction("MOV r0, r4\n" + "BL putchar\n"));
+		currentList.add(new Instruction("MOV r0, r4\n" + "BL putchar\n"));
 		definedPrintsFunc[2] = true;
 	}
 	
@@ -1871,7 +1871,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		
 		//back-end
 		checkPrintFunc(ctx.expr().typename);
-		instrList.add(new Instruction("BL p_print_ln\n"));
+		currentList.add(new Instruction("BL p_print_ln\n"));
 		
 		if(!definedPrintsMsg[5]) {
 			header.add(new Instruction("msg_" + msgCount + ":\n.word 1\n.ascii " + '\"' + "\\" + "0" + '\"' + "\n"));
