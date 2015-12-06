@@ -1248,7 +1248,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	@Override 
 	public Info visitAssign_lhs_pair(@NotNull WaccParser.Assign_lhs_pairContext ctx) { 
     	if (prints) System.out.println("visitAssign_lhs_pair");
-
+    	regCount++;
 		visit(ctx.pair_elem());
 		ctx.typename = ctx.pair_elem().typename;
 		return null;
@@ -1318,7 +1318,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		currentList.add(new Instruction("MOV r0, r" + regCount + "\nBL p_check_null_pointer\n"));
 		currentList.add(new Instruction("LDR r" + regCount + ", [r" + regCount + "]\n" +
 		"STR r" + (regCount -1) + ", [r" + regCount + "]\n"));
-		
 		err.pNullPointer();
 
 		if(ctx.expr().typename instanceof NULL) {
@@ -1338,7 +1337,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		currentList.add(new Instruction("MOV r0, r" + regCount + "\nBL p_check_null_pointer\n"));
 		currentList.add(new Instruction("LDR r" + regCount + ", [r" + regCount + ", #4]\n" +
 		"STR r" + (regCount -1) + ", [r" + regCount + "]\n"));
-		
 		err.pNullPointer();
 		
 		if(ctx.expr().typename instanceof NULL) {
