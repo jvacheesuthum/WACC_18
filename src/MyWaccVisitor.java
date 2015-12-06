@@ -78,7 +78,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
         
         // derek changed this to visit rhs first. don't know if it will mess up front end
         visit(rhs);
-        visit(lhs);    
+        Info left = visit(lhs);    
 
         if(lhs.typename == null){
           if (prints) System.out.println("assign to unknown");
@@ -100,6 +100,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
         	System.exit(200);
         }
         
+        if (left != null) {
+        	VariableFragment v = new VariableFragment(left.stringinfo);
+        	if (typeSize(rhs.typename) == 1) {
+        		currentList.add(new Instruction(Arrays.asList(new StringFragment("STRB r"+ regCount + ", [sp"), v, new StringFragment("]\n")), v));
+        	} else {
+        		currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r"+ regCount + ", [sp"), v, new StringFragment("]\n")), v));
+        	}
+        }
     	return null;
     }
 
@@ -156,7 +164,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
       }
       
       if (rhs.typename instanceof NULL) {
-          currentList.add(new Instruction("LDR r4, [sp]\n"));
+          currentList.add(new Instruction("LDR r"+ regCount + ", [sp]\n"));
       }
   	  return null;
     }
@@ -1187,13 +1195,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 			ctx.typename = ((VARIABLE) id).TYPE();
 		}
-		
-		VariableFragment v = new VariableFragment(ctx.ident().getText());
-        if (typeSize(((WaccParser.Stat_assignContext)ctx.parent).assign_rhs().typename) == 1) { //<----class cast exception when read
-        	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STRB r4, [sp"), v, new StringFragment("]\n")), v));
-          } else {
-        	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r4, [sp"), v, new StringFragment("]\n")), v));
-          }
 	
 		if(ctx.typename instanceof CHAR && !definedRead[3] && definedRead[4]) {
 			header.add(new Instruction("msg_" + msgCount + ":\n.word 4\n.ascii " +
@@ -1209,7 +1210,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			msgCount++;
 		}
         
-		return null;
+		return new Info(ctx.ident().getText());
 }
 	
 	@Override public Info visitAssign_lhs_array(@NotNull WaccParser.Assign_lhs_arrayContext ctx) {
@@ -1996,7 +1997,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 		String s = ctx.str_liter().STR().getText();
 		header.add(new Instruction("msg_" + msgCount + ":\n.word " + (s.length()-2) + "\n.ascii " + s + "\n"));
-		currentList.add(new Instruction("LDR r4, =msg_" + msgCount + "\n"));
+		currentList.add(new Instruction("LDR r"+ regCount + ", =msg_" + msgCount + "\n"));
 		msgCount++;
 		return null;
 	}
