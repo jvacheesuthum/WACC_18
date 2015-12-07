@@ -883,7 +883,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 				System.exit(200);//throw new Error("type of func param " + i + " incompatible with declaration");
 			}
 			//
-			currentList.add(new Instruction("STR r" + regCount + " [sp, #-" + typeSize(each.typename) + "]!\n"));
+			currentList.add(new Instruction("STR r" + regCount + ", [sp, #-" + typeSize(each.typename) + "]!\n"));
 			funcCallOffset += argSizeCount;
 		}
 
