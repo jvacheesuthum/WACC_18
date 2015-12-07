@@ -1504,8 +1504,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 		int size2 = typeSize(ctx.expr(1).typename);
 		currentList.add(new Instruction("LDR r0, =" + size2 + "\n" + "BL malloc \n"));
-		currentList.add(new Instruction( (size2 == 1 ? "STRB " : "STR ") + "r5" + ", [r0]\n"
-		+ "STR r0, [r4, #4]\n"));
+		currentList.add(new Instruction((size2 == 1 ? "STRB " : "STR ") + "r5" + ", [r0]\n"
+				+ "STR r0, [r4, #4]\n"));
 
 		
 		
@@ -1827,7 +1827,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		} else {
 			currentStackMap.put("total", (stackTotal > 1024)? 1024: stackTotal);
 //			if(whileCount < 0){
-			instrList.add(new Instruction("ADD sp, sp, #" + ((stackTotal > 1024)? 1024: stackTotal) + "\n"));
+			instrList.add(new Instruction("ADD sp, sp, #" + ((stackTotal > 1024) ? 1024 : stackTotal) + "\n"));
 			if (stackTotal > 1024) {
 				instrList.add(new Instruction("ADD sp, sp, #" + (stackTotal - 1024) + "\n"));
 				instrList.add(2, new Instruction("SUB sp, sp, #" + (stackTotal - 1024) + "\n"));
@@ -2248,7 +2248,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			definedPrintsMsg[4] = true;
 			msgCount++;
 		}
-*/		
+*/
+		System.out.println("!!!!!!!!!!!!!" + ctx.ident().getText() + "//funcOffset: " + funcCallOffset);
 		VariableFragment v = new VariableFragment(ctx.ident().getText(), funcCallOffset);
 		//CHECK : bug in functionmanyarguments.wacc -> ref compiler line 122
 		currentList.add(new Instruction(Arrays.asList(new StringFragment(( typeSize(ctx.typename) == 1 ? "LDRSB r" : "LDR r") + regCount  + ", [sp"), v, new StringFragment("]\n")), v));
@@ -2362,7 +2363,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			regCount ++;
 			System.out.println("1");
 		} else if (b.type.equals("var")){
-			VariableFragment v  = new VariableFragment(b.stringinfo);
+			VariableFragment v  = new VariableFragment(b.stringinfo, funcCallOffset);
 			String load = (ctx.bin_bool().returntype instanceof INT)? "LDR" : "LDRSB";
 			currentList.add(new Instruction(Arrays.asList(new StringFragment(load + " r" + regCount + ", [sp"), v, new StringFragment("]\n")), v));
 			regCount++;
@@ -2373,7 +2374,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			regCount ++;
 			System.out.println("3");
 		} else if (m.type.equals("var")){
-			VariableFragment v  = new VariableFragment(m.stringinfo);
+			VariableFragment v  = new VariableFragment(m.stringinfo, funcCallOffset);
 			String load = (ctx.math().returntype instanceof INT)? "LDR" : "LDRSB";
 			currentList.add(new Instruction(Arrays.asList(new StringFragment(load + " r" + regCount + ", [sp"), v, new StringFragment("]\n")), v));
 			regCount++;
@@ -2430,7 +2431,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			System.out.println("1");
 		} else if (one.type.equals("var")){
 			
-			VariableFragment v  = new VariableFragment(one.stringinfo);
+			VariableFragment v  = new VariableFragment(one.stringinfo, funcCallOffset);
 			String load = (ctx.math(0).returntype instanceof INT)? "LDR" : "LDRSB";
 			currentList.add(new Instruction(Arrays.asList(new StringFragment(load + " r" + regCount + ", [sp"), v, new StringFragment("]\n")), v));
 			regCount++;
@@ -2461,7 +2462,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			regCount ++;
 			System.out.println("3");
 		} else if (two.type.equals("var")){
-			VariableFragment v  = new VariableFragment(two.stringinfo);
+			VariableFragment v  = new VariableFragment(two.stringinfo, funcCallOffset);
 			String load = (ctx.math(1).returntype instanceof INT)? "LDR" : "LDRSB";
 			currentList.add(new Instruction(Arrays.asList(new StringFragment(load + " r" + regCount + ", [sp"), v, new StringFragment("]\n")), v));
 			regCount++;
@@ -2524,7 +2525,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			regCount ++;
 			System.out.println("1");
 		} else if (one.type.equals("var")){
-			VariableFragment v  = new VariableFragment(one.stringinfo);
+			VariableFragment v  = new VariableFragment(one.stringinfo, funcCallOffset);
 			String load = (ctx.math(0).returntype instanceof INT)? "LDR" : "LDRSB";
 			currentList.add(new Instruction(Arrays.asList(new StringFragment(load + " r" + regCount + ", [sp"), v, new StringFragment("]\n")), v));
 			regCount++;
@@ -2535,7 +2536,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			regCount++;
 			System.out.println("3");
 		} else if (two.type.equals("var")){
-			VariableFragment v  = new VariableFragment(two.stringinfo);
+			VariableFragment v  = new VariableFragment(two.stringinfo, funcCallOffset);
 			String load = (ctx.math(1).returntype instanceof INT)? "LDR" : "LDRSB";
 			currentList.add(new Instruction(Arrays.asList(new StringFragment(load + " r" + regCount + ", [sp"), v, new StringFragment("]\n")), v));
 			regCount++;
@@ -2591,7 +2592,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			//do nothing
 		} else {
 			assert a.type.equals("var");
-			VariableFragment v  = new VariableFragment(a.stringinfo);
+			VariableFragment v  = new VariableFragment(a.stringinfo, funcCallOffset);
 			currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + (regCount + 1) + ", [sp"), v, new StringFragment("]\n")), v));
 		}
 		if (ctx.PLUS() != null) {
@@ -2631,7 +2632,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			//do nothing
 		} else {
 			assert one.type.equals("var");
-			VariableFragment v  = new VariableFragment(one.stringinfo);
+			VariableFragment v  = new VariableFragment(one.stringinfo, funcCallOffset);
 			currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", [sp"), v, new StringFragment("]\n")), v));
 			regCount ++;
 		}
@@ -2642,7 +2643,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			//do nothing
 		} else {
 			assert two.type.equals("var");
-			VariableFragment v  = new VariableFragment(two.stringinfo);
+			VariableFragment v  = new VariableFragment(two.stringinfo, funcCallOffset);
 			currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", [sp"), v, new StringFragment("]\n")), v));
 			regCount ++;
 		}
@@ -2685,7 +2686,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			//do nothing
 		} else {
 			assert a.type.equals("var");
-			VariableFragment v  = new VariableFragment(a.stringinfo);
+			VariableFragment v  = new VariableFragment(a.stringinfo, funcCallOffset);
 			currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + (regCount + 1) + ", [sp"), v, new StringFragment("]\n")), v));
 		}
 		if (ctx.MULTIPLY() != null) {
@@ -2727,7 +2728,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			//do nothing
 		} else {
 			assert one.type.equals("var");
-			VariableFragment v  = new VariableFragment(one.stringinfo);
+			VariableFragment v  = new VariableFragment(one.stringinfo, funcCallOffset);
 			currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", [sp"), v, new StringFragment("]\n")), v));
 		}
 		if (two.type.equals("int")) {
@@ -2736,7 +2737,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			//do nothing
 		} else {
 			assert two.type.equals("var");
-			VariableFragment v  = new VariableFragment(two.stringinfo);
+			VariableFragment v  = new VariableFragment(two.stringinfo, funcCallOffset);
 			currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + (regCount + 1) + ", [sp"), v, new StringFragment("]\n")), v));
 		}
 		if (ctx.MULTIPLY() != null) {
