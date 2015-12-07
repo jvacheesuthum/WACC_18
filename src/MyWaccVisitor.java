@@ -250,7 +250,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 
 	private void wrapFunctInstr(String funcName){
-		assert stackTotal == 0 : "stackTotal not equals to 0 at the beginning of function declare";
 		int tempTotal = stackTotal;
 		makeFuncReady();
 
