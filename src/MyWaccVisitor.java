@@ -2389,7 +2389,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //		if(inWhile) {
 //			currentList.add(new Instruction("CMP r" + regCount + ", #1\nBEQ L" + (whileCount + 1) + "\n"));
 //		}
-//		visitedBool = true;
+		visitedBool = true;
 		return new Info("r" + regCount).setType("reg"); 
 	}
 
