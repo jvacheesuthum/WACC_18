@@ -2319,6 +2319,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		
 		if (a.type.equals("int")) {
 			currentList.add(new Instruction("LDR r" + (regCount + 1) + ", =" + a.int_value + "\n"));
+		} else if (a.type.equals("reg")) {
+			//do nothing
 		} else {
 			assert a.type.equals("var");
 			VariableFragment v  = new VariableFragment(a.stringinfo);
@@ -2356,6 +2358,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		ctx.returntype = new INT();
 		ctx.argtype = new INT();
 		if(!SharedMethods.assignCompat(ctx.atom(0).typename, ctx.argtype)) {
+			if (prints) System.out.println("got " +  ctx.atom(0).typename);
 			System.exit(200);
 		}
 		if (prints) System.out.println("HERE: " + ctx.atom(1).typename);
@@ -2366,6 +2369,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		
 		if (one.type.equals("int")) {
 			currentList.add(new Instruction("LDR r" + regCount + ", =" + one.int_value + "\n"));
+		} else if (one.type.equals("reg")) {
+			//do nothing
 		} else {
 			assert one.type.equals("var");
 			VariableFragment v  = new VariableFragment(one.stringinfo);
@@ -2373,6 +2378,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 		if (two.type.equals("int")) {
 			currentList.add(new Instruction("LDR r" + (regCount + 1) + ", =" + two.int_value + "\n"));
+		} else if (two.type.equals("reg")) {
+			//do nothing
 		} else {
 			assert two.type.equals("var");
 			VariableFragment v  = new VariableFragment(two.stringinfo);
@@ -2440,13 +2447,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (i != null && i.type != null) {
 			return i;
 		}
-		return (new Info("")).setType("brackets");
+		return (new Info("")).setType("reg");
 	}
 	
 	@Override public Info visitAtom_unary(@NotNull WaccParser.Atom_unaryContext ctx) {
 		if (prints) System.out.println("visitAtom_unary");
-		visit(ctx.unary_oper());
 		visit(ctx.expr());
+		visit(ctx.unary_oper());
 		if(ctx.expr().typename == null) {
 			System.exit(200);
 		}
@@ -2456,6 +2463,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 	
 		ctx.typename = ctx.unary_oper().returntype;
+		if (ctx.typename instanceof INT || ctx.typename instanceof BOOL || ctx.typename instanceof CHAR) {
+			return new Info("unary").setType("reg");
+		}
 		return null;
 	}
 	
@@ -2463,8 +2473,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	@Override public Info visitExpr_unary(@NotNull WaccParser.Expr_unaryContext ctx) {
 		if (prints) System.out.println("visitExpr_unary");
-		visit(ctx.unary_oper());
 		visit(ctx.expr());
+		visit(ctx.unary_oper());
 		if(ctx.expr().typename == null) {
 			System.exit(200);
 		}
@@ -2479,11 +2489,16 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	@Override public Info visitUnary_not(@NotNull WaccParser.Unary_notContext ctx) { 
 		if (prints) System.out.println("Unary_not");
-		ctx.argtype = new BOOL(); ctx.returntype = new BOOL(); return null; }
+		ctx.argtype = new BOOL(); ctx.returntype = new BOOL(); 
+		currentList.add(new Instruction("EOR r" + regCount + ", r" + regCount + ", #1\n"));
+		return null; }
 	
 	@Override public Info visitUnary_minus(@NotNull WaccParser.Unary_minusContext ctx) { 
 		if (prints) System.out.println("Unary_minus");
-		ctx.argtype = new INT(); ctx.returntype = new INT(); return null; }
+		ctx.argtype = new INT(); ctx.returntype = new INT();
+		err.pOverflow();
+		currentList.add(new Instruction("RSBS r" + regCount + ", r" + regCount + ", #0\n"));
+		return null; }
 	
 	@Override public Info visitUnary_len(@NotNull WaccParser.Unary_lenContext ctx) {
 		if (prints) System.out.println("Unary_len");
