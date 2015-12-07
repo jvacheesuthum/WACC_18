@@ -53,9 +53,11 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	private int whileCount = -1;
 	List<Instruction> whileList = new ArrayList<Instruction>();
 	private boolean visitedBool = false;
+	private boolean fstVisited = false ;
 	
 	boolean prints = true;
 	private final String filename;
+
 
 
 	public MyWaccVisitor(String filename) {
@@ -177,7 +179,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
       }
       
       if (rhs.typename instanceof NULL) {
-          currentList.add(new Instruction("LDR r"+ regCount + ", [sp]\n"));
+          currentList.add(new Instruction("LDR r"+ regCount + (fstVisited ? ", [sp, #4]\n" : ", [sp]\n")));
+          fstVisited = false;
       }
   	  return null;
     }
@@ -190,7 +193,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			return 1;
 		}
 		if (prints) System.out.println("failed to get typeSize");;
-		return 0;
+		return 4; //helps in a few cases where rhs pair is null, not sure if this will mess with other things
 	}
 
 	@Override
@@ -1234,7 +1237,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("visitIdent");
 		if(ctx.getText().equals("null")) {
 			ctx.typename = new NULL();
-			currentList.add(new Instruction("LDR r4, =0\n"));
+			currentList.add(new Instruction("LDR r" + regCount + ", =0\n"));
 			return null;
 		}
 		IDENTIFIER id = currentTable.lookupAll(ctx.getText());
@@ -1315,7 +1318,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		visit(ctx.pair_elem());
 		ctx.typename = ctx.pair_elem().typename;
 		//for snd on lhs
-		currentList.add(new Instruction( (typeSize(ctx.typename) == 1 ? "STRB r" : "STR r") + regCount + ", [r" + regCount + "]\n"));
+		regCount--;
+		currentList.add(new Instruction( (typeSize(ctx.typename) == 1 ? "STRB r" : "STR r") + regCount + ", [r" + (regCount + 1) + "]\n"));
 		//for fst rhs
 		//currentList.add(new Instruction("STR r" + (regCount -1) + ", [r" + regCount + "]\n"));
 		return null;
@@ -1390,6 +1394,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			ctx.typename = new NULL();
 			return null;
 		}
+		fstVisited  = true;
 		PAIR_TYPE pair = (PAIR_TYPE) ctx.expr().typename;
 		ctx.typename = pair.firstType();
 		return null; 
@@ -1430,23 +1435,25 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	regCount++;
     	
 		visit(ctx.expr(0));
+		if(ctx.expr(0).typename == null) {
+			ctx.expr(0).typename = new NULL();
+		}
 		
 		int size = typeSize(ctx.expr(0).typename);
 		currentList.add(new Instruction("LDR r0, =" + size + "\n" + "BL malloc \n"));
 		currentList.add(new Instruction((size == 1 ? "STRB " : "STR ") + "r5" + ", [r0]\n" + "STR r0, [r4]\n"));
 
 		visit(ctx.expr(1));
+		if(ctx.expr(1).typename == null) {
+			ctx.expr(1).typename = new NULL();
+		}
 		int size2 = typeSize(ctx.expr(1).typename);
 		currentList.add(new Instruction("LDR r0, =" + size2 + "\n" + "BL malloc \n"));
 		currentList.add(new Instruction( (size2 == 1 ? "STRB " : "STR ") + "r5" + ", [r0]\n"
 		+ "STR r0, [r4, #4]\n"));
 
-		if(ctx.expr(0).typename == null) {
-			ctx.expr(0).typename = new NULL();
-		}
-		if(ctx.expr(1).typename == null) {
-			ctx.expr(1).typename = new NULL();
-		}
+		
+		
 		regCount--;
 		ctx.typename = new PAIR_TYPE(ctx.expr(0).typename, ctx.expr(1).typename);
 		return null;
@@ -2160,8 +2167,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 */		
 		VariableFragment v = new VariableFragment(ctx.ident().getText());
 		//CHECK : bug in functionmanyarguments.wacc -> ref compiler line 122
-		currentList.add(new Instruction(Arrays.asList(new StringFragment(( typeSize(ctx.typename) == 1 ? "LDRSB r" : "LDR r") + regCount + ", [sp"), v, new StringFragment("]\n")), v));
-
+		currentList.add(new Instruction(Arrays.asList(new StringFragment(( typeSize(ctx.typename) == 1 ? "LDRSB r" : "LDR r") + regCount  + ", [sp"), v, new StringFragment("]\n")), v));
 		return null;
 	}
 	
@@ -2358,7 +2364,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //		if(inWhile) {
 //			currentList.add(new Instruction("CMP r" + regCount + ", #1\nBEQ L" + (whileCount + 1) + "\n"));
 //		}
-		visitedBool = true;
+//		visitedBool = true;
 		return new Info("r" + regCount).setType("reg"); 
 	}
 
