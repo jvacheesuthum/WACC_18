@@ -1286,15 +1286,27 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		//CHECK REGCOUNT
 		
     	if (prints) System.out.println("visitAssign_lhs_array");
-    	Info i = visit(ctx.array_elem());
-    	
-    	
+    	Info i = visit(ctx.array_elem()); //why is i null right now?
     	//nops backend --------------------
     	regCount++;
+    	//---------------------------testing section-----
+		VariableFragment v  = new VariableFragment(i.stringinfo);
+
+    	//------------------------------------
     	String index = (ctx.array_elem().getText().replaceAll("[^0-9]", ""));
-    	currentList.add(new Instruction("ADD r" + (regCount) + ", sp, #0\n"));
+    	//is this ok with other case other than array.wacc ?
+    	currentList.add(new Instruction(Arrays.asList(new StringFragment("ADD r" + (regCount) + ", sp"), v, new StringFragment("\n")), v));
     	regCount++;
-    	currentList.add(new Instruction("LDR r" + regCount + ", =" + index + '\n'));
+
+    	//if array index is a variable index will be empty eg. a[i]
+    	if (index.isEmpty()) {
+			//currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", ="), v, new StringFragment("\n")), v));
+    		currentList.add(new Instruction("LDR r" + regCount + ", [sp]\n"));
+
+    	} else {
+    		currentList.add(new Instruction("LDR r" + regCount + ", =" + index + '\n'));
+    	}
+    	
     	currentList.add(new Instruction("LDR r" + (regCount -1) + ", [r" + (regCount -1) + "] \n"));
     	currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
     	currentList.add(new Instruction("MOV r1, r" + (regCount -1) + "\n"));
@@ -1669,7 +1681,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		else{
 		  ctx.typename = ((ARRAY_TYPE)array_or_string.TYPE()).TYPE();
 		}
-		return null;
+		return new Info(ctx.ident().getText());
 	}
 
 	@Override public Info visitProgram(@NotNull WaccParser.ProgramContext ctx) { 
