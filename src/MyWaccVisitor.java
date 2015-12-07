@@ -2217,7 +2217,21 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		
 		if (prints) System.out.println("visitExpr_array_elem");
 		
-		
+		int index = Integer.parseInt(ctx.array_elem().getText().replaceAll("[^0-9]", ""));
+		regCount--;
+		currentList.add(new Instruction("ADD r" + regCount + ", sp, #0\n"));
+    	regCount += 2;
+    	currentList.add(new Instruction("LDR r" + regCount + ", =" + index + '\n'));
+    	regCount--;
+    	currentList.add(new Instruction("LDR r" + (regCount -1) + ", [r" + (regCount -1) + "] \n"));
+    	currentList.add(new Instruction("MOV r0, r" + (regCount + 1) + "\n"));
+    	currentList.add(new Instruction("MOV r1, r" + (regCount -1) + "\n"));
+    	currentList.add(new Instruction("BL p_check_array_bounds \n"));
+    	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) + ", #4 \n"));
+    	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) +
+    			", r" + (regCount + 1) + ", LSL #2 \n"));
+    	currentList.add(new Instruction("LDR r4, [r" + (regCount -1) + "] \n"));
+    	regCount--;
 		visit(ctx.array_elem().ident());
 		ARRAY_TYPE ar = (ARRAY_TYPE) ctx.array_elem().ident().typename;
 		ctx.typename = ar.TYPE();
