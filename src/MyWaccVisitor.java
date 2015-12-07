@@ -2578,7 +2578,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			currentList.add(new Instruction("SUBS r" + (regCount - 2) + ", r" + (regCount - 2) + ", r" + (regCount - 1) + "\nBLVS p_throw_overflow_error\n"));
 		}
 		
-		regCount = regCount +2;
+		regCount = regCount -2;
 		return (new Info("r" + regCount)).setType("reg"); 
 	}
 	
