@@ -9,10 +9,13 @@ public class ErrorMessager {
 	// make a method to turn the boolean switch, and its dependencies. such as runtime error and pstring if your error uses these.
 	
 	private boolean pString = false;
+	private boolean pBool = false;
 	private boolean pLn = false;
 	private boolean pChar = false;
+	private boolean pRef = false;
 	private boolean pNull = false;
 	private boolean pReadInt = false;
+	private boolean pReadChar = false;
 	private boolean pArray = false;
 	private boolean pPrintInt = false;
 	private boolean pPair = false;
@@ -51,6 +54,25 @@ public class ErrorMessager {
 		pString = true;
 	}
 	
+	public void pString() {
+		pString = true;
+	}
+	public void pBool() {
+		pBool = true;
+	}
+	public void pPrintInt() {
+		pPrintInt = true;
+	}
+	public void pReadInt() {
+		pReadInt = true;
+	}
+	public void pRef() {
+		pRef = true;
+	}
+	public void pLn() {
+		pLn = true;
+	}
+	
 	public void addErrorMessages(List<Instruction> header, List<Instruction> footer) {
 		if (pString) {
 			footer.add(new Instruction("p_print_string:\nPUSH {lr}\nLDR r1, [r0]\nADD r2, r0, #4\nLDR r0, =msg_0\nADD r0, r0, #4\nBL printf\nMOV r0, #0\nBL fflush\nPOP {pc}\n"));
@@ -85,7 +107,7 @@ public class ErrorMessager {
 		}
 		if (pPrintInt) {
 			footer.add(new Instruction("p_print_int:\nPUSH {lr}\nMOV r1, r0\nLDR r0, =msg_7\nADD r0, r0, #4\nBL printf\nMOV r0, #0\nBL fflush\nPOP {pc}\n"));
-			header.add(headerindex, new Instruction("msg_7:\n.word 3\n.ascii	\"%d\\0\"\n"));
+			if (!pReadInt) header.add(headerindex, new Instruction("msg_7:\n.word 3\n.ascii	\"%d\\0\"\n"));
 			headerindex ++;
 		}
 		if (pPair) {
@@ -104,6 +126,22 @@ public class ErrorMessager {
 		if (pDivZero) {
 			footer.add(new Instruction("p_check_divide_by_zero:\nPUSH {lr}\nCMP r1, #0\nLDREQ r0, =msg_10\nBLEQ p_throw_runtime_error\nPOP {pc}\n"));
 			header.add(headerindex, new Instruction("msg_10:\n.word 45\n.ascii	\"DivideByZeroError: divide or modulo by zero\\n\\0\"\n"));
+			headerindex ++;
+		}
+		if (pBool) {
+			footer.add(new Instruction("p_print_bool:\nPUSH {lr}\nCMP r0, #0\nLDRNE r0, =msg_11\nLDREQ r0, =msg_12\nADD r0, r0, #4\nBL printf\nMOV r0, #0" + "\nBL fflush" + "\nPOP {pc}" + "\n"));
+			header.add(headerindex, new Instruction("msg_11:\n.word 5\n.ascii	\"true\\0\"\n"));
+			header.add(headerindex, new Instruction("msg_12:\n.word 6\n.ascii	\"false\\0\"\n"));
+			headerindex ++;
+		}
+		if (pRef) {
+			footer.add(new Instruction("p_print_reference: \nPUSH {lr}\nMOV r1, r0\nLDR r0, =msg_13\nADD r0, r0, #4\nBL printf\nMOV r0, #0\nBL fflush\nPOP {pc}\n"));
+			header.add(headerindex, new Instruction("msg_13:\n.word 3\n.ascii\"%p\\0\"\n"));
+			headerindex ++;
+		}
+		if (pReadChar) {
+			footer.add(new Instruction("p_read_char:\nPUSH {lr}\nMOV r1, r0LDR r0, =msg_14\nADD r0, r0, #4\nBL scanf\nPOP {pc}\n"));
+			if (pChar) header.add(headerindex, new Instruction("msg_14:\n.word 4\n.ascii \"%c\\0\"\n"));
 			headerindex ++;
 		}
 	}
