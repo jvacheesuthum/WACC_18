@@ -51,6 +51,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	boolean prints = false;
 
+	private boolean arrayLen = false;
+
 	public MyWaccVisitor() {
 		
 		for(int i = 0; i < 5; i++) {
@@ -82,7 +84,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
         
         // derek changed this to visit rhs first. don't know if it will mess up front end
         visit(rhs);
-        visit(lhs);    
+        Info left = visit(lhs);    
 
         if(lhs.typename == null){
           if (prints) System.out.println("assign to unknown");
@@ -95,11 +97,23 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
         if (prints) System.out.println("lhs typename " + lhs.typename);
         if (prints) System.out.println("rhs typename " + rhs.typename);
 
+        //nops -> eg on null.wacc
+        if(rhs.typename instanceof NULL){
+        	currentList.add(new Instruction("LDR r" + regCount + ", [sp]\n"));
+        }
         if ((!SharedMethods.assignCompat(lhs.typename, rhs.typename)))  {
             if (prints) System.out.println("HERE");
         	System.exit(200);
         }
         
+        if (left != null) {
+        	VariableFragment v = new VariableFragment(left.stringinfo);
+        	if (typeSize(rhs.typename) == 1) {
+        		currentList.add(new Instruction(Arrays.asList(new StringFragment("STRB r"+ regCount + ", [sp"), v, new StringFragment("]\n")), v));
+        	} else {
+        		currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r"+ regCount + ", [sp"), v, new StringFragment("]\n")), v));
+        	}
+        }
     	return null;
     }
 
@@ -111,6 +125,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
       visit(rhs);
       if (prints) System.out.println("SEP: ");
       visit(ctx.type());
+
       if (prints) System.out.println("After visit declare lhs and rhs");
       if (prints) System.out.println("declare rhs: " + rhs.typename);
       if (prints) System.out.println("declare lhs: " + ctx.type().typename);
@@ -145,7 +160,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
       VARIABLE var = new VARIABLE(rhs.typename);
       currentTable.add(ctx.ident().getText(), var);
-      int i = typeSize(rhs.typename);
+      int i = typeSize(ctx.type().typename);
       PositionFragment position= new PositionFragment(i);
       stackTotal += i;
       if (i == 1) {
@@ -153,7 +168,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
       } else {
     	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r" + regCount + ", [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
       }
-
+      
+      if (rhs.typename instanceof NULL) {
+          currentList.add(new Instruction("LDR r"+ regCount + ", [sp]\n"));
+      }
   	  return null;
     }
 
@@ -1207,6 +1225,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("visitIdent");
 		if(ctx.getText().equals("null")) {
 			ctx.typename = new NULL();
+			currentList.add(new Instruction("LDR r4, =0\n"));
 			return null;
 		}
 		IDENTIFIER id = currentTable.lookupAll(ctx.getText());
@@ -1229,13 +1248,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 			ctx.typename = ((VARIABLE) id).TYPE();
 		}
-		
-		VariableFragment v = new VariableFragment(ctx.ident().getText());
-        if (typeSize(((WaccParser.Stat_assignContext)ctx.parent).assign_rhs().typename) == 1) { //<----class cast exception when read
-        	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STRB r4, [sp"), v, new StringFragment("]\n")), v));
-          } else {
-        	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r4, [sp"), v, new StringFragment("]\n")), v));
-          }
 	
 		if(ctx.typename instanceof CHAR && !definedRead[3] && definedRead[4]) {
 			header.add(new Instruction("msg_" + msgCount + ":\n.word 4\n.ascii " +
@@ -1251,7 +1263,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			msgCount++;
 		}
         
-		return null;
+		return new Info(ctx.ident().getText());
 }
 	
 	@Override public Info visitAssign_lhs_array(@NotNull WaccParser.Assign_lhs_arrayContext ctx) {
@@ -1290,7 +1302,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	@Override 
 	public Info visitAssign_lhs_pair(@NotNull WaccParser.Assign_lhs_pairContext ctx) { 
     	if (prints) System.out.println("visitAssign_lhs_pair");
-
+    	regCount++;
 		visit(ctx.pair_elem());
 		ctx.typename = ctx.pair_elem().typename;
 		return null;
@@ -1356,6 +1368,12 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("visitPair_elem_fst");
 
 		visit(ctx.expr());
+		
+		currentList.add(new Instruction("MOV r0, r" + regCount + "\nBL p_check_null_pointer\n"));
+		currentList.add(new Instruction("LDR r" + regCount + ", [r" + regCount + "]\n" +
+		"STR r" + (regCount -1) + ", [r" + regCount + "]\n"));
+		err.pNullPointer();
+
 		if(ctx.expr().typename instanceof NULL) {
 			ctx.typename = new NULL();
 			return null;
@@ -1369,6 +1387,12 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	public Info visitPair_elem_snd(@NotNull WaccParser.Pair_elem_sndContext ctx) {
 		if (prints) System.out.println("visitPair_elem_snd");
 		visit(ctx.expr());
+		
+		currentList.add(new Instruction("MOV r0, r" + regCount + "\nBL p_check_null_pointer\n"));
+		currentList.add(new Instruction("LDR r" + regCount + ", [r" + regCount + ", #4]\n" +
+		"STR r" + (regCount -1) + ", [r" + regCount + "]\n"));
+		err.pNullPointer();
+		
 		if(ctx.expr().typename instanceof NULL) {
 			ctx.typename = new NULL();
 			return null;
@@ -1390,11 +1414,15 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	regCount++;
     	
 		visit(ctx.expr(0));
-		currentList.add(new Instruction("LDR r0, =" + typeSize(ctx.expr(0).typename) + "\n" + "BL malloc \n"));
-		currentList.add(new Instruction("STR 5" + ", [r0]\n" + "STR r0, [r4]\n"));
+		//hacky way to fix -------
+		int size = (ctx.expr(0).typename instanceof NULL) ? 4 :typeSize(ctx.expr(0).typename);
+		int size2 = (ctx.expr(1).typename == null) ? 4 :typeSize(ctx.expr(1).typename);
+		//---------------
+		currentList.add(new Instruction("LDR r0, =" + size + "\n" + "BL malloc \n"));
+		currentList.add(new Instruction("STR r5" + ", [r0]\n" + "STR r0, [r4]\n"));
 
 		visit(ctx.expr(1));
-		currentList.add(new Instruction("LDR r0, =" + typeSize(ctx.expr(1).typename) + "\n" + "BL malloc \n"));
+		currentList.add(new Instruction("LDR r0, =" + size2 + "\n" + "BL malloc \n"));
 		currentList.add(new Instruction("STR r5" + ", [r0]\n" + "STR r0, [r4, #4]\n"));
 
 		if(ctx.expr(0).typename == null) {
@@ -2051,7 +2079,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 		String s = ctx.str_liter().STR().getText();
 		header.add(new Instruction("msg_" + msgCount + ":\n.word " + (s.length()-2) + "\n.ascii " + s + "\n"));
-		currentList.add(new Instruction("LDR r4, =msg_" + msgCount + "\n"));
+		currentList.add(new Instruction("LDR r"+ regCount + ", =msg_" + msgCount + "\n"));
 		msgCount++;
 		return null;
 	}
@@ -2079,10 +2107,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			definedPrintsMsg[4] = true;
 			msgCount++;
 		}
-*/	
+*/		
 		VariableFragment v = new VariableFragment(ctx.ident().getText());
 		//CHECK : bug in functionmanyarguments.wacc -> ref compiler line 122
-		currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r4, [sp"), v, new StringFragment("]\n")), v));
+		currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", [sp"), v, new StringFragment("]\n")), v));
 
 		return null;
 	}
@@ -2384,6 +2412,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		
 		if (a.type.equals("int")) {
 			currentList.add(new Instruction("LDR r" + (regCount + 1) + ", =" + a.int_value + "\n"));
+		} else if (a.type.equals("reg")) {
+			//do nothing
 		} else {
 			assert a.type.equals("var");
 			VariableFragment v  = new VariableFragment(a.stringinfo);
@@ -2421,6 +2451,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		ctx.returntype = new INT();
 		ctx.argtype = new INT();
 		if(!SharedMethods.assignCompat(ctx.atom(0).typename, ctx.argtype)) {
+			if (prints) System.out.println("got " +  ctx.atom(0).typename);
 			System.exit(200);
 		}
 		if (prints) System.out.println("HERE: " + ctx.atom(1).typename);
@@ -2431,6 +2462,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		
 		if (one.type.equals("int")) {
 			currentList.add(new Instruction("LDR r" + regCount + ", =" + one.int_value + "\n"));
+		} else if (one.type.equals("reg")) {
+			//do nothing
 		} else {
 			assert one.type.equals("var");
 			VariableFragment v  = new VariableFragment(one.stringinfo);
@@ -2438,6 +2471,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 		if (two.type.equals("int")) {
 			currentList.add(new Instruction("LDR r" + (regCount + 1) + ", =" + two.int_value + "\n"));
+		} else if (two.type.equals("reg")) {
+			//do nothing
 		} else {
 			assert two.type.equals("var");
 			VariableFragment v  = new VariableFragment(two.stringinfo);
@@ -2505,15 +2540,34 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (i != null && i.type != null) {
 			return i;
 		}
-		return (new Info("")).setType("brackets");
+		return (new Info("")).setType("reg");
+	}
+	
+	@Override public Info visitAtom_unary(@NotNull WaccParser.Atom_unaryContext ctx) {
+		if (prints) System.out.println("visitAtom_unary");
+		visit(ctx.expr());
+		visit(ctx.unary_oper());
+		if(ctx.expr().typename == null) {
+			System.exit(200);
+		}
+
+		if(!((ctx.unary_oper().argtype.getClass()) == (ctx.expr().typename.getClass()))){
+			System.exit(200);
+		}
+	
+		ctx.typename = ctx.unary_oper().returntype;
+		if (ctx.typename instanceof INT || ctx.typename instanceof BOOL || ctx.typename instanceof CHAR) {
+			return new Info("unary").setType("reg");
+		}
+		return null;
 	}
 	
 	
 	
 	@Override public Info visitExpr_unary(@NotNull WaccParser.Expr_unaryContext ctx) {
 		if (prints) System.out.println("visitExpr_unary");
-		visit(ctx.unary_oper());
 		visit(ctx.expr());
+		visit(ctx.unary_oper());
 		if(ctx.expr().typename == null) {
 			System.exit(200);
 		}
@@ -2528,15 +2582,24 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	@Override public Info visitUnary_not(@NotNull WaccParser.Unary_notContext ctx) { 
 		if (prints) System.out.println("Unary_not");
-		ctx.argtype = new BOOL(); ctx.returntype = new BOOL(); visitedBool = true; return null; }
+
+		ctx.argtype = new BOOL(); ctx.returntype = new BOOL(); 
+		currentList.add(new Instruction("EOR r" + regCount + ", r" + regCount + ", #1\n"));
+		return null; }
+
 	
 	@Override public Info visitUnary_minus(@NotNull WaccParser.Unary_minusContext ctx) { 
 		if (prints) System.out.println("Unary_minus");
-		ctx.argtype = new INT(); ctx.returntype = new INT(); return null; }
+		ctx.argtype = new INT(); ctx.returntype = new INT();
+		err.pOverflow();
+		currentList.add(new Instruction("RSBS r" + regCount + ", r" + regCount + ", #0\n"));
+		return null; }
 	
 	@Override public Info visitUnary_len(@NotNull WaccParser.Unary_lenContext ctx) {
 		if (prints) System.out.println("Unary_len");
 		if (prints) System.out.println("argtype before " + ctx.argtype);
+		currentList.add(new Instruction("LDR r" + regCount + ", [r" + regCount + "]\n"));
+
 		ctx.argtype = new ARRAY_TYPE(new NULL()); ctx.returntype = new INT(); return null; }
 	
 	@Override public Info visitUnary_chr(@NotNull WaccParser.Unary_chrContext ctx) { 

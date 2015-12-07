@@ -45,6 +45,12 @@ public class ErrorMessager {
 		pRuntime = true;
 	}
 	
+	public void pNullPointer() {
+		pNull = true;
+		pRuntime = true;
+		pString = true;
+	}
+	
 	public void addErrorMessages(List<Instruction> header, List<Instruction> footer) {
 		if (pString) {
 			footer.add(new Instruction("p_print_string:\nPUSH {lr}\nLDR r1, [r0]\nADD r2, r0, #4\nLDR r0, =msg_0\nADD r0, r0, #4\nBL printf\nMOV r0, #0\nBL fflush\nPOP {pc}\n"));
