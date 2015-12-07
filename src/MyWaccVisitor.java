@@ -1179,13 +1179,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	int encStackTotal = stackTotal;
     	List<Instruction> encWhileList = new ArrayList<Instruction>();
     	stackTotal = 0;
-    	Instruction BLOinstr = new Instruction("B L0\n");
+    	Instruction BLOinstr = new Instruction("B LW0\n");
     	whileCount++;
 //    	int currentWhileLabel = whileCount * 2;
-    	encWhileList.add(new Instruction("L" + whileCount + ":\n"));
+    	encWhileList.add(new Instruction("LW" + whileCount + ":\n"));
     	currentList = encWhileList;
 		visit(ctx.expr());
-		Instruction compareAndEqual = new Instruction("CMP r" + regCount + ", #1\nBEQ L" + (whileCount + 1) + "\n");
+		Instruction compareAndEqual = new Instruction("CMP r" + regCount + ", #1\nBEQ LW" + (whileCount + 1) + "\n");
 		currentList.add(compareAndEqual);
 
 		if(stackTotal != 0) {
@@ -1203,9 +1203,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			System.exit(200);
 		}
 		
-		Instruction instruc = new Instruction("L" + (whileCount + 1) + ":\n");
+		Instruction instruc = new Instruction("LW" + (whileCount + 1) + ":\n");
 		encWhileList.add(instruc);
-		Instruction branchInstr = new Instruction("B L" + (whileCount + 2) + "\n");
+		Instruction branchInstr = new Instruction("B LW" + (whileCount + 2) + "\n");
 
 		currentList = encWhileList;
 		whileCount++;
@@ -2099,7 +2099,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
 			if(whileCount == 0) {
 				currentList.add(new Instruction("CMP r" + regCount + ", #1\n" +
-				"BEQ L" + (whileCount + 1) + "\n"));
+				"BEQ LW" + (whileCount + 1) + "\n"));
 			}
 		} else 
 		if(whileCount%2 != 0){
