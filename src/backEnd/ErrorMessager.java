@@ -46,6 +46,7 @@ public class ErrorMessager {
 	public void pFreepair(){
 		pPair = true;
 		pRuntime = true;
+		pString = true;
 	}
 	
 	public void pNullPointer() {
