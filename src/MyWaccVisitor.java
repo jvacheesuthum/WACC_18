@@ -2472,6 +2472,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	@Override public Info visitUnary_len(@NotNull WaccParser.Unary_lenContext ctx) {
 		if (prints) System.out.println("Unary_len");
 		if (prints) System.out.println("argtype before " + ctx.argtype);
+		currentList.add(new Instruction("LDR r" + regCount + ", [r" + regCount + "]\n"));
 		ctx.argtype = new ARRAY_TYPE(new NULL()); ctx.returntype = new INT(); return null; }
 	
 	@Override public Info visitUnary_chr(@NotNull WaccParser.Unary_chrContext ctx) { 
