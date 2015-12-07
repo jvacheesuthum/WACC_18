@@ -2098,7 +2098,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("visitExpr_char");
 		ctx.typename = new CHAR();
 		String text = ctx.char_liter().CHARACTER().getText();
-		if(text.length() > 1) {
+		System.out.println(text.length());
+		if(text.length() > 3) {
 			text = "'" + text.substring(2);
 		}
 //		currentList.add(new Instruction("MOV r" + regCount +", #" + ctx.char_liter().CHARACTER().getText() + "\n"));
