@@ -55,6 +55,7 @@ locals[TYPE typename]
 | char_liter #atom_char
 | ident #atom_ident
 | OPEN_PARENTHESES expr CLOSE_PARENTHESES #atom_brackets
+| unary_oper expr #atom_unary
 ;
 
 math
