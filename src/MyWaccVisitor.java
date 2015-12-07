@@ -1083,10 +1083,11 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if((!(ctx.assign_lhs().typename instanceof INT)) &&
 		(!(ctx.assign_lhs().typename instanceof CHAR)))
         	System.exit(200);
-		
-		currentList.add(new Instruction("MOV r0, r4\n"));
+		VariableFragment v = new VariableFragment(((WaccParser.Assign_lhs_identContext) ctx.assign_lhs()).ident().getText());
+		currentList.add(new Instruction(Arrays.asList(new StringFragment("ADD r" + regCount + ", sp"), v, new StringFragment("\n")), v));
+		currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
 		if(ctx.assign_lhs().typename instanceof INT) {
-//			currentList.add(new Instruction("BL p_read_int\n"));
+			currentList.add(new Instruction("BL p_read_int\n"));
 //			if(!definedRead[0]) {
 //				footer.add(new Instruction("p_read_int:\n" +
 //				"PUSH {lr}\n" +
@@ -1100,7 +1101,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			err.pReadInt();
 		} else
 		if(ctx.assign_lhs().typename instanceof CHAR) {
-//			currentList.add(new Instruction("BL p_read_char\n"));
+			currentList.add(new Instruction("BL p_read_char\n"));
 //			if(!definedRead[1]){
 //				footer.add(new Instruction("p_read_char:\n" +
 //				"PUSH {lr}\n" +

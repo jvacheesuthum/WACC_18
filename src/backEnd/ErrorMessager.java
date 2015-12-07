@@ -107,7 +107,7 @@ public class ErrorMessager {
 		}
 		if (pPrintInt) {
 			footer.add(new Instruction("p_print_int:\nPUSH {lr}\nMOV r1, r0\nLDR r0, =msg_7\nADD r0, r0, #4\nBL printf\nMOV r0, #0\nBL fflush\nPOP {pc}\n"));
-			if (!pReadInt) header.add(headerindex, new Instruction("msg_7:\n.word 3\n.ascii	\"%d\\0\"\n"));
+			header.add(headerindex, new Instruction("msg_7:\n.word 3\n.ascii	\"%d\\0\"\n"));
 			headerindex ++;
 		}
 		if (pPair) {
