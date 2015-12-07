@@ -15,13 +15,6 @@ import org.antlr.v4.runtime.tree.ParseTreeVisitor;
  */
 public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	/**
-	 * Visit a parse tree produced by the {@code expr_bin_math_mul}
-	 * labeled alternative in {@link WaccParser#math}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitExpr_bin_math_mul(@NotNull WaccParser.Expr_bin_math_mulContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code pair_elem_fst}
 	 * labeled alternative in {@link WaccParser#pair_elem}.
 	 * @param ctx the parse tree
@@ -119,19 +112,19 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitExpr_bin_math(@NotNull WaccParser.Expr_bin_mathContext ctx);
 	/**
-	 * Visit a parse tree produced by the {@code expr_bin_math_atom}
-	 * labeled alternative in {@link WaccParser#math}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitExpr_bin_math_atom(@NotNull WaccParser.Expr_bin_math_atomContext ctx);
-	/**
 	 * Visit a parse tree produced by the {@code expr_str}
 	 * labeled alternative in {@link WaccParser#expr}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitExpr_str(@NotNull WaccParser.Expr_strContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code expr_bin_math_plusminus}
+	 * labeled alternative in {@link WaccParser#math}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpr_bin_math_plusminus(@NotNull WaccParser.Expr_bin_math_plusminusContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code base_type_char}
 	 * labeled alternative in {@link WaccParser#base_type}.
@@ -407,7 +400,7 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	T visitAssign_lhs_ident(@NotNull WaccParser.Assign_lhs_identContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code expr_bin_atom}
-	 * labeled alternative in {@link WaccParser#math}.
+	 * labeled alternative in {@link WaccParser#plusminus}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
@@ -426,6 +419,13 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitStat_while(@NotNull WaccParser.Stat_whileContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code expr_bin_plus_plus}
+	 * labeled alternative in {@link WaccParser#plusminus}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpr_bin_plus_plus(@NotNull WaccParser.Expr_bin_plus_plusContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link WaccParser#ident}.
 	 * @param ctx the parse tree
@@ -608,12 +608,26 @@ public interface WaccParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitAssign_rhs_newpair(@NotNull WaccParser.Assign_rhs_newpairContext ctx);
 	/**
+	 * Visit a parse tree produced by the {@code expr_bin_plus_atom}
+	 * labeled alternative in {@link WaccParser#plusminus}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpr_bin_plus_atom(@NotNull WaccParser.Expr_bin_plus_atomContext ctx);
+	/**
 	 * Visit a parse tree produced by the {@code assign_rhs_call}
 	 * labeled alternative in {@link WaccParser#assign_rhs}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitAssign_rhs_call(@NotNull WaccParser.Assign_rhs_callContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code expr_bin_plusminus}
+	 * labeled alternative in {@link WaccParser#math}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitExpr_bin_plusminus(@NotNull WaccParser.Expr_bin_plusminusContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code layer_i_i}
 	 * labeled alternative in {@link WaccParser#if_layers}.
