@@ -60,15 +60,15 @@ locals[TYPE typename]
 
 plusminus
 locals[TYPE argtype, TYPE returntype]
-: plusminus (PLUS | MINUS) atom #expr_bin_plus_plus
-| atom (PLUS | MINUS) atom #expr_bin_plus_atom
+: plusminus (MULTIPLY | DIVIDE | MOD) atom #expr_bin_plus_plus
+| atom (MULTIPLY | DIVIDE | MOD) atom #expr_bin_plus_atom
 | atom #expr_bin_atom
 ;
 
 math
 locals[TYPE argtype, TYPE returntype]
-: math (MULTIPLY | DIVIDE | MOD) plusminus #expr_bin_math_math
-| plusminus (MULTIPLY | DIVIDE | MOD) plusminus #expr_bin_math_plusminus
+: math (PLUS | MINUS) plusminus #expr_bin_math_math
+| plusminus (PLUS | MINUS) plusminus #expr_bin_math_plusminus
 | plusminus #expr_bin_plusminus
 ;
 
