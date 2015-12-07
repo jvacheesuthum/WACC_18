@@ -31,7 +31,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     List<Instruction> footer = new ArrayList<Instruction>();
     ErrorMessager err = new ErrorMessager();
     int stackTotal = 0;
-    int msgCount = 15;
+    int msgCount = 11;
     int regCount = 4;
     Map<String, Integer> stackMap = new HashMap<String, Integer>();
 	Map<String, Integer> currentStackMap = stackMap;
