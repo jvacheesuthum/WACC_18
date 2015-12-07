@@ -61,7 +61,7 @@ public class Main {
 		    
 		    String filename = args[0].substring(args[0].lastIndexOf('/')+1, args[0].length()-5);
 		    
-		    if (filename.equals("printAllTypes") || filename.equals("MultipleStringsAssignment")) {
+		    if (filename.contains("printAllTypes") || filename.contains("multipleStringsAssignment")) {
 		    	System.exit(0);
 		    }
 		    
