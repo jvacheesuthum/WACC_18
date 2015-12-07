@@ -13,6 +13,11 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 //import sun.jvm.hotspot.debugger.cdbg.Sym;
 
 
+
+
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
+import java.io.UnsupportedEncodingException;
 import java.util.*;
 
 public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
@@ -50,10 +55,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	private boolean visitedBool = false;
 	
 	boolean prints = false;
+	private final String filename;
 
 	private boolean arrayLen = false;
 
-	public MyWaccVisitor() {
+	public MyWaccVisitor(String filename) {
+		
+		this.filename = filename;
 		
 		for(int i = 0; i < 5; i++) {
 			definedPrintsFunc[i] = false;
@@ -1709,17 +1717,28 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	
 	private void printInstructions() {
+		PrintWriter writer = null;
+		try {
+			writer = new PrintWriter(filename, "UTF-8");
+		} catch (FileNotFoundException e) {
+			System.out.println("file not found");
+		} catch (UnsupportedEncodingException e) {
+			System.out.println("UnsupportedEncodingException");
+		}
 		err.addErrorMessages(header, footer);
 		if (header.size() > 0) {
 			header.add(0, new Instruction(".data\n\n"));
 		}
 		for(Instruction instr: header) {
 			System.out.print(instr);
+			writer.print(instr);
 		}
 		System.out.println();
+		writer.println();
 
 		for(Instruction funcInstr : functList){
 			System.out.print(funcInstr);
+			writer.print(funcInstr);
 		}
 		
 		if (stackTotal == 0/* && whileCount < 0*/) {
@@ -1743,12 +1762,17 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 				instr.varsToPos(currentStackMap, 0);
 			}
 			System.out.print(instr);
+			writer.print(instr);
 		}
 		System.out.println();
+		writer.println();
 		for(Instruction instr: footer) {
 			System.out.print(instr);
+			writer.print(instr);
 		}
 		System.out.println();
+		writer.println();
+		writer.close();
 	}
 
 	@Override 
