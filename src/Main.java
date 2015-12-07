@@ -58,8 +58,11 @@ public class Main {
 
 		   
 		    // build and run my custom visitor
+		    
+		    String filename = args[0].substring(args[0].lastIndexOf('/')+1, args[0].length()-5);
+		    
 		    System.out.println("====");
-		    MyWaccVisitor visitor = new MyWaccVisitor();
+		    MyWaccVisitor visitor = new MyWaccVisitor(filename + ".s");
 		    visitor.visit(tree);
 		    System.out.println("====");
 		    System.exit(0);
