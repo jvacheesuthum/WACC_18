@@ -1284,23 +1284,27 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 }
 	
 	@Override public Info visitAssign_lhs_array(@NotNull WaccParser.Assign_lhs_arrayContext ctx) {
-		
+		//CHECK REGCOUNT
 		
     	if (prints) System.out.println("visitAssign_lhs_array");
-    	visit(ctx.array_elem());
+    	Info i = visit(ctx.array_elem());
+    	
     	
     	//nops backend --------------------
     	regCount++;
-    	int index = Integer.parseInt(ctx.array_elem().getText().replaceAll("[^0-9]", ""));
-    	currentList.add(new Instruction("ADD r" + regCount + ", sp, #0\n"));
+    	String index = (ctx.array_elem().getText().replaceAll("[^0-9]", ""));
+    	currentList.add(new Instruction("ADD r" + (regCount) + ", sp, #0\n"));
     	regCount++;
     	currentList.add(new Instruction("LDR r" + regCount + ", =" + index + '\n'));
     	currentList.add(new Instruction("LDR r" + (regCount -1) + ", [r" + (regCount -1) + "] \n"));
     	currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
     	currentList.add(new Instruction("MOV r1, r" + (regCount -1) + "\n"));
-    	currentList.add(new Instruction("BL p_check_array_bounds \n" +
-    			"ADD r" + (regCount -1) + ", r" + (regCount -1) + ", #4 \nADD r" + (regCount -1) + ", r" + (regCount -1) +
-    			", r" + regCount + ", LSL #2 \nSTR r4, [r" + (regCount -1) + "] \n"));
+    	currentList.add(new Instruction("BL p_check_array_bounds \n"));
+    	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) + ", #4 \n"));
+    	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) + ", r" + regCount +
+    			(typeSize(ctx.array_elem().typename) == 1 ? "\n" : ", LSL #2 \n"))); 
+    	// hacky ?
+    	currentList.add(new Instruction((typeSize(ctx.array_elem().typename) == 1 ? "STRB" : "STR") + " r4, [r" + (regCount -1) + "] \n"));
     	regCount--;
     	
     	//add error msg
@@ -2214,24 +2218,23 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	}
 	
 	@Override public Info visitExpr_array_elem(@NotNull WaccParser.Expr_array_elemContext ctx) {
-		
+		//CHECK REGCOUNT : arraysimple vs arraylookup
 		if (prints) System.out.println("visitExpr_array_elem");
 		
-		int index = Integer.parseInt(ctx.array_elem().getText().replaceAll("[^0-9]", ""));
+		String index = (ctx.array_elem().getText().replaceAll("[^0-9]", ""));
 		regCount--;
 		currentList.add(new Instruction("ADD r" + regCount + ", sp, #0\n"));
-    	regCount += 2;
-    	currentList.add(new Instruction("LDR r" + regCount + ", =" + index + '\n'));
-    	regCount--;
-    	currentList.add(new Instruction("LDR r" + (regCount -1) + ", [r" + (regCount -1) + "] \n"));
-    	currentList.add(new Instruction("MOV r0, r" + (regCount + 1) + "\n"));
+		regCount++;
+    	currentList.add(new Instruction("LDR r" + (regCount + 1) + ", =" + index + '\n'));
+    	currentList.add(new Instruction("LDR r" + (regCount) + ", [r" + (regCount) + "] \n"));
+    	currentList.add(new Instruction("MOV r0, r" + (1 + regCount) + "\n"));
     	currentList.add(new Instruction("MOV r1, r" + (regCount -1) + "\n"));
     	currentList.add(new Instruction("BL p_check_array_bounds \n"));
     	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) + ", #4 \n"));
     	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) +
-    			", r" + (regCount + 1) + ", LSL #2 \n"));
+    			", r" + regCount  + ", LSL #2 \n"));
     	currentList.add(new Instruction("LDR r4, [r" + (regCount -1) + "] \n"));
-    	regCount--;
+    	//regCount--;
 		visit(ctx.array_elem().ident());
 		ARRAY_TYPE ar = (ARRAY_TYPE) ctx.array_elem().ident().typename;
 		ctx.typename = ar.TYPE();
@@ -2373,6 +2376,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			regCount ++;
 			System.out.println("1");
 		} else if (one.type.equals("var")){
+			
 			VariableFragment v  = new VariableFragment(one.stringinfo);
 			String load = (ctx.math(0).returntype instanceof INT)? "LDR" : "LDRSB";
 			currentList.add(new Instruction(Arrays.asList(new StringFragment(load + " r" + regCount + ", [sp"), v, new StringFragment("]\n")), v));
