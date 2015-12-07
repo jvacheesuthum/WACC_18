@@ -1308,7 +1308,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	
     	//add error msg
     	err.pArray();
-//    	err.addErrorMessages(header, footer); 
 
     	//-------
     	
@@ -2233,7 +2232,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) +
     			", r" + regCount  + ", LSL #2 \n"));
     	currentList.add(new Instruction("LDR r4, [r" + (regCount -1) + "] \n"));
-    	//regCount--;
+    	
+    	//add error msg
+    	err.pArray();
+    	
 		visit(ctx.array_elem().ident());
 		ARRAY_TYPE ar = (ARRAY_TYPE) ctx.array_elem().ident().typename;
 		ctx.typename = ar.TYPE();
