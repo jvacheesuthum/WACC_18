@@ -54,7 +54,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	List<Instruction> whileList = new ArrayList<Instruction>();
 	private boolean visitedBool = false;
 	
-	boolean prints = false;
+	boolean prints = true;
 	private final String filename;
 
 
@@ -1149,7 +1149,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		visit(ctx.expr());
 
 		//backend
-		currentList.add(new Instruction("BL exit\n"));
+		currentList.add(new Instruction("MOV r0, r" + regCount + "\nBL exit\n"));
 		//
 
 		ctx.typename = ctx.expr().typename;
