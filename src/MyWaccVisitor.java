@@ -51,7 +51,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //	// Int = 0, Char = 1, IntMsg = 2, CharMsg = 3, inRead = 4
 	private boolean inWhile = false;
 	private int whileCount = -1;
-	List<Instruction> whileList = new ArrayList<Instruction>();
+//	List<Instruction> whileList = new ArrayList<Instruction>();
 	private boolean visitedBool = false;
 	private boolean fstVisited = false ;
 	
@@ -1789,7 +1789,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //			whileList.a.text\n\n.global main\ndd(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg\n"));
 //		}
 //		instrList.addAll(whileList);
-		currentList.add(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg\n"));
+
 	
 		printInstructions();
 		return null; 
@@ -1834,11 +1834,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 				}
 			} 
 		}
-		if(whileCount < 0) {
-			instrList.add(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg"));
-		} else {
-			whileList.add(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg"));
-		}
+		currentList.add(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg\n"));
+
+//		if(whileCount < 0) {
+//			instrList.add(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg"));
+//		} else {
+//			whileList.add(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg"));
+//		}
 		for(Instruction instr: instrList) {
 			if (instr.toDeclare()) {
 				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
