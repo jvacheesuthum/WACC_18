@@ -47,7 +47,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	boolean prints = true;
 
-	private boolean arrayLen = false;
 
 	public MyWaccVisitor() {
 		
@@ -1254,6 +1253,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	regCount++;
 		visit(ctx.pair_elem());
 		ctx.typename = ctx.pair_elem().typename;
+		//for snd on lhs
+		currentList.add(new Instruction( (typeSize(ctx.typename) == 1 ? "STRB r" : "STR r") + regCount + ", [r" + regCount + "]\n"));
+		//for fst rhs
+		//currentList.add(new Instruction("STR r" + (regCount -1) + ", [r" + regCount + "]\n"));
 		return null;
 	}
 
@@ -1319,8 +1322,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		visit(ctx.expr());
 		
 		currentList.add(new Instruction("MOV r0, r" + regCount + "\nBL p_check_null_pointer\n"));
-		currentList.add(new Instruction("LDR r" + regCount + ", [r" + regCount + "]\n" +
-		"STR r" + (regCount -1) + ", [r" + regCount + "]\n"));
+		currentList.add(new Instruction("LDR r" + regCount + ", [r" + regCount + "]\n"));
 		err.pNullPointer();
 
 		if(ctx.expr().typename instanceof NULL) {
@@ -1337,17 +1339,21 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("visitPair_elem_snd");
 		visit(ctx.expr());
 		
-		currentList.add(new Instruction("MOV r0, r" + regCount + "\nBL p_check_null_pointer\n"));
-		currentList.add(new Instruction("LDR r" + regCount + ", [r" + regCount + ", #4]\n" +
-		"STR r" + (regCount -1) + ", [r" + regCount + "]\n"));
-		err.pNullPointer();
-		
 		if(ctx.expr().typename instanceof NULL) {
 			ctx.typename = new NULL();
 			return null;
 		}
 		PAIR_TYPE pair = (PAIR_TYPE) ctx.expr().typename;
 		ctx.typename = pair.secondType();
+		
+		currentList.add(new Instruction("MOV r0, r" + regCount + "\nBL p_check_null_pointer\n"));
+		currentList.add(new Instruction("LDR r" + regCount + ", [r" + regCount + ", #4]\n"));
+		//this is in case of snd at rhs - implement !
+		//currentList.add(new Instruction( (typeSize(ctx.typename) == 1 ? "LDRSB r" : "LDR r") + regCount + ", [r" + regCount + "]\n"));
+		//for snd on lhs
+		//currentList.add(new Instruction( (typeSize(ctx.typename) == 1 ? "STRB r" : "STR r") + regCount + ", [r" + regCount + "]\n"));
+		
+		err.pNullPointer();
 		return null; 
 	}
 	
@@ -1363,16 +1369,16 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	regCount++;
     	
 		visit(ctx.expr(0));
-		//hacky way to fix -------
-		int size = (ctx.expr(0).typename instanceof NULL) ? 4 :typeSize(ctx.expr(0).typename);
-		int size2 = (ctx.expr(1).typename == null) ? 4 :typeSize(ctx.expr(1).typename);
-		//---------------
+		
+		int size = typeSize(ctx.expr(0).typename);
 		currentList.add(new Instruction("LDR r0, =" + size + "\n" + "BL malloc \n"));
-		currentList.add(new Instruction("STR r5" + ", [r0]\n" + "STR r0, [r4]\n"));
+		currentList.add(new Instruction((size == 1 ? "STRB " : "STR ") + "r5" + ", [r0]\n" + "STR r0, [r4]\n"));
 
 		visit(ctx.expr(1));
+		int size2 = typeSize(ctx.expr(1).typename);
 		currentList.add(new Instruction("LDR r0, =" + size2 + "\n" + "BL malloc \n"));
-		currentList.add(new Instruction("STR r5" + ", [r0]\n" + "STR r0, [r4, #4]\n"));
+		currentList.add(new Instruction( (size2 == 1 ? "STRB " : "STR ") + "r5" + ", [r0]\n"
+		+ "STR r0, [r4, #4]\n"));
 
 		if(ctx.expr(0).typename == null) {
 			ctx.expr(0).typename = new NULL();
@@ -1426,6 +1432,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	if (prints) System.out.println("visitAssign_rhs_pair_elem");
 		visit(ctx.pair_elem());
 		ctx.typename = ctx.pair_elem().typename;
+		//this is in case of snd at rhs
+		currentList.add(new Instruction( (typeSize(ctx.typename) == 1 ? "LDRSB r" : "LDR r") + regCount + ", [r" + regCount + "]\n"));
+		
+
 		return null;
 	}
 	
@@ -2030,7 +2040,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 */		
 		VariableFragment v = new VariableFragment(ctx.ident().getText());
 		//CHECK : bug in functionmanyarguments.wacc -> ref compiler line 122
-		currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", [sp"), v, new StringFragment("]\n")), v));
+		currentList.add(new Instruction(Arrays.asList(new StringFragment(( typeSize(ctx.typename) == 1 ? "LDRSB r" : "LDR r") + regCount + ", [sp"), v, new StringFragment("]\n")), v));
 
 		return null;
 	}
