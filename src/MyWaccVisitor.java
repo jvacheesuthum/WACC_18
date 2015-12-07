@@ -54,7 +54,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	List<Instruction> whileList = new ArrayList<Instruction>();
 	private boolean visitedBool = false;
 	
-	boolean prints = false;
+	boolean prints = true;
 	private final String filename;
 
 
@@ -1859,7 +1859,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	private void checkPrintFunc(TYPE typename) {
 		//back end
-		currentList.add(new Instruction("MOV r0, r4\n"));
+		currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
 		if(typename instanceof STRING) {
 			currentList.add(new Instruction("BL p_print_string\n"));
 			if(!definedPrintsFunc[0]) {
@@ -1873,7 +1873,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			}
 		} else
 		if(typename instanceof CHAR) { 
-			currentList.add(new Instruction("BL putchar\n"));
+//			currentList.add(new Instruction("BL putchar\n"));
 			if(!definedPrintsFunc[2]) {
 				addPrintChar();
 			}
@@ -1923,7 +1923,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	}
 	
 	private void addPrintChar() {
-		currentList.add(new Instruction("MOV r0, r4\n" + "BL putchar\n"));
+		currentList.add(new Instruction("BL putchar\n"));
 		definedPrintsFunc[2] = true;
 	}
 	
@@ -2017,6 +2017,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("visitStat_println");
 		inPrint = true;
 		visit(ctx.expr());
+
 		if(ctx.expr().typename == null) {
 			System.exit(200);
 		}
