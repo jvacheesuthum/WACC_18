@@ -47,6 +47,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	boolean prints = true;
 
+	private boolean arrayLen = false;
+
 	public MyWaccVisitor() {
 		
 		for(int i = 0; i < 5; i++) {
@@ -2504,6 +2506,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("Unary_len");
 		if (prints) System.out.println("argtype before " + ctx.argtype);
 		currentList.add(new Instruction("LDR r" + regCount + ", [r" + regCount + "]\n"));
+
 		ctx.argtype = new ARRAY_TYPE(new NULL()); ctx.returntype = new INT(); return null; }
 	
 	@Override public Info visitUnary_chr(@NotNull WaccParser.Unary_chrContext ctx) { 
