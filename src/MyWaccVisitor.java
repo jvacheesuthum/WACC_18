@@ -2793,7 +2793,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		ctx.argtype = new INT(); ctx.returntype = new INT();
 		err.pOverflow();
 		currentList.add(new Instruction("RSBS r" + regCount + ", r" + regCount + ", #0\n"));
-		currentList.add(new Instruction("BLVS p_throw_overflow_error"));
+		currentList.add(new Instruction("BLVS p_throw_overflow_error\n"));
 		return null; }
 	
 	@Override public Info visitUnary_len(@NotNull WaccParser.Unary_lenContext ctx) {
