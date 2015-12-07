@@ -1479,7 +1479,12 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		//have to add the instructions in between 
 		//nops getting total space, each array elem = 4, and 1*4 space for array.length
 		int arrSize = ctx.array_liter().expr().size();
-		int spaceForArr = typeSize(ctx.array_liter().expr(0).typename) * arrSize + 4;
+		int spaceForArr = 4;
+		if (ctx.array_liter().expr(0) != null ) {
+			spaceForArr = typeSize(ctx.array_liter().expr(0).typename) * arrSize + 4;
+		} else {
+			stackTotal += 4;
+		}
 		int addAtIndex = currentList.size() - 2 * ctx.array_liter().expr().size();
 		currentList.add(addAtIndex , new Instruction(("LDR r0, =" + spaceForArr + '\n' +
 				"BL malloc \n" + "MOV r" + regCount + ", r0 \n")));
