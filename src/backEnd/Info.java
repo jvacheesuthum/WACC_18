@@ -4,7 +4,7 @@ public class Info {
 	
 	public final Integer int_value;
 	public final Boolean b_value;
-	public final String stringinfo;
+	public String stringinfo;
 	public String type;
 	
 	public Info(int i) {

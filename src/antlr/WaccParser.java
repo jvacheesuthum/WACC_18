@@ -728,11 +728,12 @@ public class WaccParser extends Parser {
 		}
 	}
 	public static class Expr_bin_plus_plusContext extends PlusminusContext {
-		public TerminalNode MINUS() { return getToken(WaccParser.MINUS, 0); }
+		public TerminalNode MULTIPLY() { return getToken(WaccParser.MULTIPLY, 0); }
 		public PlusminusContext plusminus() {
 			return getRuleContext(PlusminusContext.class,0);
 		}
-		public TerminalNode PLUS() { return getToken(WaccParser.PLUS, 0); }
+		public TerminalNode DIVIDE() { return getToken(WaccParser.DIVIDE, 0); }
+		public TerminalNode MOD() { return getToken(WaccParser.MOD, 0); }
 		public AtomContext atom() {
 			return getRuleContext(AtomContext.class,0);
 		}
@@ -747,8 +748,9 @@ public class WaccParser extends Parser {
 		public AtomContext atom(int i) {
 			return getRuleContext(AtomContext.class,i);
 		}
-		public TerminalNode MINUS() { return getToken(WaccParser.MINUS, 0); }
-		public TerminalNode PLUS() { return getToken(WaccParser.PLUS, 0); }
+		public TerminalNode MULTIPLY() { return getToken(WaccParser.MULTIPLY, 0); }
+		public TerminalNode DIVIDE() { return getToken(WaccParser.DIVIDE, 0); }
+		public TerminalNode MOD() { return getToken(WaccParser.MOD, 0); }
 		public List<AtomContext> atom() {
 			return getRuleContexts(AtomContext.class);
 		}
@@ -787,7 +789,7 @@ public class WaccParser extends Parser {
 				setState(122); atom();
 				setState(123);
 				_la = _input.LA(1);
-				if ( !(_la==PLUS || _la==MINUS) ) {
+				if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << MULTIPLY) | (1L << DIVIDE) | (1L << MOD))) != 0)) ) {
 				_errHandler.recoverInline(this);
 				}
 				consume();
@@ -819,7 +821,7 @@ public class WaccParser extends Parser {
 					if (!(precpred(_ctx, 3))) throw new FailedPredicateException(this, "precpred(_ctx, 3)");
 					setState(130);
 					_la = _input.LA(1);
-					if ( !(_la==PLUS || _la==MINUS) ) {
+					if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << MULTIPLY) | (1L << DIVIDE) | (1L << MOD))) != 0)) ) {
 					_errHandler.recoverInline(this);
 					}
 					consume();
@@ -863,12 +865,11 @@ public class WaccParser extends Parser {
 		public PlusminusContext plusminus(int i) {
 			return getRuleContext(PlusminusContext.class,i);
 		}
-		public TerminalNode MULTIPLY() { return getToken(WaccParser.MULTIPLY, 0); }
+		public TerminalNode MINUS() { return getToken(WaccParser.MINUS, 0); }
 		public List<PlusminusContext> plusminus() {
 			return getRuleContexts(PlusminusContext.class);
 		}
-		public TerminalNode DIVIDE() { return getToken(WaccParser.DIVIDE, 0); }
-		public TerminalNode MOD() { return getToken(WaccParser.MOD, 0); }
+		public TerminalNode PLUS() { return getToken(WaccParser.PLUS, 0); }
 		public Expr_bin_math_plusminusContext(MathContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
@@ -880,12 +881,11 @@ public class WaccParser extends Parser {
 		public MathContext math() {
 			return getRuleContext(MathContext.class,0);
 		}
-		public TerminalNode MULTIPLY() { return getToken(WaccParser.MULTIPLY, 0); }
+		public TerminalNode MINUS() { return getToken(WaccParser.MINUS, 0); }
 		public PlusminusContext plusminus() {
 			return getRuleContext(PlusminusContext.class,0);
 		}
-		public TerminalNode DIVIDE() { return getToken(WaccParser.DIVIDE, 0); }
-		public TerminalNode MOD() { return getToken(WaccParser.MOD, 0); }
+		public TerminalNode PLUS() { return getToken(WaccParser.PLUS, 0); }
 		public Expr_bin_math_mathContext(MathContext ctx) { copyFrom(ctx); }
 		@Override
 		public <T> T accept(ParseTreeVisitor<? extends T> visitor) {
@@ -932,7 +932,7 @@ public class WaccParser extends Parser {
 				setState(138); plusminus(0);
 				setState(139);
 				_la = _input.LA(1);
-				if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << MULTIPLY) | (1L << DIVIDE) | (1L << MOD))) != 0)) ) {
+				if ( !(_la==PLUS || _la==MINUS) ) {
 				_errHandler.recoverInline(this);
 				}
 				consume();
@@ -964,7 +964,7 @@ public class WaccParser extends Parser {
 					if (!(precpred(_ctx, 3))) throw new FailedPredicateException(this, "precpred(_ctx, 3)");
 					setState(146);
 					_la = _input.LA(1);
-					if ( !((((_la) & ~0x3f) == 0 && ((1L << _la) & ((1L << MULTIPLY) | (1L << DIVIDE) | (1L << MOD))) != 0)) ) {
+					if ( !(_la==PLUS || _la==MINUS) ) {
 					_errHandler.recoverInline(this);
 					}
 					consume();
@@ -3510,14 +3510,14 @@ public class WaccParser extends Parser {
 		"\2\2\2lm\t\4\2\2m\25\3\2\2\2nz\5\20\t\2oz\5\f\7\2pz\5\n\6\2qz\5\2\2\2"+
 		"rs\7\27\2\2st\5 \21\2tu\7\30\2\2uz\3\2\2\2vw\5\36\20\2wx\5 \21\2xz\3\2"+
 		"\2\2yn\3\2\2\2yo\3\2\2\2yp\3\2\2\2yq\3\2\2\2yr\3\2\2\2yv\3\2\2\2z\27\3"+
-		"\2\2\2{|\b\r\1\2|}\5\26\f\2}~\t\3\2\2~\177\5\26\f\2\177\u0082\3\2\2\2"+
+		"\2\2\2{|\b\r\1\2|}\5\26\f\2}~\t\5\2\2~\177\5\26\f\2\177\u0082\3\2\2\2"+
 		"\u0080\u0082\5\26\f\2\u0081{\3\2\2\2\u0081\u0080\3\2\2\2\u0082\u0088\3"+
-		"\2\2\2\u0083\u0084\f\5\2\2\u0084\u0085\t\3\2\2\u0085\u0087\5\26\f\2\u0086"+
+		"\2\2\2\u0083\u0084\f\5\2\2\u0084\u0085\t\5\2\2\u0085\u0087\5\26\f\2\u0086"+
 		"\u0083\3\2\2\2\u0087\u008a\3\2\2\2\u0088\u0086\3\2\2\2\u0088\u0089\3\2"+
 		"\2\2\u0089\31\3\2\2\2\u008a\u0088\3\2\2\2\u008b\u008c\b\16\1\2\u008c\u008d"+
-		"\5\30\r\2\u008d\u008e\t\5\2\2\u008e\u008f\5\30\r\2\u008f\u0092\3\2\2\2"+
+		"\5\30\r\2\u008d\u008e\t\3\2\2\u008e\u008f\5\30\r\2\u008f\u0092\3\2\2\2"+
 		"\u0090\u0092\5\30\r\2\u0091\u008b\3\2\2\2\u0091\u0090\3\2\2\2\u0092\u0098"+
-		"\3\2\2\2\u0093\u0094\f\5\2\2\u0094\u0095\t\5\2\2\u0095\u0097\5\30\r\2"+
+		"\3\2\2\2\u0093\u0094\f\5\2\2\u0094\u0095\t\3\2\2\u0095\u0097\5\30\r\2"+
 		"\u0096\u0093\3\2\2\2\u0097\u009a\3\2\2\2\u0098\u0096\3\2\2\2\u0098\u0099"+
 		"\3\2\2\2\u0099\33\3\2\2\2\u009a\u0098\3\2\2\2\u009b\u009c\b\17\1\2\u009c"+
 		"\u009d\5\32\16\2\u009d\u009e\t\6\2\2\u009e\u009f\5\34\17\7\u009f\u00aa"+

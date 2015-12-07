@@ -250,7 +250,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 
 	private void wrapFunctInstr(String funcName){
-		assert stackTotal == 0 : "stackTotal not equals to 0 at the beginning of function declare";
 		int tempTotal = stackTotal;
 		makeFuncReady();
 
@@ -1180,13 +1179,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	int encStackTotal = stackTotal;
     	List<Instruction> encWhileList = new ArrayList<Instruction>();
     	stackTotal = 0;
-    	Instruction BLOinstr = new Instruction("B L0\n");
+    	Instruction BLOinstr = new Instruction("B LW0\n");
     	whileCount++;
 //    	int currentWhileLabel = whileCount * 2;
-    	encWhileList.add(new Instruction("L" + whileCount + ":\n"));
+    	encWhileList.add(new Instruction("LW" + whileCount + ":\n"));
     	currentList = encWhileList;
 		visit(ctx.expr());
-		Instruction compareAndEqual = new Instruction("CMP r" + regCount + ", #1\nBEQ L" + (whileCount + 1) + "\n");
+		Instruction compareAndEqual = new Instruction("CMP r" + regCount + ", #1\nBEQ LW" + (whileCount + 1) + "\n");
 		currentList.add(compareAndEqual);
 
 		if(stackTotal != 0) {
@@ -1204,9 +1203,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			System.exit(200);
 		}
 		
-		Instruction instruc = new Instruction("L" + (whileCount + 1) + ":\n");
+		Instruction instruc = new Instruction("LW" + (whileCount + 1) + ":\n");
 		encWhileList.add(instruc);
-		Instruction branchInstr = new Instruction("B L" + (whileCount + 2) + "\n");
+		Instruction branchInstr = new Instruction("B LW" + (whileCount + 2) + "\n");
 
 		currentList = encWhileList;
 		whileCount++;
@@ -2109,7 +2108,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
 			if(whileCount == 0) {
 				currentList.add(new Instruction("CMP r" + regCount + ", #1\n" +
-				"BEQ L" + (whileCount + 1) + "\n"));
+				"BEQ LW" + (whileCount + 1) + "\n"));
 			}
 		} else 
 		if(whileCount%2 != 0){
@@ -2392,7 +2391,19 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			regCount ++;
 			System.out.println("3");
 		} else if(two.type.equals("char")) {
-			currentList.add(new Instruction("MOV r" + regCount + ", #" + two.stringinfo + "\n"));
+			if(two.stringinfo.length() > 3) {
+				two.stringinfo = two.stringinfo.replace("\\n", "\n");
+				two.stringinfo = two.stringinfo.replace("\\0", "\0");
+				two.stringinfo = two.stringinfo.replace("\\b", "\b");
+				two.stringinfo = two.stringinfo.replace("\\t", "\t");
+				two.stringinfo = two.stringinfo.replace("\\f", "\f");
+				two.stringinfo = two.stringinfo.replace("\\r", "\"");
+				char c = two.stringinfo.charAt(1);
+				int ascii = (int) c;
+				currentList.add(new Instruction("MOV r" + regCount + ", #"  + ((ascii > 13)? "\'" + two.stringinfo.charAt(2) + "\'": String.valueOf(ascii)) + "\n"));
+			} else {
+				currentList.add(new Instruction("MOV r" + regCount + ", #" + two.stringinfo + "\n"));
+			}
 			regCount ++;
 			System.out.println("3");
 		} else if (two.type.equals("var")){
@@ -2529,17 +2540,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			VariableFragment v  = new VariableFragment(a.stringinfo);
 			currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + (regCount + 1) + ", [sp"), v, new StringFragment("]\n")), v));
 		}
-		if (ctx.MULTIPLY() != null) {
+		if (ctx.PLUS() != null) {
 			err.pOverflow();
-			currentList.add(new Instruction("SMULL r" + regCount + ", r" + (regCount + 1) + ", r" + regCount + ", r" + (regCount + 1) + "\nCMP r" + (regCount + 1) + ", r" + regCount + ", ASR #31\nBLNE p_throw_overflow_error\n"));
+			currentList.add(new Instruction("ADDS r" + regCount + ", r" + regCount + ", r" + (regCount + 1) + "\nBLVS p_throw_overflow_error\n"));
 		}
-		if (ctx.DIVIDE() != null) {
-			err.pDivZero();
-			currentList.add(new Instruction("MOV r0, r" + regCount + "\nMOV r1, r" + (regCount + 1) + "\nBL p_check_divide_by_zero\nBL __aeabi_idiv\nMOV r" + regCount + ", r0\n"));
-		}
-		if (ctx.MOD() != null) {
-			err.pDivZero();
-			currentList.add(new Instruction("MOV r0, r" + regCount + "\nMOV r1, r" + (regCount + 1) + "\nBL p_check_divide_by_zero\nBL __aeabi_idivmod\nMOV r" + regCount + ", r1\n"));
+		if (ctx.MINUS() != null) {
+			err.pOverflow();
+			currentList.add(new Instruction("SUBS r" + regCount + ", r" + regCount + ", r" + (regCount + 1) + "\nBLVS p_throw_overflow_error\n"));
 		}
 		
 		return (new Info("r" + regCount)).setType("reg"); 
@@ -2548,7 +2555,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	@Override public Info visitExpr_bin_math_plusminus(@NotNull WaccParser.Expr_bin_math_plusminusContext ctx) {
 		if (prints) System.out.println("visitExpr_bin_math_plusminus");
 		Info one = visit(ctx.plusminus(0));
+		if (one.type.equals("reg")) {regCount++;}
 		Info two = visit(ctx.plusminus(1));
+		if (two.type.equals("reg")) {regCount++;}
 		ctx.returntype = new INT();
 		ctx.argtype = new INT();
 		if(!SharedMethods.assignCompat(ctx.plusminus(0).returntype, ctx.argtype)) {
@@ -2563,35 +2572,36 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		
 		if (one.type.equals("int")) {
 			currentList.add(new Instruction("LDR r" + regCount + ", =" + one.int_value + "\n"));
+			regCount ++;
 		} else if (one.type.equals("reg")) {
 			//do nothing
 		} else {
 			assert one.type.equals("var");
 			VariableFragment v  = new VariableFragment(one.stringinfo);
 			currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", [sp"), v, new StringFragment("]\n")), v));
+			regCount ++;
 		}
 		if (two.type.equals("int")) {
-			currentList.add(new Instruction("LDR r" + (regCount + 1) + ", =" + two.int_value + "\n"));
+			currentList.add(new Instruction("LDR r" + regCount + ", =" + two.int_value + "\n"));
+			regCount ++;
 		} else if (two.type.equals("reg")) {
 			//do nothing
 		} else {
 			assert two.type.equals("var");
 			VariableFragment v  = new VariableFragment(two.stringinfo);
-			currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + (regCount + 1) + ", [sp"), v, new StringFragment("]\n")), v));
+			currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", [sp"), v, new StringFragment("]\n")), v));
+			regCount ++;
 		}
-		if (ctx.MULTIPLY() != null) {
+		if (ctx.PLUS() != null) {
 			err.pOverflow();
-			currentList.add(new Instruction("SMULL r" + regCount + ", r" + (regCount + 1) + ", r" + regCount + ", r" + (regCount + 1) + "\nCMP r" + (regCount + 1) + ", r" + regCount + ", ASR #31\nBLNE p_throw_overflow_error\n"));
+			currentList.add(new Instruction("ADDS r" + (regCount - 2) + ", r" + (regCount - 2) + ", r" + (regCount - 1) + "\nBLVS p_throw_overflow_error\n"));
 		}
-		if (ctx.DIVIDE() != null) {
-			err.pDivZero();
-			currentList.add(new Instruction("MOV r0, r" + regCount + "\nMOV r1, r" + (regCount + 1) + "\nBL p_check_divide_by_zero\nBL __aeabi_idiv\nMOV r" + regCount + ", r0\n"));
+		if (ctx.MINUS() != null) {
+			err.pOverflow();
+			currentList.add(new Instruction("SUBS r" + (regCount - 2) + ", r" + (regCount - 2) + ", r" + (regCount - 1) + "\nBLVS p_throw_overflow_error\n"));
 		}
-		if (ctx.MOD() != null) {
-			err.pDivZero();
-			currentList.add(new Instruction("MOV r0, r" + regCount + "\nMOV r1, r" + (regCount + 1) + "\nBL p_check_divide_by_zero\nBL __aeabi_idivmod\nMOV r" + regCount + ", r1\n"));
-		}
-				
+		
+		regCount = regCount -2;
 		return (new Info("r" + regCount)).setType("reg"); 
 	}
 	
@@ -2624,13 +2634,17 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			VariableFragment v  = new VariableFragment(a.stringinfo);
 			currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + (regCount + 1) + ", [sp"), v, new StringFragment("]\n")), v));
 		}
-		if (ctx.PLUS() != null) {
+		if (ctx.MULTIPLY() != null) {
 			err.pOverflow();
-			currentList.add(new Instruction("ADDS r" + regCount + ", r" + regCount + ", r" + (regCount + 1) + "\nBLVS p_throw_overflow_error\n"));
+			currentList.add(new Instruction("SMULL r" + regCount + ", r" + (regCount + 1) + ", r" + regCount + ", r" + (regCount + 1) + "\nCMP r" + (regCount + 1) + ", r" + regCount + ", ASR #31\nBLNE p_throw_overflow_error\n"));
 		}
-		if (ctx.MINUS() != null) {
-			err.pOverflow();
-			currentList.add(new Instruction("SUBS r" + regCount + ", r" + regCount + ", r" + (regCount + 1) + "\nBLVS p_throw_overflow_error\n"));
+		if (ctx.DIVIDE() != null) {
+			err.pDivZero();
+			currentList.add(new Instruction("MOV r0, r" + regCount + "\nMOV r1, r" + (regCount + 1) + "\nBL p_check_divide_by_zero\nBL __aeabi_idiv\nMOV r" + regCount + ", r0\n"));
+		}
+		if (ctx.MOD() != null) {
+			err.pDivZero();
+			currentList.add(new Instruction("MOV r0, r" + regCount + "\nMOV r1, r" + (regCount + 1) + "\nBL p_check_divide_by_zero\nBL __aeabi_idivmod\nMOV r" + regCount + ", r1\n"));
 		}
 		
 		return (new Info("r" + regCount)).setType("reg"); 
@@ -2671,13 +2685,17 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			VariableFragment v  = new VariableFragment(two.stringinfo);
 			currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + (regCount + 1) + ", [sp"), v, new StringFragment("]\n")), v));
 		}
-		if (ctx.PLUS() != null) {
+		if (ctx.MULTIPLY() != null) {
 			err.pOverflow();
-			currentList.add(new Instruction("ADDS r" + regCount + ", r" + regCount + ", r" + (regCount + 1) + "\nBLVS p_throw_overflow_error\n"));
+			currentList.add(new Instruction("SMULL r" + regCount + ", r" + (regCount + 1) + ", r" + regCount + ", r" + (regCount + 1) + "\nCMP r" + (regCount + 1) + ", r" + regCount + ", ASR #31\nBLNE p_throw_overflow_error\n"));
 		}
-		if (ctx.MINUS() != null) {
-			err.pOverflow();
-			currentList.add(new Instruction("SUBS r" + regCount + ", r" + regCount + ", r" + (regCount + 1) + "\nBLVS p_throw_overflow_error\n"));
+		if (ctx.DIVIDE() != null) {
+			err.pDivZero();
+			currentList.add(new Instruction("MOV r0, r" + regCount + "\nMOV r1, r" + (regCount + 1) + "\nBL p_check_divide_by_zero\nBL __aeabi_idiv\nMOV r" + regCount + ", r0\n"));
+		}
+		if (ctx.MOD() != null) {
+			err.pDivZero();
+			currentList.add(new Instruction("MOV r0, r" + regCount + "\nMOV r1, r" + (regCount + 1) + "\nBL p_check_divide_by_zero\nBL __aeabi_idivmod\nMOV r" + regCount + ", r1\n"));
 		}
 				
 		return (new Info("r" + regCount)).setType("reg"); 
