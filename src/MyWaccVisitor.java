@@ -1757,9 +1757,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (stackTotal == 0/* && whileCount < 0*/) {
 			instrList.remove(1);
 		} else {
-			currentStackMap.put("total", stackTotal);
+			currentStackMap.put("total", (stackTotal > 1024)? 1024: stackTotal);
 			if(whileCount < 0){
-				instrList.add(new Instruction("ADD sp, sp, #" + stackTotal + "\n"));
+				instrList.add(new Instruction("ADD sp, sp, #" + ((stackTotal > 1024)? 1024: stackTotal) + "\n"));
+				if (stackTotal > 1024) {
+					instrList.add(new Instruction("ADD sp, sp, #" + (stackTotal - 1024) + "\n"));
+					instrList.add(2, new Instruction("SUB sp, sp, #" + (stackTotal - 1024) + "\n"));
+				}
 			} 
 		}
 		if(whileCount < 0) {
