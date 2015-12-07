@@ -1112,6 +1112,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //				"POP {pc}\n"));
 //				definedRead[1] = true;
 //			}
+			err.pReadChar();
 		}
 		
 //    	definedRead[4] = false;
@@ -2107,12 +2108,28 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("visitExpr_char");
 		ctx.typename = new CHAR();
 		String text = ctx.char_liter().CHARACTER().getText();
-//		System.out.println(text.length());
-//		if(text.length() > 3) {
-//			text = "'" + text.substring(2);
-//		}
-////		currentList.add(new Instruction("MOV r" + regCount +", #" + ctx.char_liter().CHARACTER().getText() + "\n"));
-		currentList.add(new Instruction("MOV r" + regCount +", #" + text + "\n"));
+		
+		
+
+		if(text.length() > 3) {
+			if(text.charAt(2) == '\'') {
+				currentList.add(new Instruction("MOV r" + regCount +", #" + text + "\n"));
+				return null;
+			}
+			System.out.println(text.length());
+			text = text.replace("\\n", "\n");
+			text = text.replace("\\0", "\0");
+			text = text.replace("\\b", "\b");
+			text = text.replace("\\t", "\t");
+			text = text.replace("\\f", "\f");
+			text = text.replace("\\r", "\"");
+			char c = text.charAt(1);
+			int ascii = (int) c;
+			currentList.add(new Instruction("MOV r" + regCount +", #" + ((ascii > 13)? "\'" + text.charAt(2) + "\'": String.valueOf(ascii)) + "\n"));
+		} else {
+//		currentList.add(new Instruction("MOV r" + regCount +", #" + ctx.char_liter().CHARACTER().getText() + "\n"));
+			currentList.add(new Instruction("MOV r" + regCount +", #" + text + "\n"));
+		}
 		return null; 
 	}
 	

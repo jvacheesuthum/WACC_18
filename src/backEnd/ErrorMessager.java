@@ -72,6 +72,9 @@ public class ErrorMessager {
 	public void pLn() {
 		pLn = true;
 	}
+	public void pReadChar() {
+		pReadChar = true;
+	}
 	
 	public void addErrorMessages(List<Instruction> header, List<Instruction> footer) {
 		if (pString) {
@@ -141,7 +144,7 @@ public class ErrorMessager {
 		}
 		if (pReadChar) {
 			footer.add(new Instruction("p_read_char:\nPUSH {lr}\nMOV r1, r0LDR r0, =msg_14\nADD r0, r0, #4\nBL scanf\nPOP {pc}\n"));
-			if (pChar) header.add(headerindex, new Instruction("msg_14:\n.word 4\n.ascii \"%c\\0\"\n"));
+			header.add(headerindex, new Instruction("msg_14:\n.word 4\n.ascii \"%c\\0\"\n"));
 			headerindex ++;
 		}
 	}
