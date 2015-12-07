@@ -883,7 +883,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 				System.exit(200);//throw new Error("type of func param " + i + " incompatible with declaration");
 			}
 			//
-			currentList.add(new Instruction("STR r" + regCount + " [sp, #-" + typeSize(each.typename) + "]!\n"));
+			currentList.add(new Instruction("STR r" + regCount + ", [sp, #-" + typeSize(each.typename) + "]!\n"));
 			funcCallOffset += argSizeCount;
 		}
 
@@ -1297,7 +1297,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if(id instanceof VARIABLE){
 			ctx.typename = ((VARIABLE) id).TYPE();
 		}
-		return null;
+		return new Info(ctx.getText());
 	
 	}
 	
@@ -1334,15 +1334,26 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		//CHECK REGCOUNT
 		
     	if (prints) System.out.println("visitAssign_lhs_array");
-    	Info i = visit(ctx.array_elem());
-    	
-    	
+    	Info i = visit(ctx.array_elem()); //why is i null right now?
     	//nops backend --------------------
     	regCount++;
+
+    	VariableFragment v  = new VariableFragment(i.stringinfo);
+
     	String index = (ctx.array_elem().getText().replaceAll("[^0-9]", ""));
-    	currentList.add(new Instruction("ADD r" + (regCount) + ", sp, #0\n"));
+    	//is this ok with other case other than array.wacc ?
+    	currentList.add(new Instruction(Arrays.asList(new StringFragment("ADD r" + (regCount) + ", sp"), v, new StringFragment("\n")), v));
     	regCount++;
-    	currentList.add(new Instruction("LDR r" + regCount + ", =" + index + '\n'));
+
+    	//if array index is a variable index will be empty eg. a[i]
+    	if (index.isEmpty()) {
+			//currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", ="), v, new StringFragment("\n")), v));
+    		currentList.add(new Instruction("LDR r" + regCount + ", [sp]\n"));
+
+    	} else {
+    		currentList.add(new Instruction("LDR r" + regCount + ", =" + index + '\n'));
+    	}
+    	
     	currentList.add(new Instruction("LDR r" + (regCount -1) + ", [r" + (regCount -1) + "] \n"));
     	currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
     	currentList.add(new Instruction("MOV r1, r" + (regCount -1) + "\n"));
@@ -1717,7 +1728,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		else{
 		  ctx.typename = ((ARRAY_TYPE)array_or_string.TYPE()).TYPE();
 		}
-		return null;
+		return new Info(ctx.ident().getText());
 	}
 
 	@Override public Info visitProgram(@NotNull WaccParser.ProgramContext ctx) { 
@@ -2152,19 +2163,19 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (ctx.bool_liter().TRUE() != null) {
 			i = 1;
 		}
-		if(!inWhile) {
+//		if(!inWhile) {
 			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
-		} else 
-		if(whileCount%2 == 0){
-			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
-			if(whileCount == 0) {
-				currentList.add(new Instruction("CMP r" + regCount + ", #1\n" +
-				"BEQ LW" + (whileCount + 1) + "\n"));
-			}
-		} else 
-		if(whileCount%2 != 0){
-			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
-		}
+//		} else 
+//		if(whileCount%2 == 0){
+//			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
+//			if(whileCount == 0) {
+//				currentList.add(new Instruction("CMP r" + regCount + ", #1\n" +
+//				"BEQ LW" + (whileCount + 1) + "\n"));
+//			}
+//		} else 
+//		if(whileCount%2 != 0){
+//			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
+//		}
 //		if(!definedPrintsMsg[1] && inPrint) {
 //			header.add(new Instruction("msg_" + msgCount + ":\n.word 5\n.ascii " + '\"' + "true" + "\\" + "0" + '\"' + "\n"));
 //			msgPosition.put("True", msgCount);
@@ -2271,16 +2282,28 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	@Override public Info visitExpr_array_elem(@NotNull WaccParser.Expr_array_elemContext ctx) {
 		//CHECK REGCOUNT : arraysimple vs arraylookup
 		if (prints) System.out.println("visitExpr_array_elem");
+
+		Info i = visit(ctx.array_elem().ident());
+    	VariableFragment v  = new VariableFragment(i.stringinfo);
+    	
+    	String index = (ctx.array_elem().getText().replaceAll("[^0-9]", ""));
+    	currentList.add(new Instruction(Arrays.asList(new StringFragment("ADD r" + (regCount) + ", sp"), v, new StringFragment("\n")), v));
+
+    	//if array index is a variable index will be empty eg. a[i]
+    	if (index.isEmpty()) {
+			//currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", ="), v, new StringFragment("\n")), v));
+    		currentList.add(new Instruction("LDR r" + (regCount + 1) + ", [sp]\n"));
+
+    	} else {
+    		currentList.add(new Instruction("LDR r" + (regCount + 1) + ", =" + index + '\n'));
+    	}
 		
-		String index = (ctx.array_elem().getText().replaceAll("[^0-9]", ""));
-		regCount--;
-		currentList.add(new Instruction("ADD r" + regCount + ", sp, #0\n"));
-		regCount++;
-    	currentList.add(new Instruction("LDR r" + (regCount + 1) + ", =" + index + '\n'));
     	currentList.add(new Instruction("LDR r" + (regCount) + ", [r" + (regCount) + "] \n"));
     	currentList.add(new Instruction("MOV r0, r" + (1 + regCount) + "\n"));
-    	currentList.add(new Instruction("MOV r1, r" + (regCount -1) + "\n"));
+    	currentList.add(new Instruction("MOV r1, r" + regCount + "\n"));
     	currentList.add(new Instruction("BL p_check_array_bounds \n"));
+    	
+    	regCount++;
     	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) + ", #4 \n"));
     	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) +
     			", r" + regCount  + ", LSL #2 \n"));
@@ -2289,7 +2312,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	//add error msg
     	err.pArray();
     	
-		visit(ctx.array_elem().ident());
 		ARRAY_TYPE ar = (ARRAY_TYPE) ctx.array_elem().ident().typename;
 		ctx.typename = ar.TYPE();
 
