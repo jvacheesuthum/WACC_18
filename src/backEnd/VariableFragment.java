@@ -4,9 +4,15 @@ public class VariableFragment extends InstructionFragment {
 	
 	private String s;
 	private String variable;
+	private int funcCallOffset = 0;
 	
 	public VariableFragment(String var) {
 		this.variable = var;
+	}
+
+	public VariableFragment(String var, int funcCallOffset) {
+		this.variable = var;
+		this.funcCallOffset = funcCallOffset;
 	}
 	
 	public String getVariable() {
@@ -18,7 +24,8 @@ public class VariableFragment extends InstructionFragment {
 //			s = "";
 //		}
 //		else {
-			s = ", #" + i;
+			s = ", #" + (i + funcCallOffset);
+		//s = ", #" + i;
 //		}
 	}
 	

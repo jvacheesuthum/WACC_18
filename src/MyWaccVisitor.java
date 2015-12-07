@@ -58,6 +58,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	boolean prints = true;
 	private final String filename;
 
+	private int funcCallOffset = 0;
+
 
 
 	public MyWaccVisitor(String filename) {
@@ -883,8 +885,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			}
 			//
 			currentList.add(new Instruction("STR r" + regCount + " [sp, #-" + typeSize(each.typename) + "]!\n"));
+			funcCallOffset += argSizeCount;
 		}
 
+		funcCallOffset = 0;
 
 		FUNCTION fun = (FUNCTION) F;
 		ctx.typename = fun.returntype;
@@ -2186,7 +2190,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			msgCount++;
 		}
 */		
-		VariableFragment v = new VariableFragment(ctx.ident().getText());
+		VariableFragment v = new VariableFragment(ctx.ident().getText(), funcCallOffset);
 		//CHECK : bug in functionmanyarguments.wacc -> ref compiler line 122
 		currentList.add(new Instruction(Arrays.asList(new StringFragment(( typeSize(ctx.typename) == 1 ? "LDRSB r" : "LDR r") + regCount  + ", [sp"), v, new StringFragment("]\n")), v));
 		return null;
