@@ -1175,61 +1175,109 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	@Override public Info visitStat_while(@NotNull WaccParser.Stat_whileContext ctx) { 
 	   	if (prints) System.out.println("visitStat_while");
-    	inWhile = true;
-    	int encStackTotal = stackTotal;
-    	List<Instruction> encWhileList = new ArrayList<Instruction>();
-    	stackTotal = 0;
-    	Instruction BLOinstr = new Instruction("B LW0\n");
-    	whileCount++;
-//    	int currentWhileLabel = whileCount * 2;
-    	encWhileList.add(new Instruction("LW" + whileCount + ":\n"));
-    	currentList = encWhileList;
-		visit(ctx.expr());
-		Instruction compareAndEqual = new Instruction("CMP r" + regCount + ", #1\nBEQ LW" + (whileCount + 1) + "\n");
-		currentList.add(compareAndEqual);
 
-		if(stackTotal != 0) {
-			encWhileList.add(new Instruction("ADD sp, sp, #" + encStackTotal + "\n"));
-		}
+    	whileCount++;
+    	Instruction BLOinstr = new Instruction("B LW" + (whileCount * 2) + "\n");
+    	currentList.add(BLOinstr);
+    	inWhile = true;
+    	currentList.add(new Instruction("LW" + ((whileCount * 2) + 1) + ":\n"));
+    	int encStackTotal = stackTotal;
+//    	List<Instruction> encWhileList = new ArrayList<Instruction>();
+    	stackTotal = 0;
+
+    	
+		Map<String, Integer> encStackMap = currentStackMap;
+		Map<String,Integer> scopedStackMap = new HashMap<>();
+		currentStackMap = scopedStackMap;
+		List<Instruction> encInstr = currentList;
+		List<Instruction> scopedInstr = new ArrayList<Instruction>();
+		currentList = scopedInstr;
+		int encWhileCount = whileCount;
 		
-    	if(whileCount == 0) {
-    		whileList.addAll(encWhileList);
-    		encWhileList.removeAll(encWhileList);
-    		instrList.add(BLOinstr);
-    	}
+		visit(ctx.stat());
+		
+		//--------------------------
+		int hasDeclared = stackTotal;
+		currentStackMap.put("total", stackTotal);
+
+		for(Instruction instr: currentList) {
+			if (instr instanceof Instruction_Return){
+				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
+				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
+			}
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
+			}
+			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
+				// variable total is propagated up the if scopes
+				instr.varsToPos(currentStackMap, hasDeclared);
+			}
+		}
+		//adding to encInstrList
+		if(hasDeclared > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclared + "\n"));
+		for(Instruction in : currentList){
+			//for newly created scopedInstruction
+			if(in.isScoped() && (in.scopeDepth() == 0)) in.addScopeDepth(hasDeclared);
+			encInstr.add(in);
+		}
+		if(hasDeclared > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclared + "\n"));
+		currentList = encInstr;
+		currentStackMap = encStackMap;
+		stackTotal = encStackTotal;
+		whileCount = encWhileCount;
+		//----------------------------
+//    	int currentWhileLabel = whileCount * 2;
+
+//    	currentList = encWhileList;
+		currentList.add(new Instruction("LW" + (whileCount * 2) + ":\n"));
+		visit(ctx.expr());
+		Instruction compareAndEqual = new Instruction("CMP r" + regCount + ", #1\nBEQ LW" + ((whileCount * 2) + 1) + "\n");
+		currentList.add(compareAndEqual);
+//
+//		if(stackTotal != 0) {
+//			encWhileList.add(new Instruction("ADD sp, sp, #" + encStackTotal + "\n"));
+//		}
+		
+//    	if(whileCount == 0) {
+//    		whileList.addAll(encWhileList);
+//    		encWhileList.removeAll(encWhileList);
+////    		instrList.add(BLOinstr);
+//    	}
     	
 		if(!(SharedMethods.assignCompat(ctx.expr().typename, new BOOL()))){
 			System.out.print("if condition is not of type bool");
 			System.exit(200);
 		}
 		
-		Instruction instruc = new Instruction("LW" + (whileCount + 1) + ":\n");
-		encWhileList.add(instruc);
-		Instruction branchInstr = new Instruction("B LW" + (whileCount + 2) + "\n");
-
-		currentList = encWhileList;
-		whileCount++;
-		int tempCount = whileCount;
 		
-		visit(ctx.stat());
-		if(!inWhile) inWhile = true;
-		encWhileList.add(branchInstr);
-		if(tempCount == whileCount) {//removes B L_number from latest label
-			encWhileList.remove(branchInstr);
-		}
-		if(stackTotal != 0) {
-			encWhileList.add(encWhileList.indexOf(instruc) + 1, new Instruction("SUB, sp, sp, #" + stackTotal + "\n"));
-			if(tempCount == whileCount) {
-				encWhileList.add(new Instruction("ADD sp, sp, #" + stackTotal + "\n"));
-			}
-		}
-		if(!visitedBool) {
-			whileList.remove(compareAndEqual);
-		}
-		instrList.addAll(encWhileList);
-		encWhileList.removeAll(encWhileList);
-		stackTotal = encStackTotal;
-		currentList = whileList;
+//		Instruction instruc = new Instruction("LW" + (whileCount + 1) + ":\n");
+//		encWhileList.add(instruc);
+//		Instruction branchInstr = new Instruction("B LW" + (whileCount + 2) + "\n");
+
+//		currentList = encWhileList;
+//		whileCount++;
+//		int tempCount = whileCount;
+		
+
+		
+//		if(!inWhile) inWhile = true;
+//		encWhileList.add(branchInstr);
+//		if(tempCount == whileCount) {//removes B L_number from latest label
+//			encWhileList.remove(branchInstr);
+//		}
+//		if(stackTotal != 0) {
+//			encWhileList.add(encWhileList.indexOf(instruc) + 1, new Instruction("SUB, sp, sp, #" + stackTotal + "\n"));
+//			if(tempCount == whileCount) {
+//				encWhileList.add(new Instruction("ADD sp, sp, #" + stackTotal + "\n"));
+//			}
+//		}
+//		if(!visitedBool) {
+//			whileList.remove(compareAndEqual);
+//		}
+//		instrList.addAll(encWhileList);
+//		encWhileList.removeAll(encWhileList);
+//		stackTotal = encStackTotal;
+//		currentList = whileList;
 		inWhile = false;
 		return null; 
 	}
@@ -1717,7 +1765,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 		//switch to putting code into instrList
 		currentList = instrList;
-		currentList.add(new Instruction(".text\n\n.global main\nmain:\nPUSH {lr}\n"));
+		currentList.add(new Instruction("main:\nPUSH {lr}\n"));
 		VariableFragment total = new VariableFragment("total");
 		Instruction instr = new Instruction(Arrays.asList(new StringFragment("SUB sp, sp"), total, new StringFragment("\n")), total);
 		currentList.add(instr);
@@ -1726,13 +1774,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //		if(stackTotal == 0) {
 //			currentList.remove(instr);
 //		}
-		if(whileCount > 0) {
-			if(stackTotal != 0) {
-				whileList.add(new Instruction("ADD sp, sp, #" + stackTotal + "\n"));
-			}
-			whileList.add(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg\n"));
-		}
-		instrList.addAll(whileList);
+//		if(whileCount > 0) {
+//			if(stackTotal != 0) {
+//				whileList.add(new Instruction("ADD sp, sp, #" + stackTotal + "\n"));
+//			}
+//			whileList.a.text\n\n.global main\ndd(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg\n"));
+//		}
+//		instrList.addAll(whileList);
+		currentList.add(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg\n"));
 	
 		printInstructions();
 		return null; 
@@ -1752,6 +1801,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (header.size() > 0) {
 			header.add(0, new Instruction(".data\n\n"));
 		}
+		header.add(new Instruction(".text\n\n.global main\n"));
 		for(Instruction instr: header) {
 			System.out.print(instr);
 			writer.print(instr);
