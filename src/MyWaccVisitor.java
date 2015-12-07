@@ -1878,7 +1878,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			err.pBool();
 		} else
 		if(typename instanceof CHAR) { 
-//			currentList.add(new Instruction("BL putchar\n"));
+			currentList.add(new Instruction("BL putchar\n"));
 //			if(!definedPrintsFunc[2]) {
 //				addPrintChar();
 //			}
