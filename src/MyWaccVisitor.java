@@ -2163,19 +2163,19 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (ctx.bool_liter().TRUE() != null) {
 			i = 1;
 		}
-		if(!inWhile) {
+//		if(!inWhile) {
 			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
-		} else 
-		if(whileCount%2 == 0){
-			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
-			if(whileCount == 0) {
-				currentList.add(new Instruction("CMP r" + regCount + ", #1\n" +
-				"BEQ LW" + (whileCount + 1) + "\n"));
-			}
-		} else 
-		if(whileCount%2 != 0){
-			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
-		}
+//		} else 
+//		if(whileCount%2 == 0){
+//			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
+//			if(whileCount == 0) {
+//				currentList.add(new Instruction("CMP r" + regCount + ", #1\n" +
+//				"BEQ LW" + (whileCount + 1) + "\n"));
+//			}
+//		} else 
+//		if(whileCount%2 != 0){
+//			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
+//		}
 //		if(!definedPrintsMsg[1] && inPrint) {
 //			header.add(new Instruction("msg_" + msgCount + ":\n.word 5\n.ascii " + '\"' + "true" + "\\" + "0" + '\"' + "\n"));
 //			msgPosition.put("True", msgCount);
