@@ -2097,7 +2097,12 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	public Info visitExpr_char(@NotNull WaccParser.Expr_charContext ctx) { 
 		if (prints) System.out.println("visitExpr_char");
 		ctx.typename = new CHAR();
-		currentList.add(new Instruction("MOV r" + regCount +", #" + ctx.char_liter().CHARACTER().getText() + "\n"));
+		String text = ctx.char_liter().CHARACTER().getText();
+		if(text.length() > 1) {
+			text = "'" + text.substring(2);
+		}
+//		currentList.add(new Instruction("MOV r" + regCount +", #" + ctx.char_liter().CHARACTER().getText() + "\n"));
+		currentList.add(new Instruction("MOV r" + regCount +", #" + text + "\n"));
 		return null; 
 	}
 	
