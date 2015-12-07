@@ -14,12 +14,12 @@ public class VariableFragment extends InstructionFragment {
 	}
 	
 	public void pointToStackPosition(int i) {
-		if (i == 0) {
-			s = "";
-		}
-		else {
+//		if (i == 0) {
+//			s = "";
+//		}
+//		else {
 			s = ", #" + i;
-		}
+//		}
 	}
 	
 	@Override
