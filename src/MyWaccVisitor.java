@@ -2693,6 +2693,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 	
 		ctx.typename = ctx.unary_oper().returntype;
+		if(inWhile) visitedBool = true;
 		return null;
 	}
 	
