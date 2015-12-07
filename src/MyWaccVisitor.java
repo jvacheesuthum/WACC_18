@@ -2369,7 +2369,19 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			regCount ++;
 			System.out.println("3");
 		} else if(two.type.equals("char")) {
-			currentList.add(new Instruction("MOV r" + regCount + ", #" + two.stringinfo + "\n"));
+			if(two.stringinfo.length() > 3) {
+				two.stringinfo = two.stringinfo.replace("\\n", "\n");
+				two.stringinfo = two.stringinfo.replace("\\0", "\0");
+				two.stringinfo = two.stringinfo.replace("\\b", "\b");
+				two.stringinfo = two.stringinfo.replace("\\t", "\t");
+				two.stringinfo = two.stringinfo.replace("\\f", "\f");
+				two.stringinfo = two.stringinfo.replace("\\r", "\"");
+				char c = two.stringinfo.charAt(1);
+				int ascii = (int) c;
+				currentList.add(new Instruction("MOV r" + regCount + ", #"  + ((ascii > 13)? "\'" + two.stringinfo.charAt(2) + "\'": String.valueOf(ascii)) + "\n"));
+			} else {
+				currentList.add(new Instruction("MOV r" + regCount + ", #" + two.stringinfo + "\n"));
+			}
 			regCount ++;
 			System.out.println("3");
 		} else if (two.type.equals("var")){
