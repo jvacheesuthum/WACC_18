@@ -44,8 +44,12 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	private boolean inPrint = false;
 	private boolean[] definedRead = new boolean[5];
 	// Int = 0, Char = 1, IntMsg = 2, CharMsg = 3, inRead = 4
+	private boolean inWhile = false;
+	private int whileCount = -1;
+	List<Instruction> whileList = new ArrayList<Instruction>();
+	private boolean visitedBool = false;
 	
-	boolean prints = true;
+	boolean prints = false;
 
 	public MyWaccVisitor() {
 		
@@ -1136,16 +1140,63 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	}
 
 	@Override public Info visitStat_while(@NotNull WaccParser.Stat_whileContext ctx) { 
-    	if (prints) System.out.println("visitStat_while");
+	   	if (prints) System.out.println("visitStat_while");
+    	inWhile = true;
+    	int encStackTotal = stackTotal;
+    	List<Instruction> encWhileList = new ArrayList<Instruction>();
+    	stackTotal = 0;
+    	Instruction BLOinstr = new Instruction("B L0\n");
+    	whileCount++;
+//    	int currentWhileLabel = whileCount * 2;
+    	encWhileList.add(new Instruction("L" + whileCount + ":\n"));
+    	currentList = encWhileList;
 		visit(ctx.expr());
+		Instruction compareAndEqual = new Instruction("CMP r" + regCount + ", #1\nBEQ L" + (whileCount + 1) + "\n");
+		currentList.add(compareAndEqual);
 
+		if(stackTotal != 0) {
+			encWhileList.add(new Instruction("ADD sp, sp, #" + encStackTotal + "\n"));
+		}
 		
+    	if(whileCount == 0) {
+    		whileList.addAll(encWhileList);
+    		encWhileList.removeAll(encWhileList);
+    		instrList.add(BLOinstr);
+    	}
+    	
 		if(!(SharedMethods.assignCompat(ctx.expr().typename, new BOOL()))){
 			System.out.print("if condition is not of type bool");
 			System.exit(200);
 		}
+		
+		Instruction instruc = new Instruction("L" + (whileCount + 1) + ":\n");
+		encWhileList.add(instruc);
+		Instruction branchInstr = new Instruction("B L" + (whileCount + 2) + "\n");
 
+		currentList = encWhileList;
+		whileCount++;
+		int tempCount = whileCount;
+		
 		visit(ctx.stat());
+		if(!inWhile) inWhile = true;
+		encWhileList.add(branchInstr);
+		if(tempCount == whileCount) {//removes B L_number from latest label
+			encWhileList.remove(branchInstr);
+		}
+		if(stackTotal != 0) {
+			encWhileList.add(encWhileList.indexOf(instruc) + 1, new Instruction("SUB, sp, sp, #" + stackTotal + "\n"));
+			if(tempCount == whileCount) {
+				encWhileList.add(new Instruction("ADD sp, sp, #" + stackTotal + "\n"));
+			}
+		}
+		if(!visitedBool) {
+			whileList.remove(compareAndEqual);
+		}
+		instrList.addAll(encWhileList);
+		encWhileList.removeAll(encWhileList);
+		stackTotal = encStackTotal;
+		currentList = whileList;
+		inWhile = false;
 		return null; 
 	}
 
@@ -1609,9 +1660,21 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		currentList = instrList;
 		currentList.add(new Instruction(".text\n\n.global main\nmain:\nPUSH {lr}\n"));
 		VariableFragment total = new VariableFragment("total");
-		currentList.add(new Instruction(Arrays.asList(new StringFragment("SUB sp, sp"), total, new StringFragment("\n")), total));
-		visit(ctx.stat());
+		Instruction instr = new Instruction(Arrays.asList(new StringFragment("SUB sp, sp"), total, new StringFragment("\n")), total);
+		currentList.add(instr);
 
+		visit(ctx.stat());
+//		if(stackTotal == 0) {
+//			currentList.remove(instr);
+//		}
+		if(whileCount > 0) {
+			if(stackTotal != 0) {
+				whileList.add(new Instruction("ADD sp, sp, #" + stackTotal + "\n"));
+			}
+			whileList.add(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg\n"));
+		}
+		instrList.addAll(whileList);
+	
 		printInstructions();
 		return null; 
 	}
@@ -1631,13 +1694,19 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			System.out.print(funcInstr);
 		}
 		
-		if (stackTotal == 0) {
+		if (stackTotal == 0/* && whileCount < 0*/) {
 			instrList.remove(1);
 		} else {
 			currentStackMap.put("total", stackTotal);
-			instrList.add(new Instruction("ADD sp, sp, #" + stackTotal + "\n"));
+			if(whileCount < 0){
+				instrList.add(new Instruction("ADD sp, sp, #" + stackTotal + "\n"));
+			} 
 		}
-		instrList.add(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg"));
+		if(whileCount < 0) {
+			instrList.add(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg"));
+		} else {
+			whileList.add(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg"));
+		}
 		for(Instruction instr: instrList) {
 			if (instr.toDeclare()) {
 				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
@@ -1936,8 +2005,19 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (ctx.bool_liter().TRUE() != null) {
 			i = 1;
 		}
-		currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
-		
+		if(!inWhile) {
+			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
+		} else 
+		if(whileCount%2 == 0){
+			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
+			if(whileCount == 0) {
+				currentList.add(new Instruction("CMP r" + regCount + ", #1\n" +
+				"BEQ L" + (whileCount + 1) + "\n"));
+			}
+		} else 
+		if(whileCount%2 != 0){
+			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
+		}
 		if(!definedPrintsMsg[1] && inPrint) {
 			header.add(new Instruction("msg_" + msgCount + ":\n.word 5\n.ascii " + '\"' + "true" + "\\" + "0" + '\"' + "\n"));
 			msgPosition.put("True", msgCount);
@@ -2126,7 +2206,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	@Override 
 	public Info visitExpr_bin_bool_math_eq(@NotNull WaccParser.Expr_bin_bool_math_eqContext ctx) { 
-		if (prints) System.out.println("visitExpr_bin_bool_math");
+		if (prints) System.out.println("visitExpr_bin_bool_math_eq");
 		Info one = visit(ctx.math(0));
 		if (one.type.equals("reg")) {
 			regCount ++;
@@ -2195,12 +2275,18 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			currentList.add(new Instruction("MOVNE r" + (regCount - 2) + ", #1\nMOVEQ r" + (regCount - 2) + ", #0\n"));
 		}
 		regCount = regCount -2;
+		
+//		//back end while
+//		if(inWhile) {
+//			currentList.add(new Instruction("CMP r" + regCount + ", #1\nBEQ L" + (whileCount + 1) + "\n"));
+//		}
+		visitedBool = true;
 		return new Info("r" + regCount).setType("reg"); 
 	}
 
 	@Override 
 	public Info visitExpr_bin_bool_math_moreless(@NotNull WaccParser.Expr_bin_bool_math_morelessContext ctx) { 
-		if (prints) System.out.println("visitExpr_bin_bool_math");
+		if (prints) System.out.println("visitExpr_bin_bool_math_moreless");
 		Info one = visit(ctx.math(0));
 		if (one.type.equals("reg")) {
 			regCount ++;
@@ -2267,6 +2353,11 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			currentList.add(new Instruction("MOVGT r" + (regCount - 2) + ", #1\nMOVLE r" + (regCount - 2) + ", #0\n"));
 		}
 		regCount = regCount -2;
+		
+//		if(inWhile) {
+//			currentList.add(new Instruction("CMP r" + regCount + ", #1\nBEQ L" + (whileCount + 1) + "\n"));
+//		}
+		visitedBool = true;
 		return new Info("r" + regCount).setType("reg"); 
 	}
 
@@ -2437,7 +2528,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	@Override public Info visitUnary_not(@NotNull WaccParser.Unary_notContext ctx) { 
 		if (prints) System.out.println("Unary_not");
-		ctx.argtype = new BOOL(); ctx.returntype = new BOOL(); return null; }
+		ctx.argtype = new BOOL(); ctx.returntype = new BOOL(); visitedBool = true; return null; }
 	
 	@Override public Info visitUnary_minus(@NotNull WaccParser.Unary_minusContext ctx) { 
 		if (prints) System.out.println("Unary_minus");
