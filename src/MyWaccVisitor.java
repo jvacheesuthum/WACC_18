@@ -1980,16 +1980,16 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //			}
 			err.pPrintInt();
 		} else
-		if(typename instanceof ARRAY_TYPE) {
-			if(((ARRAY_TYPE)typename).TYPE() instanceof ARRAY_TYPE) {
-				currentList.add(new Instruction("BL p_print_reference\n"));
-				err.pRef();
-			} else {
-				checkPrintFunc(((ARRAY_TYPE)typename).TYPE());
-			}
-		} else
+//		if(typename instanceof ARRAY_TYPE) {
+//			if(((ARRAY_TYPE)typename).TYPE() instanceof ARRAY_TYPE) {
+//				currentList.add(new Instruction("BL p_print_reference\n"));
+//				err.pRef();
+//			} else {
+//				checkPrintFunc(((ARRAY_TYPE)typename).TYPE());
+//			}
+//		} else
 		if(typename instanceof PAIR_TYPE ||
-//				typename instanceof ARRAY_TYPE ||
+				typename instanceof ARRAY_TYPE ||
 				typename instanceof NULL) {
 			currentList.add(new Instruction("BL p_print_reference\n"));
 //			if(!definedPrintsFunc[4]) {
