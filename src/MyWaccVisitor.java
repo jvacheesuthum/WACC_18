@@ -1343,7 +1343,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 //    	String index = (ctx.array_elem().getText().replaceAll("[^0-9]", ""));
     	String text = ctx.array_elem().getText();
+    	System.out.println("TEXT: " + text);
     	String index = text.substring(text.indexOf('[') + 1, text.indexOf(']'));
+    	try {
+    		Integer.parseInt(index);
+    	} catch (NumberFormatException e) {
+    		index = "";
+    	}
+    	System.out.println("INDEX: " + index);
 
     	//is this ok with other case other than array.wacc ?
     	currentList.add(new Instruction(Arrays.asList(new StringFragment("ADD r" + (regCount) + ", sp"), v, new StringFragment("\n")), v));
