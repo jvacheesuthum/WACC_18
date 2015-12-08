@@ -185,6 +185,11 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
           currentList.add(new Instruction("LDR r"+ regCount + (fstVisited ? ", [sp, #4]\n" : ", [sp]\n")));
           fstVisited = false;
       }
+      
+      //HACK
+      if(ctx.type().typename instanceof PAIR_TYPE) {
+    	  newpairs++;
+      }
   	  return null;
     }
 
@@ -1494,7 +1499,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	@Override 
 	public Info visitAssign_rhs_newpair(@NotNull WaccParser.Assign_rhs_newpairContext ctx) { 
     	if (prints) System.out.println("visitAssign_rhs_newpair");
-    	newpairs++;
     	
     	currentList.add(new Instruction(("LDR r0, =8" + '\n' +
     			"BL malloc \n" + "MOV r" + regCount + ", r0 \n")));

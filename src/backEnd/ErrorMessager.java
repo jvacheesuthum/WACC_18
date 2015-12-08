@@ -145,7 +145,7 @@ public class ErrorMessager {
 		}
 		if (pReadChar) {
 			footer.add(new Instruction("p_read_char:\nPUSH {lr}\nMOV r1, r0\nLDR r0, =msg_14\nADD r0, r0, #4\nBL scanf\nPOP {pc}\n"));
-			header.add(headerindex, new Instruction("msg_14:\n.word 4\n.ascii \"%c\\0\"\n"));
+			header.add(headerindex, new Instruction("msg_14:\n.word 4\n.ascii \" %c\\0\"\n"));
 			headerindex ++;
 		}
 	}
