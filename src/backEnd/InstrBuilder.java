@@ -9,9 +9,7 @@ public class InstrBuilder {
 	private VariableFragment variable;
 	private PositionFragment pos;
 	
-	private InstrBuilder() {};
-	
-	public InstrBuilder iBuild() {
+	public InstrBuilder instr() {
 		return new InstrBuilder();
 	}
 	
@@ -77,6 +75,23 @@ public class InstrBuilder {
 	public InstrBuilder ldrVar(int dest, String var) {
 		variable = new VariableFragment(var);
 		add(new StringFragment("LDR r" + dest + ", [sp"));
+		add(variable);
+		add(new StringFragment("]"));
+		return this;
+	}
+	
+	public InstrBuilder ldrVarOffset(int dest, String var, int offset) {
+		variable = new VariableFragment(var, offset);
+		add(new StringFragment("LDR r" + dest + ", [sp"));
+		add(variable);
+		add(new StringFragment("]"));
+		return this;
+	}
+	
+	public InstrBuilder ldrsbVarOffset(int typesize, int dest, String var, int offset) {
+		variable = new VariableFragment(var, offset);
+		String load = (typesize == 4)? "LDR" : "LDRSB";
+		add(new StringFragment(load + " r" + dest + ", [sp"));
 		add(variable);
 		add(new StringFragment("]"));
 		return this;
