@@ -1690,7 +1690,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		freepairs++;
 		if (freepairs > newpairs) {
 			currentList.add(new Instruction("MOV r0, #0\n"));
-			currentList.add(new Instruction("BL p_free_pair\n"));
+			currentList.add(new Instruction("BL free\n"));
 		}
 		
 		currentList.add(new Instruction("MOV r0, r" + regCount + "\nBL p_free_pair\n"));
