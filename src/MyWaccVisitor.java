@@ -2309,7 +2309,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	currentList.add(new Instruction("LDR r" + (regCount) + ", [r" + (regCount) + "] \n"));
     	currentList.add(new Instruction("MOV r0, r" + (1 + regCount) + "\n"));
     	currentList.add(new Instruction("MOV r1, r" + regCount + "\n"));
-    	currentList.add(new Instruction("BL check_array_bounds \n"));
+    	currentList.add(new Instruction("BL p_check_array_bounds\n"));
     	
     	regCount++;
     	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) + ", #4 \n"));
@@ -2324,7 +2324,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     		currentList.add(new Instruction("LDR r" + (regCount) + ", [r" + (regCount) + "] \n"));
         	currentList.add(new Instruction("MOV r0, r" + (1 + regCount) + "\n"));
         	currentList.add(new Instruction("MOV r1, r" + regCount + "\n"));
-        	currentList.add(new Instruction("BL check_array_bounds \n"));
+        	currentList.add(new Instruction("BL p_check_array_bounds \n"));
         	regCount++;
         	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) + ", #4 \n"));
         	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) +
