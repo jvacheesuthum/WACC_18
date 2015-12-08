@@ -120,12 +120,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
         }
         
         if (left != null) {
-        	VariableFragment v = new VariableFragment(left.stringinfo);
-        	if (typeSize(rhs.typename) == 1) {
-        		currentList.add(new Instruction(Arrays.asList(new StringFragment("STRB r"+ regCount + ", [sp"), v, new StringFragment("]\n")), v));
-        	} else {
-        		currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r"+ regCount + ", [sp"), v, new StringFragment("]\n")), v));
-        	}
+        	String store = ((typeSize(rhs.typename) == 1)? "STRB" : "STR");
+        	currentList.add(ib.instr().withString(store + "r" + regCount + ", [sp").withVar(left.stringinfo).withString("]").build());
+//        	VariableFragment v = new VariableFragment(left.stringinfo);
+//       	if (typeSize(rhs.typename) == 1) {
+//        		currentList.add(new Instruction(Arrays.asList(new StringFragment("STRB r"+ regCount + ", [sp"), v, new StringFragment("]\n")), v));
+//        	} else {
+//        		currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r"+ regCount + ", [sp"), v, new StringFragment("]\n")), v));
+//        	}
         }
     	return null;
     }
@@ -2391,10 +2393,12 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 		
 		if (ctx.AND() != null) {
-			currentList.add(new Instruction("AND r" + (regCount - 2) + ", r" + (regCount - 2) + ", r" + (regCount - 1) + "\n"));
+			currentList.add(ib.instr().triop("AND", regCount-2, regCount-1).build());
+//			currentList.add(new Instruction("AND r" + (regCount - 2) + ", r" + (regCount - 2) + ", r" + (regCount - 1) + "\n"));
 		}
 		if (ctx.OR() != null) {
-			currentList.add(new Instruction("ORR r" + (regCount - 2) + ", r" + (regCount - 2) + ", r" + (regCount - 1) + "\n"));
+			currentList.add(ib.instr().triop("ORR", regCount-2, regCount-1).build());
+//			currentList.add(new Instruction("ORR r" + (regCount - 2) + ", r" + (regCount - 2) + ", r" + (regCount - 1) + "\n"));
 		}
 		regCount = regCount -2;
 		return new Info("r" + regCount).setType("reg"); 
@@ -2448,10 +2452,12 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 		
 		if (ctx.AND() != null) {
-			currentList.add(new Instruction("AND r" + (regCount - 2) + ", r" + (regCount - 2) + ", r" + (regCount - 1) + "\n"));
+			currentList.add(ib.instr().triop("AND", regCount-2, regCount-1).build());
+//			currentList.add(new Instruction("AND r" + (regCount - 2) + ", r" + (regCount - 2) + ", r" + (regCount - 1) + "\n"));
 		}
 		if (ctx.OR() != null) {
-			currentList.add(new Instruction("ORR r" + (regCount - 2) + ", r" + (regCount - 2) + ", r" + (regCount - 1) + "\n"));
+			currentList.add(ib.instr().triop("ORR", regCount-2, regCount-1).build());
+//			currentList.add(new Instruction("ORR r" + (regCount - 2) + ", r" + (regCount - 2) + ", r" + (regCount - 1) + "\n"));
 		}
 		regCount = regCount -2;
 		return new Info("r" + regCount).setType("reg"); 
@@ -2492,10 +2498,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			
 			currentList.add(new Instruction("CMP r" + (regCount - 2) + ", r" + (regCount - 1) + "\n"));
 			if (ctx.IS_EQUAL() != null) {
-				currentList.add(new Instruction("MOVEQ r" + (regCount - 2) + ", #1\nMOVNE r" + (regCount - 2) + ", #0\n"));
+				currentList.add(ib.instr().movop("EQ", regCount-2, 1).build());
+				currentList.add(ib.instr().movop("NE", regCount-2, 0).build());
+//				currentList.add(new Instruction("MOVEQ r" + (regCount - 2) + ", #1\nMOVNE r" + (regCount - 2) + ", #0\n"));
 			}
 			if (ctx.NOT_EQUAL() != null) {
-				currentList.add(new Instruction("MOVNE r" + (regCount - 2) + ", #1\nMOVEQ r" + (regCount - 2) + ", #0\n"));
+				currentList.add(ib.instr().movop("NE", regCount-2, 1).build());
+				currentList.add(ib.instr().movop("EQ", regCount-2, 0).build());
+//				currentList.add(new Instruction("MOVNE r" + (regCount - 2) + ", #1\nMOVEQ r" + (regCount - 2) + ", #0\n"));
 			}
 			regCount = regCount -2;
 			
@@ -2563,10 +2573,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		
 		currentList.add(new Instruction("CMP r" + (regCount - 2) + ", r" + (regCount - 1) + "\n"));
 		if (ctx.IS_EQUAL() != null) {
-			currentList.add(new Instruction("MOVEQ r" + (regCount - 2) + ", #1\nMOVNE r" + (regCount - 2) + ", #0\n"));
+			currentList.add(ib.instr().movop("EQ", regCount-2, 1).build());
+			currentList.add(ib.instr().movop("NE", regCount-2, 0).build());
+//			currentList.add(new Instruction("MOVEQ r" + (regCount - 2) + ", #1\nMOVNE r" + (regCount - 2) + ", #0\n"));
 		}
 		if (ctx.NOT_EQUAL() != null) {
-			currentList.add(new Instruction("MOVNE r" + (regCount - 2) + ", #1\nMOVEQ r" + (regCount - 2) + ", #0\n"));
+			currentList.add(ib.instr().movop("NE", regCount-2, 1).build());
+			currentList.add(ib.instr().movop("EQ", regCount-2, 0).build());
+//			currentList.add(new Instruction("MOVNE r" + (regCount - 2) + ", #1\nMOVEQ r" + (regCount - 2) + ", #0\n"));
 		}
 		regCount = regCount -2;
 		
@@ -2639,16 +2653,24 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		
 		currentList.add(new Instruction("CMP r" + (regCount - 2) + ", r" + (regCount - 1) + "\n"));
 		if (ctx.LESS() != null) {
-			currentList.add(new Instruction("MOVLT r" + (regCount - 2) + ", #1\nMOVGE r" + (regCount - 2) + ", #0\n"));
+			currentList.add(ib.instr().movop("LT", regCount-2, 1).build());
+			currentList.add(ib.instr().movop("GE", regCount-2, 0).build());
+//			currentList.add(new Instruction("MOVLT r" + (regCount - 2) + ", #1\nMOVGE r" + (regCount - 2) + ", #0\n"));
 		}
 		if (ctx.LESS_EQUAL() != null) {
-			currentList.add(new Instruction("MOVLE r" + (regCount - 2) + ", #1\nMOVGT r" + (regCount - 2) + ", #0\n"));
+			currentList.add(ib.instr().movop("LE", regCount-2, 1).build());
+			currentList.add(ib.instr().movop("GT", regCount-2, 0).build());
+//			currentList.add(new Instruction("MOVLE r" + (regCount - 2) + ", #1\nMOVGT r" + (regCount - 2) + ", #0\n"));
 		}
 		if (ctx.GREATER_EQUAL() != null) {
-			currentList.add(new Instruction("MOVGE r" + (regCount - 2) + ", #1\nMOVLT r" + (regCount - 2) + ", #0\n"));
+			currentList.add(ib.instr().movop("GE", regCount-2, 1).build());
+			currentList.add(ib.instr().movop("LT", regCount-2, 0).build());
+//			currentList.add(new Instruction("MOVGE r" + (regCount - 2) + ", #1\nMOVLT r" + (regCount - 2) + ", #0\n"));
 		}
 		if (ctx.GREATER() != null) {
-			currentList.add(new Instruction("MOVGT r" + (regCount - 2) + ", #1\nMOVLE r" + (regCount - 2) + ", #0\n"));
+			currentList.add(ib.instr().movop("GT", regCount-2, 1).build());
+			currentList.add(ib.instr().movop("LE", regCount-2, 0).build());
+//			currentList.add(new Instruction("MOVGT r" + (regCount - 2) + ", #1\nMOVLE r" + (regCount - 2) + ", #0\n"));
 		}
 		regCount = regCount -2;
 		
@@ -2692,11 +2714,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 		if (ctx.PLUS() != null) {
 			err.pOverflow();
-			currentList.add(new Instruction("ADDS r" + regCount + ", r" + regCount + ", r" + (regCount + 1) + "\nBLVS p_throw_overflow_error\n"));
-		}
+			currentList.add(ib.instr().triop("ADDS", regCount, regCount+1).build());
+			currentList.add(new Instruction("BLVS p_throw_overflow_error\n"));
+			}
 		if (ctx.MINUS() != null) {
 			err.pOverflow();
-			currentList.add(new Instruction("SUBS r" + regCount + ", r" + regCount + ", r" + (regCount + 1) + "\nBLVS p_throw_overflow_error\n"));
+			currentList.add(ib.instr().triop("SUBS", regCount, regCount+1).build());
+			currentList.add(new Instruction("BLVS p_throw_overflow_error\n"));
 		}
 		
 		return (new Info("r" + regCount)).setType("reg"); 
@@ -2746,11 +2770,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 		if (ctx.PLUS() != null) {
 			err.pOverflow();
-			currentList.add(new Instruction("ADDS r" + (regCount - 2) + ", r" + (regCount - 2) + ", r" + (regCount - 1) + "\nBLVS p_throw_overflow_error\n"));
-		}
+			currentList.add(ib.instr().triop("ADDS", regCount-2, regCount-1).build());
+			currentList.add(new Instruction("BLVS p_throw_overflow_error\n"));
+			}
 		if (ctx.MINUS() != null) {
 			err.pOverflow();
-			currentList.add(new Instruction("SUBS r" + (regCount - 2) + ", r" + (regCount - 2) + ", r" + (regCount - 1) + "\nBLVS p_throw_overflow_error\n"));
+			currentList.add(ib.instr().triop("SUBS", regCount-2, regCount-1).build());
+			currentList.add(new Instruction("BLVS p_throw_overflow_error\n"));
 		}
 		
 		regCount = regCount -2;
@@ -2789,15 +2815,24 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 		if (ctx.MULTIPLY() != null) {
 			err.pOverflow();
-			currentList.add(new Instruction("SMULL r" + regCount + ", r" + (regCount + 1) + ", r" + regCount + ", r" + (regCount + 1) + "\nCMP r" + (regCount + 1) + ", r" + regCount + ", ASR #31\nBLNE p_throw_overflow_error\n"));
+			currentList.add(ib.instr().qop("SMULL", regCount, regCount+1, regCount, regCount+1).build());
+			currentList.add(new Instruction("CMP r" + (regCount + 1) + ", r" + regCount + ", ASR #31\nBLNE p_throw_overflow_error\n"));
 		}
 		if (ctx.DIVIDE() != null) {
 			err.pDivZero();
-			currentList.add(new Instruction("MOV r0, r" + regCount + "\nMOV r1, r" + (regCount + 1) + "\nBL p_check_divide_by_zero\nBL __aeabi_idiv\nMOV r" + regCount + ", r0\n"));
+			currentList.add(ib.instr().movReg(0, regCount).build());
+			currentList.add(ib.instr().movReg(1, regCount+1).build());
+			currentList.add(new Instruction("BL p_check_divide_by_zero\nBL __aeabi_idiv\n"));
+			currentList.add(ib.instr().movReg(regCount, 0).build());
+//			currentList.add(new Instruction("MOV r0, r" + regCount + "\nMOV r1, r" + (regCount + 1) + "\nBL p_check_divide_by_zero\nBL __aeabi_idiv\nMOV r" + regCount + ", r0\n"));
 		}
 		if (ctx.MOD() != null) {
 			err.pDivZero();
-			currentList.add(new Instruction("MOV r0, r" + regCount + "\nMOV r1, r" + (regCount + 1) + "\nBL p_check_divide_by_zero\nBL __aeabi_idivmod\nMOV r" + regCount + ", r1\n"));
+			currentList.add(ib.instr().movReg(0, regCount).build());
+			currentList.add(ib.instr().movReg(1, regCount+1).build());
+			currentList.add(new Instruction("BL p_check_divide_by_zero\nBL __aeabi_idivmod\n"));
+			currentList.add(ib.instr().movReg(regCount, 1).build());
+//			currentList.add(new Instruction("MOV r0, r" + regCount + "\nMOV r1, r" + (regCount + 1) + "\nBL p_check_divide_by_zero\nBL __aeabi_idivmod\nMOV r" + regCount + ", r1\n"));
 		}
 		
 		return (new Info("r" + regCount)).setType("reg"); 
@@ -2842,15 +2877,24 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 		if (ctx.MULTIPLY() != null) {
 			err.pOverflow();
-			currentList.add(new Instruction("SMULL r" + regCount + ", r" + (regCount + 1) + ", r" + regCount + ", r" + (regCount + 1) + "\nCMP r" + (regCount + 1) + ", r" + regCount + ", ASR #31\nBLNE p_throw_overflow_error\n"));
+			currentList.add(ib.instr().qop("SMULL", regCount, regCount+1, regCount, regCount+1).build());
+			currentList.add(new Instruction("CMP r" + (regCount + 1) + ", r" + regCount + ", ASR #31\nBLNE p_throw_overflow_error\n"));
 		}
 		if (ctx.DIVIDE() != null) {
 			err.pDivZero();
-			currentList.add(new Instruction("MOV r0, r" + regCount + "\nMOV r1, r" + (regCount + 1) + "\nBL p_check_divide_by_zero\nBL __aeabi_idiv\nMOV r" + regCount + ", r0\n"));
+			currentList.add(ib.instr().movReg(0, regCount).build());
+			currentList.add(ib.instr().movReg(1, regCount+1).build());
+			currentList.add(new Instruction("BL p_check_divide_by_zero\nBL __aeabi_idiv\n"));
+			currentList.add(ib.instr().movReg(regCount, 0).build());
+//			currentList.add(new Instruction("MOV r0, r" + regCount + "\nMOV r1, r" + (regCount + 1) + "\nBL p_check_divide_by_zero\nBL __aeabi_idiv\nMOV r" + regCount + ", r0\n"));
 		}
 		if (ctx.MOD() != null) {
 			err.pDivZero();
-			currentList.add(new Instruction("MOV r0, r" + regCount + "\nMOV r1, r" + (regCount + 1) + "\nBL p_check_divide_by_zero\nBL __aeabi_idivmod\nMOV r" + regCount + ", r1\n"));
+			currentList.add(ib.instr().movReg(0, regCount).build());
+			currentList.add(ib.instr().movReg(1, regCount+1).build());
+			currentList.add(new Instruction("BL p_check_divide_by_zero\nBL __aeabi_idivmod\n"));
+			currentList.add(ib.instr().movReg(regCount, 1).build());
+//			currentList.add(new Instruction("MOV r0, r" + regCount + "\nMOV r1, r" + (regCount + 1) + "\nBL p_check_divide_by_zero\nBL __aeabi_idivmod\nMOV r" + regCount + ", r1\n"));
 		}
 				
 		return (new Info("r" + regCount)).setType("reg"); 
