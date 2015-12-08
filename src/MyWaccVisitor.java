@@ -1683,13 +1683,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("visitStat_free");
 		
 		visit(ctx.expr());
+		freepairs++;
+		if (freepairs > newpairs) {
+			currentList.add(new Instruction("BL p_throw_runtime_error\n"));
+			currentList.add(new Instruction("BL exit\n"));
+		}
 		
 		currentList.add(new Instruction("MOV r0, r" + regCount + "\nBL p_free_pair\n"));
 		
-		freepairs++;
-		if (freepairs > newpairs) {
-			currentList.add(new Instruction("BL exit\n"));
-		}
 		err.pFreepair();
 		
 		ctx.typename = ctx.expr().typename;
