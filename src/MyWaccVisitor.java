@@ -62,8 +62,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	private boolean printint = false;
 
-
-
 	public MyWaccVisitor(String filename) {
 		
 		this.filename = filename;
@@ -1943,7 +1941,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			System.exit(200);
 		}
 		
-		
 		checkPrintFunc(ctx.expr().typename);
 //		inPrint = false;
 
@@ -2356,8 +2353,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	//add error msg
     	err.pArray();
     	
+    	int arrayElemDepth = (ctx.array_elem().expr()).size();
 		ARRAY_TYPE ar = (ARRAY_TYPE) ctx.array_elem().ident().typename;
-		ctx.typename = ar.TYPE();
+		TYPE t = ar.TYPE();
+    	for(int d = arrayElemDepth; d > 1; d--){
+    		t = ((ARRAY_TYPE) t).TYPE();
+    	}
+    	
+		ctx.typename = t;
 
 		
 		return null;
