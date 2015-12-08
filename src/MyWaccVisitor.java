@@ -1952,8 +1952,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	private void checkPrintFunc(TYPE typename) {
 		//back end
 		if (prints) System.out.println("checkPrintFunc");
-		currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
+
 		if(typename instanceof STRING) {
+			currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
 			currentList.add(new Instruction("BL p_print_string\n"));
 //			if(!definedPrintsFunc[0]) {
 //				addPrintStr();
@@ -1961,6 +1962,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			err.pString();
 		} else
 		if(typename instanceof BOOL) {
+			currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
 			currentList.add(new Instruction("BL p_print_bool\n"));
 //			if(!definedPrintsFunc[1]) {
 //				addPrintBool();
@@ -1968,29 +1970,33 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			err.pBool();
 		} else
 		if(typename instanceof CHAR) { 
+			currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
 			currentList.add(new Instruction("BL putchar\n"));
 //			if(!definedPrintsFunc[2]) {
 //				addPrintChar();
 //			}
 		} else
 		if(typename instanceof INT) {
+			currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
 			currentList.add(new Instruction("BL p_print_int\n"));
 //			if(!definedPrintsFunc[3]) {
 //				addPrintInt();
 //			}
 			err.pPrintInt();
 		} else
-//		if(typename instanceof ARRAY_TYPE) {
-//			if(((ARRAY_TYPE)typename).TYPE() instanceof ARRAY_TYPE) {
-//				currentList.add(new Instruction("BL p_print_reference\n"));
-//				err.pRef();
-//			} else {
-//				checkPrintFunc(((ARRAY_TYPE)typename).TYPE());
-//			}
-//		} else
+		if(typename instanceof ARRAY_TYPE) {
+			if(((ARRAY_TYPE)typename).TYPE() instanceof ARRAY_TYPE) {
+				currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
+				currentList.add(new Instruction("BL p_print_reference\n"));
+				err.pRef();
+			} else {
+				checkPrintFunc(((ARRAY_TYPE)typename).TYPE());
+			}
+		} else
 		if(typename instanceof PAIR_TYPE ||
-				typename instanceof ARRAY_TYPE ||
+//				typename instanceof ARRAY_TYPE ||
 				typename instanceof NULL) {
+			currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
 			currentList.add(new Instruction("BL p_print_reference\n"));
 //			if(!definedPrintsFunc[4]) {
 //				addPrintRef();
