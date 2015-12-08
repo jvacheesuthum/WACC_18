@@ -62,8 +62,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	private boolean printint = false;
 
-
-
 	public MyWaccVisitor(String filename) {
 		
 		this.filename = filename;
@@ -1942,7 +1940,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			System.exit(200);
 		}
 		
-		
 		checkPrintFunc(ctx.expr().typename);
 //		inPrint = false;
 
@@ -1984,17 +1981,17 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //			}
 			err.pPrintInt();
 		} else
-		if(typename instanceof ARRAY_TYPE) {
-			if(((ARRAY_TYPE)typename).TYPE() instanceof ARRAY_TYPE) {
-				currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
-				currentList.add(new Instruction("BL p_print_reference\n"));
-				err.pRef();
-			} else {
-				checkPrintFunc(((ARRAY_TYPE)typename).TYPE());
-			}
-		} else
+//		if(typename instanceof ARRAY_TYPE) {
+//			if(((ARRAY_TYPE)typename).TYPE() instanceof ARRAY_TYPE) {
+//				currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
+//				currentList.add(new Instruction("BL p_print_reference\n"));
+//				err.pRef();
+//			} else {
+//				checkPrintFunc(((ARRAY_TYPE)typename).TYPE());
+//			}
+//		} else
 		if(typename instanceof PAIR_TYPE ||
-//				typename instanceof ARRAY_TYPE ||
+				typename instanceof ARRAY_TYPE ||
 				typename instanceof NULL) {
 			currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
 			currentList.add(new Instruction("BL p_print_reference\n"));
@@ -2355,8 +2352,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	//add error msg
     	err.pArray();
     	
+    	int arrayElemDepth = (ctx.array_elem().expr()).size();
 		ARRAY_TYPE ar = (ARRAY_TYPE) ctx.array_elem().ident().typename;
-		ctx.typename = ar.TYPE();
+		TYPE t = ar.TYPE();
+    	for(int d = arrayElemDepth; d > 1; d--){
+    		t = ((ARRAY_TYPE) t).TYPE();
+    	}
+    	
+		ctx.typename = t;
 
 		
 		return null;
