@@ -1987,7 +1987,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			} else {
 				checkPrintFunc(((ARRAY_TYPE)typename).TYPE());
 			}
-		}
+		} else
 		if(typename instanceof PAIR_TYPE ||
 //				typename instanceof ARRAY_TYPE ||
 				typename instanceof NULL) {
@@ -2127,7 +2127,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if(ctx.expr().typename == null) {
 			System.exit(200);
 		}
-		System.out.println("IN PRINT: " + ((ARRAY_TYPE)ctx.expr().typename).TYPE());
 		//back-end
 		checkPrintFunc(ctx.expr().typename);
 		err.pLn();
