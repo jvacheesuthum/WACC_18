@@ -2315,8 +2315,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) + ", #4 \n"));
     	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) +
     			", r" + regCount  + ", LSL #2 \n"));
-    	currentList.add(new Instruction("LDR r4, [r" + (regCount -1) + "] \n"));
-    	
+    	if (index2 == "") {
+    		currentList.add(new Instruction("LDR r4, [r" + (regCount -1) + "] \n"));
+    	}
     	//nested array
     	if (index2 != "") {
     		regCount--;
