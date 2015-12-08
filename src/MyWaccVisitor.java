@@ -13,8 +13,6 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 //import sun.jvm.hotspot.debugger.cdbg.Sym;
 
 
-
-
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -2236,7 +2234,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //			msgCount++;
 //		}
 		String s = ctx.str_liter().STR().getText();
-		header.add(new Instruction("msg_" + msgCount + ":\n.word " + (s.length()-2) + "\n.ascii " + s + "\n"));
+		int count = s.length() - s.replace("\\", "").length();
+		header.add(new Instruction("msg_" + msgCount + ":\n.word " + (s.length()-2-count) + "\n.ascii " + s + "\n"));
 		currentList.add(new Instruction("LDR r"+ regCount + ", =msg_" + msgCount + "\n"));
 		msgCount++;
 		return null;
