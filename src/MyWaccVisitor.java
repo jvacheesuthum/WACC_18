@@ -2311,6 +2311,12 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
     	VariableFragment v  = new VariableFragment(i.stringinfo);
 
+    	//negative array index - only works for 1 dimen now
+    	String indexSign1 = "";
+    	if (ctx.array_elem().getText().contains("-") ) {
+    			indexSign1 = "-";
+    	}
+    	
     	//for 1 dimen array
     	String index = (ctx.array_elem().getText().replaceAll("[^0-9]", ""));
     	currentList.add(new Instruction(Arrays.asList(new StringFragment("ADD r" + (regCount) + ", sp"), v, new StringFragment("\n")), v));
@@ -2326,7 +2332,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     		currentList.add(new Instruction("LDR r" + (regCount + 1) + ", [sp]\n"));
 
     	} else {
-    		currentList.add(new Instruction("LDR r" + (regCount + 1) + ", =" + index + '\n'));
+    		currentList.add(new Instruction("LDR r" + (regCount + 1) + ", =" + indexSign1 + index + '\n'));
     	}
 		
     	currentList.add(new Instruction("LDR r" + (regCount) + ", [r" + (regCount) + "] \n"));
