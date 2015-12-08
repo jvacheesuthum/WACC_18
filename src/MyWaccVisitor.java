@@ -189,10 +189,12 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
           fstVisited = false;
       }
       
-      //HACK
-      if(ctx.type().typename instanceof PAIR_TYPE) {
+      
+      if (rhs.typename instanceof NULL && ctx.type().typename instanceof PAIR_TYPE) {
     	  newpairs++;
+    	  System.out.println("LHS IS NULL RHS IS PAIRR");
       }
+      
   	  return null;
     }
 
@@ -1502,6 +1504,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	@Override 
 	public Info visitAssign_rhs_newpair(@NotNull WaccParser.Assign_rhs_newpairContext ctx) { 
     	if (prints) System.out.println("visitAssign_rhs_newpair");
+    	newpairs++;
     	
     	currentList.add(new Instruction(("LDR r0, =8" + '\n' +
     			"BL malloc \n" + "MOV r" + regCount + ", r0 \n")));
@@ -1692,8 +1695,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		visit(ctx.expr());
 		freepairs++;
 		if (freepairs > newpairs) {
-			currentList.add(new Instruction("MOV r0, #0\n"));
-			currentList.add(new Instruction("BL free\n"));
+			//produce exit 134 right here !!!!!!!!!!!!!!!!!!!!
+			currentList.add(new Instruction("MOV r0, #134\n"));
+			currentList.add(new Instruction("BL p_throw_runtime_error\n"));
 		}
 		
 		currentList.add(new Instruction("MOV r0, r" + regCount + "\nBL p_free_pair\n"));
