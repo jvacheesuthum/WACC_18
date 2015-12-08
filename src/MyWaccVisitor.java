@@ -1982,17 +1982,19 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //			}
 			err.pPrintInt();
 		} else
-//		if(typename instanceof ARRAY_TYPE) {
-//			if(((ARRAY_TYPE)typename).TYPE() instanceof ARRAY_TYPE) {
-//				currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
-//				currentList.add(new Instruction("BL p_print_reference\n"));
-//				err.pRef();
-//			} else {
-//				checkPrintFunc(((ARRAY_TYPE)typename).TYPE());
-//			}
-//		} else
+		if(typename instanceof ARRAY_TYPE) {
+			if(((ARRAY_TYPE)typename).TYPE() instanceof CHAR) {
+				currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
+				currentList.add(new Instruction("BL p_print_string\n"));
+				err.pString();
+			} else {
+				currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
+				currentList.add(new Instruction("BL p_print_reference\n"));
+				err.pRef();
+			}
+		} else
 		if(typename instanceof PAIR_TYPE ||
-				typename instanceof ARRAY_TYPE ||
+//				typename instanceof ARRAY_TYPE ||
 				typename instanceof NULL) {
 			currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
 			currentList.add(new Instruction("BL p_print_reference\n"));
@@ -2345,13 +2347,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) +
     			", r" + regCount  + ( typeSize(t) == 1 ? '\n' : ", LSL #2 \n")));
     	if (index2 == "") {
-    		currentList.add(new Instruction("LDR r4, [r" + (regCount -1) + "] \n"));
+    		currentList.add(new Instruction(((typeSize(t) == 4)? "LDR" : "LDRSB") + " r4, [r" + (regCount -1) + "] \n"));
     	}
     	//nested array
     	if (index2 != "") {
     		regCount--;
     		currentList.add(new Instruction("LDR r" + (regCount + 1) + ", =" + index2 + '\n'));
-    		currentList.add(new Instruction("LDR r" + (regCount) + ", [r" + (regCount) + "] \n"));
+    		currentList.add(new Instruction(((typeSize(t) == 4)? "LDR" : "LDRSB") + " r" + (regCount) + ", [r" + (regCount) + "] \n"));
         	currentList.add(new Instruction("MOV r0, r" + (1 + regCount) + "\n"));
         	currentList.add(new Instruction("MOV r1, r" + regCount + "\n"));
         	currentList.add(new Instruction("BL p_check_array_bounds \n"));
@@ -2359,7 +2361,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
         	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) + ", #4 \n"));
         	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) +
         			", r" + regCount  + (typeSize(t) == 1 ?  '\n' : ", LSL #2 \n")));
-        	currentList.add(new Instruction("LDR r4, [r" + (regCount -1) + "] \n"));
+        	currentList.add(new Instruction(((typeSize(t) == 4)? "LDR" : "LDRSB") + " r4, [r" + (regCount -1) + "] \n"));
     	}
 		regCount--;
     	if (printint ){
