@@ -118,7 +118,7 @@ public class InstrBuilder {
 	}
 	
 	public InstrBuilder triop(String op, int dest, int src) {
-		add(new StringFragment(op + " r" + dest + " r" + dest + ", r" + src));
+		add(new StringFragment(op + " r" + dest + ", r" + dest + ", r" + src));
 		return this;
 	}
 	
