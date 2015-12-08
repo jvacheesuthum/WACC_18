@@ -1471,20 +1471,16 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	public Info visitPair_elem_snd(@NotNull WaccParser.Pair_elem_sndContext ctx) {
 		if (prints) System.out.println("visitPair_elem_snd");
 		visit(ctx.expr());
-		
+
 		if(ctx.expr().typename instanceof NULL) {
 			ctx.typename = new NULL();
-			return null;
+		} else {
+			
+			PAIR_TYPE pair = (PAIR_TYPE) ctx.expr().typename;
+			ctx.typename = pair.secondType();
 		}
-		PAIR_TYPE pair = (PAIR_TYPE) ctx.expr().typename;
-		ctx.typename = pair.secondType();
-		
 		currentList.add(new Instruction("MOV r0, r" + regCount + "\nBL p_check_null_pointer\n"));
 		currentList.add(new Instruction("LDR r" + regCount + ", [r" + regCount + ", #4]\n"));
-		//this is in case of snd at rhs - implement !
-		//currentList.add(new Instruction( (typeSize(ctx.typename) == 1 ? "LDRSB r" : "LDR r") + regCount + ", [r" + regCount + "]\n"));
-		//for snd on lhs
-		//currentList.add(new Instruction( (typeSize(ctx.typename) == 1 ? "STRB r" : "STR r") + regCount + ", [r" + regCount + "]\n"));
 		
 		err.pNullPointer();
 		return null; 
