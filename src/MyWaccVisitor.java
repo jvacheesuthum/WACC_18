@@ -1980,8 +1980,16 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //			}
 			err.pPrintInt();
 		} else
+		if(typename instanceof ARRAY_TYPE) {
+			if(((ARRAY_TYPE)typename).TYPE() instanceof ARRAY_TYPE) {
+				currentList.add(new Instruction("BL p_print_reference\n"));
+				err.pRef();
+			} else {
+				checkPrintFunc(((ARRAY_TYPE)typename).TYPE());
+			}
+		}
 		if(typename instanceof PAIR_TYPE ||
-				typename instanceof ARRAY_TYPE ||
+//				typename instanceof ARRAY_TYPE ||
 				typename instanceof NULL) {
 			currentList.add(new Instruction("BL p_print_reference\n"));
 //			if(!definedPrintsFunc[4]) {
@@ -2119,7 +2127,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if(ctx.expr().typename == null) {
 			System.exit(200);
 		}
-		
+		System.out.println("IN PRINT: " + ((ARRAY_TYPE)ctx.expr().typename).TYPE());
 		//back-end
 		checkPrintFunc(ctx.expr().typename);
 		err.pLn();
