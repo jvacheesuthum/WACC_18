@@ -121,7 +121,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
         
         if (left != null) {
         	String store = ((typeSize(rhs.typename) == 1)? "STRB" : "STR");
-        	currentList.add(ib.instr().withString(store + "r" + regCount + ", [sp").withVar(left.stringinfo).withString("]").build());
+        	currentList.add(ib.instr().withString(store + " r" + regCount + ", [sp").withVar(left.stringinfo).withString("]").build());
 //        	VariableFragment v = new VariableFragment(left.stringinfo);
 //       	if (typeSize(rhs.typename) == 1) {
 //        		currentList.add(new Instruction(Arrays.asList(new StringFragment("STRB r"+ regCount + ", [sp"), v, new StringFragment("]\n")), v));
