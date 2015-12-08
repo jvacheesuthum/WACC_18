@@ -1352,16 +1352,29 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	m.find();
     	String index = m.group(1);
     	
+/*    	
 //    	String index = (ctx.array_elem().getText().replaceAll("[^0-9]", ""));
+<<<<<<< HEAD
 //    	String text = ctx.array_elem().getText();
   //  	String index = text.substring(text.indexOf('[') + 1, text.indexOf(']'));
+=======
+    	String text = ctx.array_elem().getText();
+    	System.out.println("TEXT: " + text);
+    	String index = text.substring(text.indexOf('[') + 1, text.indexOf(']'));
+    	try {
+    		Integer.parseInt(index);
+    	} catch (NumberFormatException e) {
+    		index = "";
+    	}
+    	System.out.println("INDEX: " + index);
+>>>>>>> 1493053487df779418b6eaedc2e8241daf825326*/
 
     	//is this ok with other case other than array.wacc ?
     	currentList.add(new Instruction(Arrays.asList(new StringFragment("ADD r" + (regCount) + ", sp"), v, new StringFragment("\n")), v));
     	regCount++;
 
     	//if array index is a variable index will be empty eg. a[i]
-    	if (index.isEmpty()) {
+    	if (!isAnum(index)) {
 			//currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", ="), v, new StringFragment("\n")), v));
     		currentList.add(new Instruction("LDR r" + regCount + ", [sp]\n"));
 
