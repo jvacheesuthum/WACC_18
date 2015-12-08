@@ -115,7 +115,7 @@ public class ErrorMessager {
 			headerindex ++;
 		}
 		if (pPair) {
-			footer.add(new Instruction("p_free_pair:\nPUSH {lr}\nCMP r0, #0\nLDREQ r0, =msg_8\nBEQ p_throw_runtime_error\nPUSH {r0}\nLDR r0, [r0]\nBL free\nCMP r0, #0\nLDREQ r0, =msg_8\nBEQ p_throw_runtime_pair_error\nLDR r0, [sp]\nLDR r0, [r0, #4]\nBL free\nCMP r0, #0\nLDREQ r0, =msg_8\nBEQ p_throw_runtime_pair_error\nPOP {r0}\nBL free\nPOP {pc}\n"));
+			footer.add(new Instruction("p_free_pair:\nPUSH {lr}\nCMP r0, #0\nLDREQ r0, =msg_8\nBEQ p_throw_runtime_error\nPUSH {r0}\nLDR r0, [r0]\nBL free\nLDR r0, [sp]\nLDR r0, [r0, #4]\nBL free\nPOP {r0}\nBL free\nPOP {pc}\n"));
 			header.add(headerindex, new Instruction("msg_8:.word 50\n.ascii	\"NullReferenceError: dereference a null reference\\n\\0\"\n"));
 			headerindex ++;
 		}
