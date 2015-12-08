@@ -102,6 +102,11 @@ public class InstrBuilder {
 		return this;
 	}
 	
+	public InstrBuilder movop(String op, int dest, int i) {
+		add(new StringFragment("MOV" + op + " r" + dest + ", #" + i));
+		return this;
+	}
+	
 	public InstrBuilder movReg(int dest, int src) {
 		add(new StringFragment("MOV r" + dest + ", r" + src));
 		return this;
@@ -109,6 +114,16 @@ public class InstrBuilder {
 	
 	public InstrBuilder binop(String op, int dest, int src) {
 		add(new StringFragment(op + " r" + dest + ", r" + src));
+		return this;
+	}
+	
+	public InstrBuilder triop(String op, int dest, int src) {
+		add(new StringFragment(op + " r" + dest + ", r" + dest + ", r" + src));
+		return this;
+	}
+	
+	public InstrBuilder qop(String op, int dest, int src, int d, int s) {
+		add(new StringFragment(op + " r" + dest + ", r" + src + ", r" + d + ", r" + s));
 		return this;
 	}
 
