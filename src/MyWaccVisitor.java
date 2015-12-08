@@ -60,9 +60,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	private int funcCallOffset = 0;
 
-	private boolean nestedArr = false;
-
-	private boolean printint = false;
 
 	public MyWaccVisitor(String filename) {
 		
@@ -110,7 +107,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
         if (prints) System.out.println("lhs typename " + lhs.typename);
         if (prints) System.out.println("rhs typename " + rhs.typename);
 
-        //nops -> eg on null.wacc
         if(rhs.typename instanceof NULL){
         	currentList.add(new Instruction("LDR r" + regCount + ", [sp]\n"));
         }
@@ -1334,48 +1330,25 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 }
 	
 	@Override public Info visitAssign_lhs_array(@NotNull WaccParser.Assign_lhs_arrayContext ctx) {
-		//CHECK REGCOUNT
 		
     	if (prints) System.out.println("visitAssign_lhs_array");
-    	Info i = visit(ctx.array_elem()); //why is i null right now?
-    	//nops backend --------------------
+    	Info i = visit(ctx.array_elem()); 
     	regCount++;
 
     	VariableFragment v  = new VariableFragment(i.stringinfo);
 
-    	//test: using matcher
     	Pattern p = Pattern.compile("\\[(.*?)\\]");
     	Matcher m = p.matcher(ctx.array_elem().getText());
-    	//---------------------------
     	
     	//for 1 dimen array
     	m.find();
     	String index = m.group(1);
     	
-/*    	
-//    	String index = (ctx.array_elem().getText().replaceAll("[^0-9]", ""));
-<<<<<<< HEAD
-//    	String text = ctx.array_elem().getText();
-  //  	String index = text.substring(text.indexOf('[') + 1, text.indexOf(']'));
-=======
-    	String text = ctx.array_elem().getText();
-    	System.out.println("TEXT: " + text);
-    	String index = text.substring(text.indexOf('[') + 1, text.indexOf(']'));
-    	try {
-    		Integer.parseInt(index);
-    	} catch (NumberFormatException e) {
-    		index = "";
-    	}
-    	System.out.println("INDEX: " + index);
->>>>>>> 1493053487df779418b6eaedc2e8241daf825326*/
-
-    	//is this ok with other case other than array.wacc ?
     	currentList.add(new Instruction(Arrays.asList(new StringFragment("ADD r" + (regCount) + ", sp"), v, new StringFragment("\n")), v));
     	regCount++;
 
     	//if array index is a variable index will be empty eg. a[i]
     	if (!isAnum(index)) {
-			//currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", ="), v, new StringFragment("\n")), v));
     		currentList.add(new Instruction("LDR r" + regCount + ", [sp]\n"));
 
     	} else {
@@ -1389,7 +1362,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) + ", #4 \n"));
     	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) + ", r" + regCount +
     			(typeSize(ctx.array_elem().typename) == 1 ? "\n" : ", LSL #2 \n"))); 
-    	// hacky ?
+    	
     	currentList.add(new Instruction((typeSize(ctx.array_elem().typename) == 1 ? "STRB" : "STR") + " r4, [r" + (regCount -1) + "] \n"));
     	regCount = regCount -2;
     	
@@ -1518,7 +1491,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	@Override 
 	public Info visitAssign_rhs_newpair(@NotNull WaccParser.Assign_rhs_newpairContext ctx) { 
     	if (prints) System.out.println("visitAssign_rhs_newpair");
-    	//nops -------------------------
     	
     	currentList.add(new Instruction(("LDR r0, =8" + '\n' +
     			"BL malloc \n" + "MOV r" + regCount + ", r0 \n")));
@@ -1560,9 +1532,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("visitAssign_rhs_ar_liter");
 		visit(ctx.array_liter());
 		ctx.typename = new ARRAY_TYPE(ctx.array_liter().typename);
-		//the visit needs to be done first to get typename
-		//have to add the instructions in between 
-		//nops getting total space, each array elem = 4, and 1*4 space for array.length
+		
+		//getting total space, each array elem = 4, and 1*4 space for array.length
 		int arrSize = ctx.array_liter().expr().size();
 		int spaceForArr = 4;
 		if (ctx.array_liter().expr(0) != null ) {
@@ -1574,20 +1545,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		currentList.add(addAtIndex , new Instruction(("LDR r0, =" + spaceForArr + '\n' +
 				"BL malloc \n" + "MOV r" + regCount + ", r0 \n")));
 		regCount++;
-		// elem declarations here
-		/*for (int i = 0; i < arrSize; i++) {
-		currentList.add(new Instruction(("LDR r" + regCount + ", =" + ctx.array_liter().expr(i).getText() + '\n' + "STR r" + regCount +
-				", [r" + (regCount -1) + ", #" + (4*i +4)+"] \n")));
-		}*/
-		
-		
 				
-		//------------------
 		
-		
-		//nops ----- last space stores the array length
 		currentList.add(new Instruction(("LDR r" + regCount + ", =" + arrSize + '\n' + "STR r" + regCount + ", [r" + (regCount -1) + "] \n")));
-		regCount--; //need this as reg use for storing array elem is free now
+		regCount--; 
 		return null;
 	}
 	
@@ -1595,6 +1556,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	if (prints) System.out.println("visitAssign_rhs_pair_elem");
 		visit(ctx.pair_elem());
 		ctx.typename = ctx.pair_elem().typename;
+		
 		//this is in case of snd at rhs
 		currentList.add(new Instruction( (typeSize(ctx.typename) == 1 ? "LDRSB r" : "LDR r") + regCount + ", [r" + regCount + "]\n"));
 		
@@ -1934,11 +1896,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 				visit(e);
 				regCount--;
 				
-//				if (!(e.typename.equals(ctx.expr().get(0).typename))){
 				if(!SharedMethods.assignCompat(ctx.expr().get(0).typename, e.typename)){
 		        	System.exit(200);//throw new Error("Array elem not the same type.");
 				}
-				//nops backend - store for each array elem
 				regCount++;
 				if (typeSize(e.typename) == 1) {
 					currentList.add(new Instruction(("STRB r" + regCount + ", [r" + (regCount -1) + ", #" + (count +4)+"] \n")));
@@ -2150,7 +2110,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	@Override public Info visitStat_println(@NotNull WaccParser.Stat_printlnContext ctx) {
 		if (prints) System.out.println("visitStat_println");
 //		inPrint = true;
-		printint = true;
 
 		visit(ctx.expr());
 		if(ctx.expr().typename == null) {
@@ -2321,7 +2280,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	}
 	
 	@Override public Info visitExpr_array_elem(@NotNull WaccParser.Expr_array_elemContext ctx) {
-		//CHECK REGCOUNT : arraysimple vs arraylookup
+
 		if (prints) System.out.println("visitExpr_array_elem");
 		Info i = visit(ctx.array_elem().ident());
 		
@@ -2336,13 +2295,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
     	VariableFragment v  = new VariableFragment(i.stringinfo);
 
-    	
-    	//test: using matcher
     	Pattern p = Pattern.compile("\\[(.*?)\\]");
     	Matcher m = p.matcher(ctx.array_elem().getText());
     	m.find();
     	String index1 = m.group(1);
-    	//---------------------------
     	
     	currentList.add(new Instruction(Arrays.asList(new StringFragment("ADD r" + (regCount) + ", sp"), v, new StringFragment("\n")), v));
     	
