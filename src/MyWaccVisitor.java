@@ -60,6 +60,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	private int funcCallOffset = 0;
 
+	private int freepairs = 0;
+	private int newpairs = 0;
+
 
 	public MyWaccVisitor(String filename) {
 		
@@ -1491,6 +1494,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	@Override 
 	public Info visitAssign_rhs_newpair(@NotNull WaccParser.Assign_rhs_newpairContext ctx) { 
     	if (prints) System.out.println("visitAssign_rhs_newpair");
+    	newpairs++;
     	
     	currentList.add(new Instruction(("LDR r0, =8" + '\n' +
     			"BL malloc \n" + "MOV r" + regCount + ", r0 \n")));
@@ -1681,6 +1685,11 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		visit(ctx.expr());
 		
 		currentList.add(new Instruction("MOV r0, r" + regCount + "\nBL p_free_pair\n"));
+		
+		freepairs++;
+		if (freepairs > newpairs) {
+			currentList.add(new Instruction("BL exit\n"));
+		}
 		err.pFreepair();
 		
 		ctx.typename = ctx.expr().typename;
