@@ -62,6 +62,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	private boolean nestedArr = false;
 
+	private boolean printint = false;
+
 
 
 	public MyWaccVisitor(String filename) {
@@ -2113,6 +2115,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	@Override public Info visitStat_println(@NotNull WaccParser.Stat_printlnContext ctx) {
 		if (prints) System.out.println("visitStat_println");
 //		inPrint = true;
+		printint = true;
+
 		visit(ctx.expr());
 		if(ctx.expr().typename == null) {
 			System.exit(200);
@@ -2332,7 +2336,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
         			", r" + regCount  + ", LSL #2 \n"));
         	currentList.add(new Instruction("LDR r4, [r" + (regCount -1) + "] \n"));
     	}
-    	regCount--;
+    	if (printint ){
+    		regCount--;
+    		printint = false;
+    	}
     	//add error msg
     	err.pArray();
     	
