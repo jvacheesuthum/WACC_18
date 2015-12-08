@@ -2333,7 +2333,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     		currentList.add(new Instruction("LDR r" + (regCount + 1) + ", =" + indexSign1 + index + '\n'));
     	}
 		
-    	currentList.add(new Instruction("LDR r" + (regCount) + ", [r" + (regCount) + "] \n"));
+    	currentList.add(new Instruction(((typeSize(t) == 4)? "LDR" : "LDRSB") + " r" + (regCount) + ", [r" + (regCount) + "] \n"));
     	currentList.add(new Instruction("MOV r0, r" + (1 + regCount) + "\n"));
     	currentList.add(new Instruction("MOV r1, r" + regCount + "\n"));
     	currentList.add(new Instruction("BL p_check_array_bounds\n"));
