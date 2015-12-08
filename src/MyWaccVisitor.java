@@ -885,7 +885,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 				System.exit(200);//throw new Error("type of func param " + i + " incompatible with declaration");
 			}
 			//
-			currentList.add(new Instruction("STR r" + regCount + ", [sp, #-" + typeSize(each.typename) + "]!\n"));
+			String store = (typeSize(each.typename) == 1)? "STRB" : "STR";
+			currentList.add(new Instruction(store + " r" + regCount + ", [sp, #-" + typeSize(each.typename) + "]!\n"));
 			funcCallOffset += argSizeCount;
 		}
 
@@ -1984,17 +1985,17 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //			}
 			err.pPrintInt();
 		} else
-		if(typename instanceof ARRAY_TYPE) {
-			if(((ARRAY_TYPE)typename).TYPE() instanceof ARRAY_TYPE) {
-				currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
-				currentList.add(new Instruction("BL p_print_reference\n"));
-				err.pRef();
-			} else {
-				checkPrintFunc(((ARRAY_TYPE)typename).TYPE());
-			}
-		} else
+//		if(typename instanceof ARRAY_TYPE) {
+//			if(((ARRAY_TYPE)typename).TYPE() instanceof ARRAY_TYPE) {
+//				currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
+//				currentList.add(new Instruction("BL p_print_reference\n"));
+//				err.pRef();
+//			} else {
+//				checkPrintFunc(((ARRAY_TYPE)typename).TYPE());
+//			}
+//		} else
 		if(typename instanceof PAIR_TYPE ||
-//				typename instanceof ARRAY_TYPE ||
+				typename instanceof ARRAY_TYPE ||
 				typename instanceof NULL) {
 			currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
 			currentList.add(new Instruction("BL p_print_reference\n"));
