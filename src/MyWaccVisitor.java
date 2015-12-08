@@ -17,6 +17,8 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     SymbolTable currentTable = new SymbolTable(null);
@@ -1339,16 +1341,20 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	//nops backend --------------------
     	regCount++;
 
-    	//negative array index - only works for 1 dimen now
-    	String indexSign1 = "";
-    	if (ctx.array_elem().getText().contains("-") ) {
-    			indexSign1 = "-";
-    	}
     	VariableFragment v  = new VariableFragment(i.stringinfo);
 
+    	//test: using matcher
+    	Pattern p = Pattern.compile("\\[(.*?)\\]");
+    	Matcher m = p.matcher(ctx.array_elem().getText());
+    	//---------------------------
+    	
+    	//for 1 dimen array
+    	m.find();
+    	String index = m.group(1);
+    	
 //    	String index = (ctx.array_elem().getText().replaceAll("[^0-9]", ""));
-    	String text = ctx.array_elem().getText();
-    	String index = text.substring(text.indexOf('[') + 1, text.indexOf(']'));
+//    	String text = ctx.array_elem().getText();
+  //  	String index = text.substring(text.indexOf('[') + 1, text.indexOf(']'));
 
     	//is this ok with other case other than array.wacc ?
     	currentList.add(new Instruction(Arrays.asList(new StringFragment("ADD r" + (regCount) + ", sp"), v, new StringFragment("\n")), v));
@@ -1360,7 +1366,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     		currentList.add(new Instruction("LDR r" + regCount + ", [sp]\n"));
 
     	} else {
-    		currentList.add(new Instruction("LDR r" + regCount + ", =" + indexSign1 + index + '\n'));
+    		currentList.add(new Instruction("LDR r" + regCount + ", =" + index + '\n'));
     	}
     	
     	currentList.add(new Instruction("LDR r" + (regCount -1) + ", [r" + (regCount -1) + "] \n"));
@@ -2317,28 +2323,23 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
     	VariableFragment v  = new VariableFragment(i.stringinfo);
 
-    	//negative array index - only works for 1 dimen now
-    	String indexSign1 = "";
-    	if (ctx.array_elem().getText().contains("-") ) {
-    			indexSign1 = "-";
-    	}
     	
-    	//for 1 dimen array
-    	String index = (ctx.array_elem().getText().replaceAll("[^0-9]", ""));
+    	//test: using matcher
+    	Pattern p = Pattern.compile("\\[(.*?)\\]");
+    	Matcher m = p.matcher(ctx.array_elem().getText());
+    	m.find();
+    	String index1 = m.group(1);
+    	//---------------------------
+    	
     	currentList.add(new Instruction(Arrays.asList(new StringFragment("ADD r" + (regCount) + ", sp"), v, new StringFragment("\n")), v));
-    	String index2 = "";
-    	//case for nested array - two digits index
-    	if (index.length() == 2){
-    		index2 = index.substring(1, 2);
-    		index = index.substring(0, 1);
-    	}
+    	
     	//if array index is a variable index will be empty eg. a[i]
-    	if (index.isEmpty()) {
+    	if (!isAnum(index1)) {
 			//currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", ="), v, new StringFragment("\n")), v));
     		currentList.add(new Instruction("LDR r" + (regCount + 1) + ", [sp]\n"));
 
     	} else {
-    		currentList.add(new Instruction("LDR r" + (regCount + 1) + ", =" + indexSign1 + index + '\n'));
+    		currentList.add(new Instruction("LDR r" + (regCount + 1) + ", =" + index1 + '\n'));
     	}
 		
     	currentList.add(new Instruction(((typeSize(t) == 4)? "LDR" : "LDRSB") + " r" + (regCount) + ", [r" + (regCount) + "] \n"));
@@ -2350,11 +2351,12 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) + ", #4 \n"));
     	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) +
     			", r" + regCount  + ( typeSize(t) == 1 ? '\n' : ", LSL #2 \n")));
-    	if (index2 == "") {
+    	
+    	if (!m.find()) {
     		currentList.add(new Instruction(((typeSize(t) == 4)? "LDR" : "LDRSB") + " r4, [r" + (regCount -1) + "] \n"));
-    	}
-    	//nested array
-    	if (index2 != "") {
+    	} else {
+    		//nested array
+        	String index2 = m.group(1);
     		regCount--;
     		currentList.add(new Instruction("LDR r" + (regCount + 1) + ", =" + index2 + '\n'));
     		currentList.add(new Instruction(((typeSize(t) == 4)? "LDR" : "LDRSB") + " r" + (regCount) + ", [r" + (regCount) + "] \n"));
@@ -2976,6 +2978,15 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		visit(ctx.expr());
 		ctx.typename = ctx.expr().typename;
 		return null;
+	}
+	
+	private boolean isAnum(String s) {
+		try {
+			Integer.parseInt(s);
+		} catch (NumberFormatException e) {
+			return false;
+		}
+		return true;
 	}
 
 }
