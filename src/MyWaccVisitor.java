@@ -1364,7 +1364,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     			(typeSize(ctx.array_elem().typename) == 1 ? "\n" : ", LSL #2 \n"))); 
     	// hacky ?
     	currentList.add(new Instruction((typeSize(ctx.array_elem().typename) == 1 ? "STRB" : "STR") + " r4, [r" + (regCount -1) + "] \n"));
-    	regCount--;
+    	regCount = regCount -2;
     	
     	//add error msg
     	err.pArray();
@@ -2346,8 +2346,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
         			", r" + regCount  + ", LSL #2 \n"));
         	currentList.add(new Instruction("LDR r4, [r" + (regCount -1) + "] \n"));
     	}
+		regCount--;
     	if (printint ){
-    		regCount--;
     		printint = false;
     	}
     	//add error msg
