@@ -1951,6 +1951,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	private void checkPrintFunc(TYPE typename) {
 		//back end
+		if (prints) System.out.println("checkPrintFunc");
 		currentList.add(new Instruction("MOV r0, r" + regCount + "\n"));
 		if(typename instanceof STRING) {
 			currentList.add(new Instruction("BL p_print_string\n"));
@@ -2113,7 +2114,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("visitStat_println");
 //		inPrint = true;
 		visit(ctx.expr());
-
 		if(ctx.expr().typename == null) {
 			System.exit(200);
 		}
@@ -2331,8 +2331,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
         	currentList.add(new Instruction("ADD r" + (regCount -1) + ", r" + (regCount -1) +
         			", r" + regCount  + ", LSL #2 \n"));
         	currentList.add(new Instruction("LDR r4, [r" + (regCount -1) + "] \n"));
-        	regCount--;
     	}
+    	regCount--;
     	//add error msg
     	err.pArray();
     	
