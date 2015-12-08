@@ -2439,6 +2439,29 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			System.exit(200);
 		}
 		
+		if(ctx.math(0).returntype instanceof NULL || ctx.math(1).returntype instanceof NULL) {
+			regCount++;
+			VariableFragment v  = new VariableFragment(one.stringinfo, funcCallOffset);
+			currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", [sp"), v, new StringFragment("]\n")), v));
+			regCount++;
+			
+			currentList.add(new Instruction("CMP r" + (regCount - 2) + ", r" + (regCount - 1) + "\n"));
+			if (ctx.IS_EQUAL() != null) {
+				currentList.add(new Instruction("MOVEQ r" + (regCount - 2) + ", #1\nMOVNE r" + (regCount - 2) + ", #0\n"));
+			}
+			if (ctx.NOT_EQUAL() != null) {
+				currentList.add(new Instruction("MOVNE r" + (regCount - 2) + ", #1\nMOVEQ r" + (regCount - 2) + ", #0\n"));
+			}
+			regCount = regCount -2;
+			
+//			//back end while
+//			if(inWhile) {
+//				currentList.add(new Instruction("CMP r" + regCount + ", #1\nBEQ L" + (whileCount + 1) + "\n"));
+//			}
+			visitedBool = true;
+			return new Info("r" + regCount).setType("reg"); 
+		}
+		
 		if (one.type.equals("int")) {
 			currentList.add(new Instruction("LDR r" + regCount + ", =" + one.int_value + "\n"));
 			regCount ++;
