@@ -1341,7 +1341,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
     	VariableFragment v  = new VariableFragment(i.stringinfo);
 
-    	String index = (ctx.array_elem().getText().replaceAll("[^0-9]", ""));
+//    	String index = (ctx.array_elem().getText().replaceAll("[^0-9]", ""));
+    	String text = ctx.array_elem().getText();
+    	String index = text.substring(text.indexOf('[') + 1, text.indexOf(']'));
+
     	//is this ok with other case other than array.wacc ?
     	currentList.add(new Instruction(Arrays.asList(new StringFragment("ADD r" + (regCount) + ", sp"), v, new StringFragment("\n")), v));
     	regCount++;
