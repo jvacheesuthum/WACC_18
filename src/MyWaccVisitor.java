@@ -2348,14 +2348,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	
     	//if array index is a variable index will be empty eg. a[i]
     	if (!isAnum(index1)) {
-			//currentList.add(new Instruction(Arrays.asList(new StringFragment("LDR r" + regCount + ", ="), v, new StringFragment("\n")), v));
     		currentList.add(new Instruction("LDR r" + (regCount + 1) + ", [sp]\n"));
 
     	} else {
     		currentList.add(new Instruction("LDR r" + (regCount + 1) + ", =" + index1 + '\n'));
     	}
 		
-    	currentList.add(new Instruction(((typeSize(t) == 4)? "LDR" : "LDRSB") + " r" + (regCount) + ", [r" + (regCount) + "] \n"));
+    	currentList.add(new Instruction("LDR r" + (regCount) + ", [r" + (regCount) + "] \n"));
     	currentList.add(new Instruction("MOV r0, r" + (1 + regCount) + "\n"));
     	currentList.add(new Instruction("MOV r1, r" + regCount + "\n"));
     	currentList.add(new Instruction("BL p_check_array_bounds\n"));
@@ -2382,14 +2381,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
         			", r" + regCount  + (typeSize(t) == 1 ?  '\n' : ", LSL #2 \n")));
         	currentList.add(new Instruction(((typeSize(t) == 4)? "LDR" : "LDRSB") + " r4, [r" + (regCount -1) + "] \n"));
     	}
-		regCount--;
-    	if (printint ){
-    		printint = false;
-    	}
-    	//add error msg
+		
+    	regCount--;
+		//add error msg
     	err.pArray();
-    	
-
 		
 		return null;
 	}
