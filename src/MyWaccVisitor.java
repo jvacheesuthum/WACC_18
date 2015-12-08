@@ -1591,7 +1591,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		visit(ctx.expr());
 		freepairs++;
 		if (freepairs > newpairs) {
-			footer.add(new Instruction("MOV r0, #134\nBL exit\n"));
+			currentList.add(new Instruction("MOV r0, #134\nBL exit\n"));
 		}
 //		} else {
 		err.pFreepair();
