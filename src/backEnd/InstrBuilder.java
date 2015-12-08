@@ -52,6 +52,14 @@ public class InstrBuilder {
 		return this;
 	}
 	
+	public InstrBuilder withVarCallOffset(String s, int offset) {
+		assert variable == null: "already has variable!";
+		assert pos == null: "already has pos!";
+		variable = new VariableFragment(s, offset);
+		add(variable);
+		return this;
+	}
+	
 	public InstrBuilder withVarDec(String var, int size) {
 		assert variable == null: "already has variable!";
 		assert pos == null: "already has pos!";
