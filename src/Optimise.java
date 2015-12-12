@@ -10,7 +10,7 @@ import backEnd.Instruction;
 public class Optimise {
 
 	public static List<Instruction> loadAndStore(List<Instruction> list, Map<String, Integer> currentStackMap, int stackTotal) {
-
+		int count = 0;
 		int prevRegCount = -1;
 		String instrPart;
 		boolean afterStr = false;
@@ -19,6 +19,10 @@ public class Optimise {
 		for(Instruction l : list) {
 			if (l.toDeclare()) {
 				stackTotal = l.allocateStackPos(stackTotal, currentStackMap);
+			}
+			if(count > 1) {
+				afterStr = false;
+				count = 0;
 			}
 			int currRegCount;
 			String first = l.getInstructions().get(0).getString();
@@ -30,8 +34,10 @@ public class Optimise {
 			try {
 				currRegCount = Integer.parseInt(first.substring(5, 6));
 			} catch (NumberFormatException e) {
+				count++;
 				continue;
 			} catch (StringIndexOutOfBoundsException e) {
+				count++;
 				continue;
 			}
 			if(instrPart.equals("STR") && l.getVariables() != null) {
@@ -49,6 +55,7 @@ public class Optimise {
 				
 				afterStr = false;
 			}
+			count++;
 
 		}
 		List<Instruction> tempList = new ArrayList<Instruction>();
