@@ -67,7 +67,7 @@ public class Main {
 		    
 		    
 		    System.out.println("====");
-		    MyWaccVisitor visitor = new MyWaccVisitor(filename + ".s");
+		    MyWaccVisitor visitor = new OptimisedWaccVisitor(filename + ".s");
 		    visitor.visit(tree);
 		    System.out.println("====");
 		    System.exit(0);
