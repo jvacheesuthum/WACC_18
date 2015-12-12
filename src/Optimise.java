@@ -22,6 +22,10 @@ public class Optimise {
 			}
 			int currRegCount;
 			String first = l.getInstructions().get(0).getString();
+			if(first.contains(":")) {
+				afterStr = false;
+				continue;
+			}
 			instrPart = first.substring(0, 3);
 			try {
 				currRegCount = Integer.parseInt(first.substring(5, 6));
