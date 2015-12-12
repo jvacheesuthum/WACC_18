@@ -111,4 +111,12 @@ public class Instruction {
 	public int scopeDepth() {
 		return scopedDepth;
 	}
+
+	public List<InstructionFragment> getInstructions() {
+		return instructions;
+	}
+
+	public List<VariableFragment> getVariables() {
+		return variables;
+	}
 }

@@ -43,12 +43,11 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	private int ifCount = -1;
 
-	private boolean inWhile = false;
 	private int whileCount = -1;
 
 	private boolean fstVisited = false ;
 	
-	boolean prints = true;
+	boolean prints = false;
 	private final String filename;
 
 	int funcCallOffset = 0;
@@ -1142,7 +1141,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	whileCount++;
     	Instruction BLOinstr = new Instruction("B LW" + (whileCount * 2) + "\n");
     	currentList.add(BLOinstr);
-    	inWhile = true;
+
     	currentList.add(new Instruction("LW" + ((whileCount * 2) + 1) + ":\n"));
     	int encStackTotal = stackTotal;
 //    	List<Instruction> encWhileList = new ArrayList<Instruction>();
@@ -1200,7 +1199,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			System.exit(200);
 		}
 		
-		inWhile = false;
 		return null; 
 	}
 
@@ -1741,7 +1739,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //			} 
 		}
 		currentList.add(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg\n"));
-
+		instrList = Optimise.loadAndStore(instrList);
 		for(Instruction instr: instrList) {
 			if (instr.toDeclare()) {
 				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
