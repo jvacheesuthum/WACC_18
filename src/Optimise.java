@@ -3,18 +3,23 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 
 import backEnd.Instruction;
 
 public class Optimise {
 
-	public static List<Instruction> loadAndStore(List<Instruction> list) {
+	public static List<Instruction> loadAndStore(List<Instruction> list, Map<String, Integer> currentStackMap, int stackTotal) {
+
 		int prevRegCount = -1;
 		String instrPart;
 		boolean afterStr = false;
 		List<Integer> indexToRemove = new LinkedList<Integer>();
 		String variable = null;
 		for(Instruction l : list) {
+			if (l.toDeclare()) {
+				stackTotal = l.allocateStackPos(stackTotal, currentStackMap);
+			}
 			int currRegCount;
 			String first = l.getInstructions().get(0).getString();
 			instrPart = first.substring(0, 3);
@@ -30,7 +35,6 @@ public class Optimise {
 			}
 			if(instrPart.equals("LDR") && afterStr && prevRegCount == currRegCount) {
 				if(l.getVariables().get(0).getVariable().equals(variable)) {
-
 					indexToRemove.add(list.indexOf(l) - 1);
 					indexToRemove.add(list.indexOf(l));
 					prevRegCount = 0;
