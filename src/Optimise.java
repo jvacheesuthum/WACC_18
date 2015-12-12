@@ -27,21 +27,22 @@ public class Optimise {
 				currRegCount = Integer.parseInt(first.substring(5, 6));
 			} catch (NumberFormatException e) {
 				continue;
+			} catch (StringIndexOutOfBoundsException e) {
+				continue;
 			}
-			if(instrPart.equals("STR")) {
+			if(instrPart.equals("STR") && l.getVariables() != null) {
 				prevRegCount = currRegCount;
 				variable = l.getVariables().get(0).getVariable();
 				afterStr = true;
 			}
-			if(instrPart.equals("LDR") && afterStr && prevRegCount == currRegCount) {
-				if(l.getVariables() != null) {
-					if(l.getVariables().get(0).getVariable().equals(variable)) {
+			if(instrPart.equals("LDR") && afterStr && prevRegCount == currRegCount && l.getVariables() != null) {
+				if(l.getVariables().get(0).getVariable().equals(variable)) {
 	//					indexToRemove.add(list.indexOf(l) - 1);
 						indexToRemove.add(list.indexOf(l));
 						prevRegCount = 0;
 						variable = null;
-					}
 				}
+				
 				afterStr = false;
 			}
 
