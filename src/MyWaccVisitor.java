@@ -1739,7 +1739,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //			} 
 		}
 		currentList.add(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg\n"));
-		instrList = Optimise.loadAndStore(instrList);
+//		instrList = Optimise.loadAndStore(instrList);
 		for(Instruction instr: instrList) {
 			if (instr.toDeclare()) {
 				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
