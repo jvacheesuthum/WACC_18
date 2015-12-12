@@ -22,6 +22,7 @@ public class ErrorMessager {
 	private boolean pOverflow = false;
 	private boolean pRuntime = false;
 	private boolean pDivZero = false;
+	private boolean pOptDivZero = false;
 	
 	private int headerindex = 0;
 	
@@ -75,6 +76,12 @@ public class ErrorMessager {
 	}
 	public void pReadChar() {
 		pReadChar = true;
+	}
+	
+	public void pOptDivZero() {
+		pOptDivZero = true;
+		pRuntime = true;
+		pString = true;
 	}
 	
 	public void addErrorMessages(List<Instruction> header, List<Instruction> footer) {
@@ -132,6 +139,11 @@ public class ErrorMessager {
 			header.add(headerindex, new Instruction("msg_10:\n.word 45\n.ascii	\"DivideByZeroError: divide or modulo by zero\\n\\0\"\n"));
 			headerindex ++;
 		}
+		if (pOptDivZero) {
+			footer.add(new Instruction("p_divided_by_zero:\nPUSH {lr}\nLDR r0, =msg_10\nBL p_throw_runtime_error\nPOP {pc}\n"));
+			header.add(headerindex, new Instruction("msg_10:\n.word 45\n.ascii	\"DivideByZeroError: divide or modulo by zero\\n\\0\"\n"));
+			headerindex ++;
+		}
 		if (pBool) {
 			footer.add(new Instruction("p_print_bool:\nPUSH {lr}\nCMP r0, #0\nLDRNE r0, =msg_11\nLDREQ r0, =msg_12\nADD r0, r0, #4\nBL printf\nMOV r0, #0" + "\nBL fflush" + "\nPOP {pc}" + "\n"));
 			header.add(headerindex, new Instruction("msg_11:\n.word 5\n.ascii	\"true\\0\"\n"));
@@ -149,5 +161,7 @@ public class ErrorMessager {
 			headerindex ++;
 		}
 	}
+
+
 
 }

@@ -29,7 +29,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	List<Instruction> header = new ArrayList<Instruction>();
     List<Instruction> footer = new ArrayList<Instruction>();
-    private InstrBuilder ib = new InstrBuilder();
+    InstrBuilder ib = new InstrBuilder();
     ErrorMessager err = new ErrorMessager();
     int stackTotal = 0;
     int msgCount = 15;
@@ -51,7 +51,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	boolean prints = true;
 	private final String filename;
 
-	private int funcCallOffset = 0;
+	int funcCallOffset = 0;
 
 	private int freepairs = 0;
 	private int newpairs = 0;
@@ -178,7 +178,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
   	  return null;
     }
 
-    private int typeSize(TYPE t) {
+    int typeSize(TYPE t) {
 		if (t instanceof INT || t instanceof PAIR_TYPE || t instanceof STRING || t instanceof ARRAY_TYPE) {
 			return 4;
 		}
