@@ -42,8 +42,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	private Integer paramSizeCount = -999;
 
 	private int ifCount = -1;
-
-	private boolean inWhile = false;
 	private int whileCount = -1;
 
 	private boolean fstVisited = false ;
@@ -1142,7 +1140,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	whileCount++;
     	Instruction BLOinstr = new Instruction("B LW" + (whileCount * 2) + "\n");
     	currentList.add(BLOinstr);
-    	inWhile = true;
     	currentList.add(new Instruction("LW" + ((whileCount * 2) + 1) + ":\n"));
     	int encStackTotal = stackTotal;
 //    	List<Instruction> encWhileList = new ArrayList<Instruction>();
@@ -1199,8 +1196,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			System.out.print("if condition is not of type bool");
 			System.exit(200);
 		}
-		
-		inWhile = false;
 		return null; 
 	}
 
