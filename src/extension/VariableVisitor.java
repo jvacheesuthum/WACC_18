@@ -94,6 +94,7 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 					e.copyFrom(createEBrackets(expr.expr()));
 				}
 				for (WaccParser.Atom_identContext a : v.getAtoms()) {
+					System.out.println("replacing atom");
 					a.copyFrom(createABracekts(expr.expr()));
 				}
 				// replace declaration with skip
@@ -128,7 +129,9 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 	    WaccParser.Atom_bracketsContext b = dbc.visit(dummy);
 		if (b == null) {System.out.println("wtf");}
 		if (b.expr() == null) {System.out.println("wtf2");}
-	    b.expr().copyFrom(expr);
+		//b.expr().copyFrom(expr);
+		b.removeLastChild();
+		b.removeLastChild();
 		return b;
 	}
 
