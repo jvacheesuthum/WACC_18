@@ -15,6 +15,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 
 
 
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -39,9 +40,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //	Map<String, Integer> msgPosition = new HashMap<String, Integer>();
 
 	Map<String, Integer> paramOffsetMap = new HashMap<String, Integer>();
-	private Integer paramSizeCount = -999;
+	Integer paramSizeCount = -999;
 
-	private int ifCount = -1;
+	int ifCount = -1;
 
 //	private boolean[] definedPrintsFunc = new boolean[5]; //for footer
 //	private boolean[] definedPrintsMsg = new boolean[6]; //for header
@@ -49,10 +50,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //	private boolean inPrint = false;
 //	private boolean[] definedRead = new boolean[5];
 //	// Int = 0, Char = 1, IntMsg = 2, CharMsg = 3, inRead = 4
-	private boolean inWhile = false;
-	private int whileCount = -1;
+	boolean inWhile = false;
+	int whileCount = -1;
 	List<Instruction> whileList = new ArrayList<Instruction>();
-	private boolean visitedBool = false;
+	boolean visitedBool = false;
 	
 	boolean prints = true;
 	private final String filename;
@@ -2213,8 +2214,17 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	@Override public Info visitExpr_binary(@NotNull WaccParser.Expr_binaryContext ctx) { 
 		if (prints) System.out.println("visitExpr_binary");
-		visit(ctx.bin_bool());
+		Info i = visit(ctx.bin_bool());
 		ctx.typename = ctx.bin_bool().returntype;
+		// Constant optimisation
+		if (i.type.equals("int")) {
+			currentList.add(new Instruction("LDR r" + regCount + ", =" + i.int_value + "\n"));
+		} else if (i.type.equals("bool")) {
+			currentList.add(new Instruction("MOV r" + regCount + ", #" + (i.b_value ? 1 : 0) + "\n"));
+		} else {
+			assert i.type.equals("reg");
+		}
+		// end of optimisaion
 		return null;
 	}
 	
