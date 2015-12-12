@@ -34,11 +34,13 @@ public class Optimise {
 				afterStr = true;
 			}
 			if(instrPart.equals("LDR") && afterStr && prevRegCount == currRegCount) {
-				if(l.getVariables().get(0).getVariable().equals(variable)) {
-//					indexToRemove.add(list.indexOf(l) - 1);
-					indexToRemove.add(list.indexOf(l));
-					prevRegCount = 0;
-					variable = null;
+				if(l.getVariables() != null) {
+					if(l.getVariables().get(0).getVariable().equals(variable)) {
+	//					indexToRemove.add(list.indexOf(l) - 1);
+						indexToRemove.add(list.indexOf(l));
+						prevRegCount = 0;
+						variable = null;
+					}
 				}
 				afterStr = false;
 			}
