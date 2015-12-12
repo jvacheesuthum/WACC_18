@@ -1,14 +1,7 @@
 import org.antlr.v4.runtime.misc.NotNull;
-import SemanticAnalyser.ARRAY_TYPE;
-import SemanticAnalyser.BOOL;
-import SemanticAnalyser.EQUALITY;
-import SemanticAnalyser.INT;
-import SemanticAnalyser.NULL;
-import SemanticAnalyser.PAIR_TYPE;
-import SemanticAnalyser.SharedMethods;
+import SemanticAnalyser.*;
 import antlr.WaccParser;
-import backEnd.Info;
-import backEnd.Instruction;
+import backEnd.*;
 
 
 public class OptimisedWaccVisitor extends MyWaccVisitor {
@@ -275,9 +268,9 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 	private int doMath(String operation, int x, int y) {
 		try {
 			switch (operation) {
-			case "plus" : return java.lang.Math.addExact(x, y);
-			case "minus" : return java.lang.Math.subtractExact(x, y);
-			case "multiply" : return java.lang.Math.multiplyExact(x, y);
+			case "plus" : return Math.addExact(x, y);
+			case "minus" : return Math.subtractExact(x, y);
+			case "multiply" : return Math.multiplyExact(x, y);
 			case "divide" : return (y == 0)? divByZero() : x / y;
 			case "mod" : return (y == 0)? divByZero() : x % y;
 			}
