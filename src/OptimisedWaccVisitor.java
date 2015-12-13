@@ -1,4 +1,8 @@
 
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.antlr.v4.runtime.misc.NotNull;
 
 import SemanticAnalyser.*;
@@ -11,6 +15,87 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 	public OptimisedWaccVisitor(String filename) {
 		super(filename);
 	}
+	
+    @Override 
+    public Info visitStat_declare(@NotNull WaccParser.Stat_declareContext ctx) {
+    	if (prints) System.out.println("visitStat_declare");
+    	
+    	// constant optimisation. variables that are constant will not be declared.
+		List<Instruction> savedList = currentList;
+    	if (ctx.ident().constant) {
+    		// put a dummy list to throw away.
+    		currentList = new LinkedList<Instruction>();
+    	}
+    	// end of optimisation
+  	
+      WaccParser.Assign_rhsContext rhs = ctx.assign_rhs();
+      visit(rhs);
+      if (prints) System.out.println("SEP: ");
+      visit(ctx.type());
+
+      if (prints) System.out.println("After visit declare lhs and rhs");
+      if (prints) System.out.println("declare rhs: " + rhs.typename);
+      if (prints) System.out.println("declare lhs: " + ctx.type().typename);
+      
+      //---------------------- catching declaration of array with empty array ie int[] x = [] should be fine
+      
+      if(ctx.type().typename instanceof ARRAY_TYPE) {
+        if(rhs.typename instanceof ARRAY_TYPE) {
+          if(((ARRAY_TYPE)rhs.typename).TYPE() == null){
+            VARIABLE var = new VARIABLE(rhs.typename);
+            currentTable.add(ctx.ident().getText(), var);
+            return null;
+          }
+        }
+      }
+      //------------------------
+      
+      if(rhs.typename == null) {
+    	  rhs.typename = new NULL();
+      }
+      
+      if(!SharedMethods.assignCompat(ctx.type().typename, rhs.typename)) {
+ //   	  throw new Error("Different type");
+      	  System.exit(200);
+      }
+
+      if (currentTable.lookup(ctx.ident().getText()) != null) {
+ //   	  throw new Error("Variable already declared");
+    	  if (prints) System.out.println("var already declared: " + ctx.ident().getText());
+      	  System.exit(200);
+      }
+      if (!ctx.ident().constant) {
+      VARIABLE var = new VARIABLE(rhs.typename);
+      currentTable.add(ctx.ident().getText(), var);
+      int i = typeSize(ctx.type().typename);
+      PositionFragment position= new PositionFragment(i);
+      stackTotal += i;
+      if (i == 1) {
+    	  currentList.add(new Instruction(Arrays.asList(new StringFragment("STRB r"+ regCount + ", [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
+      } else {
+    	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r" + regCount + ", [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
+      }
+      
+      if (rhs.typename instanceof NULL) {
+          currentList.add(new Instruction("LDR r"+ regCount + (fstVisited ? ", [sp, #4]\n" : ", [sp]\n")));
+          fstVisited = false;
+      }
+      
+      
+      if (rhs.typename instanceof NULL && ctx.type().typename instanceof PAIR_TYPE) {
+    	  newpairs++;
+    	  System.out.println("LHS IS NULL RHS IS PAIRR");
+      }
+      }
+  	// constant optimisation. variables that are constant will not be declared.
+  	if (ctx.ident().constant) {
+		// restore previous list, throw away any declarations
+		currentList = savedList;
+	}
+	// end of optimisation
+      
+  	  return null;
+    }
 	
 	@Override public Info visitExpr_bin_plus_plus(@NotNull WaccParser.Expr_bin_plus_plusContext ctx) {
 		if (prints) System.out.println("visitExpr_bin_math_math");
@@ -656,6 +741,50 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 //			currentList.add(new Instruction("CMP r" + regCount + ", #1\nBEQ L" + (whileCount + 1) + "\n"));
 //		}
 		return new Info("r" + regCount).setType("reg"); 
+	}
+	
+	@Override public Info visitAtom_ident(@NotNull WaccParser.Atom_identContext ctx) {
+		// optimisation - check if constant//
+		if (ctx.ident().constant) {
+			Info i = visit(ctx.ident().constantAtom);
+			ctx.typename = ctx.ident().constantAtom.typename;
+			return i;
+		}
+		// end of optimisation
+		visit(ctx.ident());
+		ctx.typename = ctx.ident().typename;
+		return (new Info(ctx.ident().VARIABLE().getText())).setType("var");
+	}
+	
+	@Override public Info visitExpr_ident(@NotNull WaccParser.Expr_identContext ctx) {
+		// optimisation - check if constant//
+		if (ctx.ident().constant) {
+			Info i = visit(ctx.ident().constantExpr);
+			ctx.typename = ctx.ident().constantExpr.typename;
+			return i;
+		}
+		// end of optimisation
+		if (prints) System.out.println("visitExpr_ident");
+		visit(ctx.ident());
+
+		ctx.typename = ctx.ident().typename;
+		String id = ctx.ident().getText();
+
+		if(ctx.typename == null || ctx.typename instanceof NULL) {
+			return null;
+		}
+		//also check if the ident has been declared
+
+		if (currentTable.lookupAll(id) == null) System.exit(200);//throw new Error(id + "has not been declared");
+		// do we have static variabsle in Wacc language. ^this would not support static var usage in stat in function declaration
+
+
+		System.out.println("!!!!!!!!!!!!!" + ctx.ident().getText() + "//funcOffset: " + funcCallOffset);
+//		VariableFragment v = new VariableFragment(ctx.ident().getText(), funcCallOffset);
+		//CHECK : bug in functionmanyarguments.wacc -> ref compiler line 122
+//		currentList.add(new Instruction(Arrays.asList(new StringFragment(( typeSize(ctx.typename) == 1 ? "LDRSB r" : "LDR r") + regCount  + ", [sp"), v, new StringFragment("]\n")), v));
+		currentList.add(ib.instr().ldrsbVarOffset(typeSize(ctx.typename), regCount, ctx.ident().getText(), funcCallOffset).build());
+		return null;
 	}
 
 

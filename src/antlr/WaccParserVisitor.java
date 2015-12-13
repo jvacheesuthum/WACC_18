@@ -1,5 +1,7 @@
 // Generated from ./WaccParser.g4 by ANTLR 4.4
 package antlr;
+
+  import SemanticAnalyser.*;
  
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;

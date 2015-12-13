@@ -39,20 +39,20 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 
 	Map<String, Integer> paramOffsetMap = new HashMap<String, Integer>();
-	private Integer paramSizeCount = -999;
+	Integer paramSizeCount = -999;
 
-	private int ifCount = -1;
-	private int whileCount = -1;
+	int ifCount = -1;
+	int whileCount = -1;
 
-	private boolean fstVisited = false ;
+	boolean fstVisited = false ;
 	
 	boolean prints = true;
-	private final String filename;
+	final String filename;
 
 	int funcCallOffset = 0;
 
-	private int freepairs = 0;
-	private int newpairs = 0;
+	int freepairs = 0;
+	int newpairs = 0;
 
 
 	public MyWaccVisitor(String filename) {

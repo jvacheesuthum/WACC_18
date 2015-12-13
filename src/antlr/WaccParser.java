@@ -80,6 +80,9 @@ public class WaccParser extends Parser {
 	}
 	public static class IdentContext extends ParserRuleContext {
 		public TYPE typename;
+		public ExprContext constantExpr;
+		public AtomContext constantAtom;
+		public boolean constant;
 		public TerminalNode VARIABLE() { return getToken(WaccParser.VARIABLE, 0); }
 		public IdentContext(ParserRuleContext parent, int invokingState) {
 			super(parent, invokingState);

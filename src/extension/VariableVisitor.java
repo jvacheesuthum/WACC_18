@@ -91,14 +91,18 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 				WaccParser.Assign_rhs_exprContext expr = (WaccParser.Assign_rhs_exprContext) v.getDeclare().assign_rhs();
 				// replace all occurrences of variable with the constant expr
 				for (WaccParser.Expr_identContext e : v.getExprs()) {
-					e.copyFrom(createEBrackets(expr.expr()));
+					//e.copyFrom(createEBrackets(expr.expr()));
+					e.ident().constant = true;
+					e.ident().constantExpr = expr.expr();
 				}
 				for (WaccParser.Atom_identContext a : v.getAtoms()) {
-					System.out.println("replacing atom");
-					a.copyFrom(createABracekts(expr.expr()));
+					//a.copyFrom(createABracekts(expr.expr()));
+					a.ident().constant = true;
+					a.ident().constantAtom = createABrackets(expr.expr());
 				}
 				// replace declaration with skip
-				v.getDeclare().copyFrom(createSkip());
+				//v.getDeclare().copyFrom(createSkip());
+				v.getDeclare().ident().constant = true;
 			}
 		}
 	}
@@ -122,7 +126,7 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 	    return parser.program();
 	}
 
-	private AtomContext createABracekts(ExprContext expr) {
+	private AtomContext createABrackets(ExprContext expr) {
 		//create a dummy brackets atom context, that brackets this expr
 	    ParseTree dummy = dummyTree("begin int x = (1) + 1 end");
 	    DummyABracketCtx dbc = new DummyABracketCtx();
@@ -132,6 +136,8 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		//b.expr().copyFrom(expr);
 		b.removeLastChild();
 		b.removeLastChild();
+		b.addChild(expr);
+		expr.parent = b;
 		return b;
 	}
 
@@ -140,7 +146,12 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 	    ParseTree dummy = dummyTree("begin int x = (1) end"); // begin parsing at program rule
 	    DummyEBracketCtx dbc = new DummyEBracketCtx();
 	    WaccParser.Expr_bracketsContext b = dbc.visit(dummy);
-	    b.expr().copyFrom(expr);
+		//b.expr().copyFrom(expr);
+	    if (b == null) {System.out.println("wtf");}
+		b.removeLastChild();
+		b.removeLastChild();
+		b.addChild(expr);
+		expr.parent = b;
 		return b;
 	}
 
