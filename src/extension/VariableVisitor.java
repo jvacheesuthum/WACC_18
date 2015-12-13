@@ -1,9 +1,6 @@
 package extension;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -33,7 +30,9 @@ import antlr.WaccParserBaseVisitor;
 public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramContext> {
 	
 	private List<VariableDependencies> vars = new LinkedList<VariableDependencies>();
-	private Map<String, VariableDependencies> map = new HashMap<String, VariableDependencies>();
+	//private Map<String, VariableDependencies> map = new HashMap<String, VariableDependencies>();
+	private ScopeMap<String, VariableDependencies> map = new ScopeMap<>(null);
+	//private Set<String> reassignedInScope;
 
 	@Override public WaccParser.ProgramContext visitProgram(@NotNull WaccParser.ProgramContext ctx) { 
 		visitChildren(ctx);
@@ -54,7 +53,7 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 	
 	@Override public WaccParser.ProgramContext visitExpr_ident(@NotNull WaccParser.Expr_identContext ctx) {
 		//add this expr as dependent on the variable
-		VariableDependencies v = map.get(ctx.ident().VARIABLE().getText());
+		VariableDependencies v = map.outwardsGet(ctx.ident().VARIABLE().getText());
 		if (v != null) {
 			v.addExpr(ctx);
 		}
@@ -62,7 +61,7 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 	
 	@Override public WaccParser.ProgramContext visitAtom_ident(@NotNull WaccParser.Atom_identContext ctx) { 
 		//add this atom as dependent on the variable
-		VariableDependencies v = map.get(ctx.ident().VARIABLE().getText());
+		VariableDependencies v = map.outwardsGet(ctx.ident().VARIABLE().getText());
 		if (v != null) {
 			v.addAtom(ctx);
 		}
@@ -70,7 +69,7 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 	
 	@Override public WaccParser.ProgramContext visitParam(@NotNull WaccParser.ParamContext ctx) {
 		//mark this variable as not constant (cannot handle params)
-		VariableDependencies v = map.get(ctx.ident().VARIABLE().getText());
+		VariableDependencies v = map.outwardsGet(ctx.ident().VARIABLE().getText());
 		if (v != null) {
 			v.notConstant();
 		}
@@ -78,12 +77,43 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 	
 	@Override public WaccParser.ProgramContext visitAssign_lhs_ident(@NotNull WaccParser.Assign_lhs_identContext ctx) {
 		//mark this variable as not constant (re-assigned or read)
-		VariableDependencies v = map.get(ctx.ident().VARIABLE().getText());
+		VariableDependencies v = map.outwardsGet(ctx.ident().VARIABLE().getText())
 		if (v != null) {
 			v.notConstant();
 		}
+
 		return visitChildren(ctx); }
-	
+
+	// --- visits that involve scope --- //
+	@Override public WaccParser.ProgramContext visitStat_begin_end(@NotNull WaccParser.Stat_begin_endContext ctx) {
+		List<VariableDependencies> encVars = vars;
+		map = new ScopeMap<>(map);
+		//Set<String> encReAssign = reassignedInScope;
+		vars = new LinkedList<VariableDependencies>();
+		//reassignedInScope = new HashSet<>();
+
+		WaccParser.ProgramContext output = visitChildren(ctx);
+		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+
+		vars = encVars;
+		map  = map.getEnc();
+		//Set<String> carrys = updateReAssignInScope(reassignedInScope);
+		//reassignedInScope = encReAssign;
+		//if(reassignedInScope != null) reassignedInScope.addAll(carrys);
+		return output;
+	}
+
+
+	@Override public WaccParser.ProgramContext visitStat_if(@NotNull WaccParser.Stat_ifContext ctx) { return visitChildren(ctx); }
+	@Override public WaccParser.ProgramContext visitStat_while(@NotNull WaccParser.Stat_whileContext ctx) { return visitChildren(ctx); }
+
+
+	@Override public WaccParser.ProgramContext visitLayer_s_s(@NotNull WaccParser.Layer_s_sContext ctx) { return visitChildren(ctx); }
+	@Override public WaccParser.ProgramContext visitLayer_i_i(@NotNull WaccParser.Layer_i_iContext ctx) { return visitChildren(ctx); }
+	@Override public WaccParser.ProgramContext visitLayer_i_s(@NotNull WaccParser.Layer_i_sContext ctx) { return visitChildren(ctx); }
+	@Override public WaccParser.ProgramContext visitLayer_s_i(@NotNull WaccParser.Layer_s_iContext ctx) { return visitChildren(ctx); }
+	// --------------------------------- //
+
 	private void optimiseConstants() {
 		for (VariableDependencies v : vars) {
 			if (v.isConstant()) {
@@ -155,4 +185,18 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		return b;
 	}
 
+	/*
+	private Set<String> updateReAssignInScope(Set<String> varsReAssignedInScope){
+		Set<String> varsNotFound = new HashSet<>();
+		for(String id : varsReAssignedInScope){
+			VariableDependencies v = map.get(id);
+			if (v != null) {
+				v.notConstant();
+			}else{
+				varsNotFound.add(id);
+			}
+		}
+		return varsNotFound;
+	}
+	*/
 }

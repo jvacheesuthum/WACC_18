@@ -64,7 +64,7 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
     	  if (prints) System.out.println("var already declared: " + ctx.ident().getText());
       	  System.exit(200);
       }
-      if (!ctx.ident().constant) {
+	if (!ctx.ident().constant) {
       VARIABLE var = new VARIABLE(rhs.typename);
       currentTable.add(ctx.ident().getText(), var);
       int i = typeSize(ctx.type().typename);
@@ -86,7 +86,7 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
     	  newpairs++;
     	  System.out.println("LHS IS NULL RHS IS PAIRR");
       }
-      }
+	}
   	// constant optimisation. variables that are constant will not be declared.
   	if (ctx.ident().constant) {
 		// restore previous list, throw away any declarations
