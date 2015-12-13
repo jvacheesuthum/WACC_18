@@ -30,9 +30,7 @@ import antlr.WaccParserBaseVisitor;
 public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramContext> {
 	
 	private List<VariableDependencies> vars = new LinkedList<VariableDependencies>();
-	//private Map<String, VariableDependencies> map = new HashMap<String, VariableDependencies>();
 	private ScopeMap<String, VariableDependencies> map = new ScopeMap<>(null);
-	//private Set<String> reassignedInScope;
 
 	@Override public WaccParser.ProgramContext visitProgram(@NotNull WaccParser.ProgramContext ctx) { 
 		visitChildren(ctx);
@@ -88,18 +86,13 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 	@Override public WaccParser.ProgramContext visitStat_begin_end(@NotNull WaccParser.Stat_begin_endContext ctx) {
 		List<VariableDependencies> encVars = vars;
 		map = new ScopeMap<>(map);
-		//Set<String> encReAssign = reassignedInScope;
 		vars = new LinkedList<VariableDependencies>();
-		//reassignedInScope = new HashSet<>();
 
 		WaccParser.ProgramContext output = visitChildren(ctx);
 		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
 
 		vars = encVars;
 		map  = map.getEnc();
-		//Set<String> carrys = updateReAssignInScope(reassignedInScope);
-		//reassignedInScope = encReAssign;
-		//if(reassignedInScope != null) reassignedInScope.addAll(carrys);
 		return output;
 	}
 
@@ -184,19 +177,5 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		expr.parent = b;
 		return b;
 	}
-
-	/*
-	private Set<String> updateReAssignInScope(Set<String> varsReAssignedInScope){
-		Set<String> varsNotFound = new HashSet<>();
-		for(String id : varsReAssignedInScope){
-			VariableDependencies v = map.get(id);
-			if (v != null) {
-				v.notConstant();
-			}else{
-				varsNotFound.add(id);
-			}
-		}
-		return varsNotFound;
-	}
-	*/
+	
 }
