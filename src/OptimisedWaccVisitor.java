@@ -385,7 +385,7 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 		if (i.type.equals("bool")) {
 			currentList.add(new Instruction("MOV r" + regCount + ", #" + (i.b_value ? 1 : 0) + "\n"));
 		}
-		return null;
+		return i;
 	}
 	
 	@Override public Info visitExpr_bin_bool(@NotNull WaccParser.Expr_bin_boolContext ctx) {
@@ -785,6 +785,30 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 //		currentList.add(new Instruction(Arrays.asList(new StringFragment(( typeSize(ctx.typename) == 1 ? "LDRSB r" : "LDR r") + regCount  + ", [sp"), v, new StringFragment("]\n")), v));
 		currentList.add(ib.instr().ldrsbVarOffset(typeSize(ctx.typename), regCount, ctx.ident().getText(), funcCallOffset).build());
 		return null;
+	}
+	
+	@Override public Info visitAtom_brackets(@NotNull WaccParser.Atom_bracketsContext ctx) {
+		// constant optimisation: brackets will no longer load into reg, tries to give its answer upwards
+		// give dummy list to discard
+		List <Instruction> savedList = currentList;
+		currentList = new LinkedList<Instruction>();
+		Info i = visit(ctx.expr());
+		currentList = savedList;
+		ctx.typename = ctx.expr().typename;
+		if (i != null && i.type != null) {
+			return i;
+		}
+		return (new Info("")).setType("reg");
+	}
+	
+	@Override 
+	public Info visitExpr_int(@NotNull WaccParser.Expr_intContext ctx) { 
+		if (prints) System.out.println("visitExpr_int");
+		Info i = visit(ctx.int_liter());
+		currentList.add(new Instruction("LDR r" + regCount + ", =" + i.int_value + "\n"));
+		ctx.typename = new INT();
+		
+		return i; 
 	}
 
 
