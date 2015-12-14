@@ -75,7 +75,7 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 	
 	@Override public WaccParser.ProgramContext visitAssign_lhs_ident(@NotNull WaccParser.Assign_lhs_identContext ctx) {
 		//mark this variable as not constant (re-assigned or read)
-		VariableDependencies v = map.outwardsGet(ctx.ident().VARIABLE().getText())
+		VariableDependencies v = map.outwardsGet(ctx.ident().VARIABLE().getText());
 		if (v != null) {
 			v.notConstant();
 		}
@@ -88,7 +88,7 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		map = new ScopeMap<>(map);
 		vars = new LinkedList<VariableDependencies>();
 
-		WaccParser.ProgramContext output = visitChildren(ctx);
+		WaccParser.ProgramContext output = visit(ctx.stat());
 		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
 
 		vars = encVars;
@@ -97,14 +97,136 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 	}
 
 
-	@Override public WaccParser.ProgramContext visitStat_if(@NotNull WaccParser.Stat_ifContext ctx) { return visitChildren(ctx); }
-	@Override public WaccParser.ProgramContext visitStat_while(@NotNull WaccParser.Stat_whileContext ctx) { return visitChildren(ctx); }
+	@Override public WaccParser.ProgramContext visitStat_if(@NotNull WaccParser.Stat_ifContext ctx) {
+		visit(ctx.expr());
+
+		List<VariableDependencies> encVars = vars;
+		map = new ScopeMap<>(map);
+		vars = new LinkedList<VariableDependencies>();
+		visit(ctx.stat(0));
+		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		vars = encVars;
+		map  = map.getEnc();
+
+		encVars = vars;
+		map = new ScopeMap<>(map);
+		vars = new LinkedList<VariableDependencies>();
+		visit(ctx.stat(1));
+		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		vars = encVars;
+		map  = map.getEnc();
+
+		return null;
+	}
+	@Override public WaccParser.ProgramContext visitStat_while(@NotNull WaccParser.Stat_whileContext ctx) {
+		visit(ctx.expr());
+
+		List<VariableDependencies> encVars = vars;
+		map = new ScopeMap<>(map);
+		vars = new LinkedList<VariableDependencies>();
+		visit(ctx.stat());
+		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		vars = encVars;
+		map  = map.getEnc();
+
+		return null;
+	}
 
 
-	@Override public WaccParser.ProgramContext visitLayer_s_s(@NotNull WaccParser.Layer_s_sContext ctx) { return visitChildren(ctx); }
-	@Override public WaccParser.ProgramContext visitLayer_i_i(@NotNull WaccParser.Layer_i_iContext ctx) { return visitChildren(ctx); }
-	@Override public WaccParser.ProgramContext visitLayer_i_s(@NotNull WaccParser.Layer_i_sContext ctx) { return visitChildren(ctx); }
-	@Override public WaccParser.ProgramContext visitLayer_s_i(@NotNull WaccParser.Layer_s_iContext ctx) { return visitChildren(ctx); }
+	@Override public WaccParser.ProgramContext visitLayer_s_s(@NotNull WaccParser.Layer_s_sContext ctx) {
+		visit(ctx.expr());
+
+		List<VariableDependencies> encVars = vars;
+		map = new ScopeMap<>(map);
+		vars = new LinkedList<VariableDependencies>();
+		visit(ctx.stat(0));
+		visit(ctx.stat_return(0));
+		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		vars = encVars;
+		map  = map.getEnc();
+
+		encVars = vars;
+		map = new ScopeMap<>(map);
+		vars = new LinkedList<VariableDependencies>();
+		visit(ctx.stat(1));
+		visit(ctx.stat_return(1));
+		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		vars = encVars;
+		map  = map.getEnc();
+
+		return null;
+	}
+
+	@Override public WaccParser.ProgramContext visitLayer_i_i(@NotNull WaccParser.Layer_i_iContext ctx) {
+		visit(ctx.expr());
+
+		List<VariableDependencies> encVars = vars;
+		map = new ScopeMap<>(map);
+		vars = new LinkedList<VariableDependencies>();
+		visit(ctx.stat(0));
+		visit(ctx.if_layers(0));
+		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		vars = encVars;
+		map  = map.getEnc();
+
+		encVars = vars;
+		map = new ScopeMap<>(map);
+		vars = new LinkedList<VariableDependencies>();
+		visit(ctx.stat(1));
+		visit(ctx.if_layers(1));
+		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		vars = encVars;
+		map  = map.getEnc();
+
+		return null;
+	}
+
+	@Override public WaccParser.ProgramContext visitLayer_i_s(@NotNull WaccParser.Layer_i_sContext ctx) {
+		visit(ctx.expr());
+
+		List<VariableDependencies> encVars = vars;
+		map = new ScopeMap<>(map);
+		vars = new LinkedList<VariableDependencies>();
+		visit(ctx.stat(0));
+		visit(ctx.if_layers());
+		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		vars = encVars;
+		map  = map.getEnc();
+
+		encVars = vars;
+		map = new ScopeMap<>(map);
+		vars = new LinkedList<VariableDependencies>();
+		visit(ctx.stat(1));
+		visit(ctx.stat_return());
+		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		vars = encVars;
+		map  = map.getEnc();
+
+		return null;
+	}
+	@Override public WaccParser.ProgramContext visitLayer_s_i(@NotNull WaccParser.Layer_s_iContext ctx) {
+		visit(ctx.expr());
+
+		List<VariableDependencies> encVars = vars;
+		map = new ScopeMap<>(map);
+		vars = new LinkedList<VariableDependencies>();
+		visit(ctx.stat(0));
+		visit(ctx.stat_return());
+		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		vars = encVars;
+		map  = map.getEnc();
+
+		encVars = vars;
+		map = new ScopeMap<>(map);
+		vars = new LinkedList<VariableDependencies>();
+		visit(ctx.stat(1));
+		visit(ctx.if_layers());
+		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		vars = encVars;
+		map  = map.getEnc();
+
+		return null;
+	}
 	// --------------------------------- //
 
 	private void optimiseConstants() {
@@ -177,5 +299,5 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		expr.parent = b;
 		return b;
 	}
-	
+
 }
