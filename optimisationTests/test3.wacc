@@ -1,0 +1,40 @@
+begin 
+int i = 0;
+int j = 0;
+  begin
+    print i;
+    begin
+      int j = 10;
+      i = 1;
+      print i;
+      print j
+    end;
+    print j
+  end
+end
+
+### output ###
+
+# .main
+# PUSH {lr}
+# SUB sp, sp, #4
+# LDR r4, =0
+# STR r4, [sp]
+# LDR r4, [sp, #0]
+# MOV r0, r4
+# BL p_print_int
+# LDR r4, =1
+# STR r4, [sp, #0]
+# LDR r4, [sp, #0]
+# MOV r0, r4
+# BL p_print_int
+# LDR r4, =10
+# MOV r0, r4
+# BL p_print_int
+# LDR r4, =0
+# MOV r0, r4
+# BL p_print_int
+# ADD sp, sp, #4
+# LDR r0, =0
+# POP {pc}
+# .ltorg}}

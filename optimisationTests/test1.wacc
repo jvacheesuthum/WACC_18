@@ -1,0 +1,12 @@
+begin
+int x = 1;
+  begin 
+    print x; 
+    int x = 2;
+    print x;
+    int y = x + 1;
+    print y;
+    y = 4
+  end;
+print x
+end
