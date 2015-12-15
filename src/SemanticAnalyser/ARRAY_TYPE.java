@@ -29,4 +29,8 @@ public class ARRAY_TYPE extends EQUALITY{
 		}
 		return false;
 	}
+
+	public String toString(){
+		return type.toString() + "[]";
+	}
 }

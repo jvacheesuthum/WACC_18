@@ -1,0 +1,20 @@
+# begin
+#   int f(pair(pair, int) p) is
+#   return 1
+#   end
+#   int f(pair(int[], int) p ) is
+#   return 2
+#   end
+# skip
+# end
+
+begin
+  int f(pair(int, int) p) is
+    return 1
+  end
+  int f(pair(pair,char) p) is
+    return 1
+  end
+pair(int,int) x = newpair(1,2);
+int a = call f(x)
+end

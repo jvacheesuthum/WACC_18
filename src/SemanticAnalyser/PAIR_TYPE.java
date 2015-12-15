@@ -48,4 +48,8 @@ public class PAIR_TYPE extends EQUALITY {
 		}
 		return false;
 	}
+
+	public String toString(){
+		return "(" + t1.toString() + "," + t2.toString() + ")";
+	}
 }

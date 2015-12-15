@@ -200,8 +200,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     public Info visitFunc_standard(@NotNull WaccParser.Func_standardContext ctx) {
 		// backend: currentList is set to functList at visitProgram
 		if (prints) System.out.println("visitFunc_std");
-		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
-		if(((FUNCTION) id).symtab != null) System.exit(200);
+		///IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
+		///if(((FUNCTION) id).symtab != null) System.exit(200);
 
 		visit(ctx.type());
 
@@ -211,14 +211,15 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 
 		ctx.funObj = new FUNCTION(returntypename);
-		currentTable.funcadd(ctx.ident().getText(), ctx.funObj);
+		///currentTable.funcadd(ctx.ident().getText(), ctx.funObj);
 		ctx.funObj.symtab = newST;
 		currentTable = newST;
 
-
+		String paramTypesString = "";
 		if(ctx.param_list() != null){
 
-			visit(ctx.param_list());
+			Info paramlistTypes = visit(ctx.param_list());
+			paramTypesString = paramlistTypes.type;
 
 			List <ParamContext> params = ctx.param_list().param();
 			for(ParamContext p : params){
@@ -227,6 +228,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			if (prints) System.out.println("Before stat");
 		}
 
+		// overloading func: after visiting paramlist, then addfunc (id + types) to the table //
+		// since we are in symtab of this function, we need to look up all from the encSymtab
+		String funcNameWithTypes = ctx.ident().getText() + paramTypesString;
+		IDENTIFIER id = currentTable.encSymTable.lookupAllFunc(funcNameWithTypes);
+		//System.out.println(id);
+		if(((FUNCTION) id).symtab != null) System.exit(200);
+		currentTable.encSymTable.funcadd(funcNameWithTypes, ctx.funObj);
 
 		if (!(ctx.stat() == null)){
 			visit(ctx.stat());
@@ -234,7 +242,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		visit(ctx.stat_return());
 
 		//backend
-		wrapFunctInstr(ctx.ident().getText());
+		wrapFunctInstr(funcNameWithTypes);
 		//
 
 		if(!SharedMethods.assignCompat(ctx.stat_return().typename, returntypename)) {
@@ -292,8 +300,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     public Info visitFunc_if(@NotNull WaccParser.Func_ifContext ctx) {
 		//currentList is now set to functList by visitProgram
     	if (prints) System.out.println("visitFunc_if");
-		IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
-		if(((FUNCTION) id).symtab != null) System.exit(200);
+		///IDENTIFIER id = currentTable.lookupAllFunc(ctx.ident().getText());
+		///if(((FUNCTION) id).symtab != null) System.exit(200);
 
 		visit(ctx.type());
 
@@ -304,13 +312,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 
 		ctx.funObj = new FUNCTION(returntypename);
-		currentTable.funcadd(ctx.ident().getText(), ctx.funObj);
+		///currentTable.funcadd(ctx.ident().getText(), ctx.funObj);
 		ctx.funObj.symtab = newST;
 		currentTable = newST;
-		
-		if(ctx.param_list() != null){
 
-			visit(ctx.param_list());
+		String paramTypesString = "";
+		if(ctx.param_list() != null){
+			Info paramlistTypes = visit(ctx.param_list());
+			paramTypesString = paramlistTypes.type;
 
 			List <ParamContext> params = ctx.param_list().param();
 			for(ParamContext p : params){
@@ -318,6 +327,13 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			}
 			if (prints) System.out.println("Before stat");
 		}
+
+		// overloading func: after visiting paramlist, then addfunc (id + types) to the table //
+		// since we are in symtab of this function, we need to look up all from the encSymtab
+		String funcNameWithTypes = ctx.ident().getText() + paramTypesString;
+		IDENTIFIER id = currentTable.encSymTable.lookupAllFunc(funcNameWithTypes);
+		if(((FUNCTION) id).symtab != null) System.exit(200);
+		currentTable.encSymTable.funcadd(funcNameWithTypes, ctx.funObj);
 		
 		if (ctx.stat() != null) {
 			visit(ctx.stat());
@@ -325,7 +341,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		visit(ctx.if_layers());
 
 		//backend
-		wrapFunctInstr(ctx.ident().getText());
+		wrapFunctInstr(funcNameWithTypes);
 		//
 		
 		if (!SharedMethods.assignCompat(ctx.if_layers().typename, returntypename)){
@@ -842,20 +858,34 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 	@Override public Info visitAssign_rhs_call(@NotNull WaccParser.Assign_rhs_callContext ctx) {
     	if (prints) System.out.println("visitAssign_rhs_call");
-		String funcname = ctx.ident().getText();
 		List<ExprContext> actuals = ctx.arg_list().expr();
 
+		//ofV func overload: create a dummy list
+		List<Instruction> realList = currentList;
+		List<Instruction> dummyList = new ArrayList<Instruction>();
+		currentList = dummyList;
+		// visit all parameters (exprs)
+		String listTypesString = "";
+		for (ExprContext each : actuals){
+			listTypesString += "_" + visit(each).type;
+		}
+		currentList = realList;
+		// ofV func overload: discard dummy list
+		System.out.println(listTypesString);
+		String funcname = ctx.ident().getText() + listTypesString;
+		System.out.println(funcname);
 		IDENTIFIER F = currentTable.lookupAllFunc(funcname);
 
 		if (F == null) {
-
+			System.out.print("111");
         	System.exit(200);
 		}
 		if (!(F instanceof FUNCTION)) {
-        	System.exit(200); 
+			System.out.print("222");
+			System.exit(200);
 		}
 		if (((FUNCTION) F).formals.size() != actuals.size()) {
-
+			System.out.print("333");
         	System.exit(200);//throw new Error ("wrong number of parameters");
 		}
 
@@ -880,7 +910,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		FUNCTION fun = (FUNCTION) F;
 		ctx.typename = fun.returntype;
 
-		currentList.add(new Instruction("BL f_" + ctx.ident().getText() + "\n"));
+		currentList.add(new Instruction("BL f_" + funcname + "\n"));
 		currentList.add(new Instruction("ADD sp, sp, #"+ argSizeCount + "\n"));
 		currentList.add(new Instruction("MOV r" + regCount + ", r0\n"));
 		//
@@ -1395,6 +1425,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if(id instanceof VARIABLE){
 			ctx.typename = ((VARIABLE) id).TYPE();
 		}
+		System.out.println("here");
 		return new Info(ctx.getText());
 	
 	}
@@ -1824,35 +1855,37 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 				if (prints) System.out.println("IDENT: " + f.ident().getText());
 				visit(f.type());
 				FUNCTION newFunc = new FUNCTION(f.type().typename);
+				String paramTypesString = "";
 				if(f.param_list() != null){
 					currentTable = new SymbolTable(currentTable);
-					visit(f.param_list());
+					Info paramListInfo = visit(f.param_list());
+					paramTypesString = paramListInfo.type;
 					currentTable = currentTable.encSymTable;
 					
 					List <ParamContext> params = f.param_list().param();
 					for(ParamContext p : params){
 						newFunc.formals.add(p.paramObj);
 					}
-				} 
-
-				currentTable.funcadd(f.ident().getText(), newFunc);
+				}
+				currentTable.funcadd(f.ident().getText() + paramTypesString, newFunc);
 			} catch (ClassCastException e) {
 				Func_ifContext f = (Func_ifContext) func;currentTable = new SymbolTable(currentTable);
 				if (prints) System.out.println("IDENT: " + f.ident().getText());
 				visit(f.type());
 				FUNCTION newFunc = new FUNCTION(f.type().typename);
+				String paramTypesString = "";
 				if(f.param_list() != null){
 					currentTable = new SymbolTable(currentTable);
-					visit(f.param_list());
+					Info paramListInfo = visit(f.param_list());
+					paramTypesString = paramListInfo.type;
 					currentTable = currentTable.encSymTable;
 					
 					List <ParamContext> params = f.param_list().param();
 					for(ParamContext p : params){
 						newFunc.formals.add(p.paramObj);
 					}
-				} 
-
-				currentTable.funcadd(f.ident().getText(), newFunc);
+				}
+				currentTable.funcadd(f.ident().getText() + paramTypesString, newFunc);
 			}
 			
 
@@ -2111,8 +2144,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		Info i = visit(ctx.int_liter());
 		currentList.add(new Instruction("LDR r" + regCount + ", =" + i.int_value + "\n"));
 		ctx.typename = new INT();
-		
-		return null; 
+
+		return new Info("argument").setType(ctx.typename.toString());
 	}
 	
 	@Override 
@@ -2127,8 +2160,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (!(controlFlowTrue || controlFlowFalse)) {
 			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
 		}
-		
-		return null; 
+
+		return new Info("argument").setType(ctx.typename.toString());
 	}
 	
 	@Override 
@@ -2158,7 +2191,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //		currentList.add(new Instruction("MOV r" + regCount +", #" + ctx.char_liter().CHARACTER().getText() + "\n"));
 			currentList.add(new Instruction("MOV r" + regCount +", #" + text + "\n"));
 		}
-		return null; 
+		return new Info("argument").setType(ctx.typename.toString());
 	}
 	
 	@Override 
@@ -2171,7 +2204,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		header.add(new Instruction("msg_" + msgCount + ":\n.word " + (s.length()-2-count) + "\n.ascii " + s + "\n"));
 		currentList.add(new Instruction("LDR r"+ regCount + ", =msg_" + msgCount + "\n"));
 		msgCount++;
-		return null;
+		return new Info("argument").setType(ctx.typename.toString());
 	}
 	
 	@Override public Info visitExpr_ident(@NotNull WaccParser.Expr_identContext ctx) {
@@ -2190,18 +2223,18 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		// do we have static variabsle in Wacc language. ^this would not support static var usage in stat in function declaration
 
 
-		System.out.println("!!!!!!!!!!!!!" + ctx.ident().getText() + "//funcOffset: " + funcCallOffset);
+		//System.out.println("!!!!!!!!!!!!!" + ctx.ident().getText() + "//funcOffset: " + funcCallOffset);
 //		VariableFragment v = new VariableFragment(ctx.ident().getText(), funcCallOffset);
 		//CHECK : bug in functionmanyarguments.wacc -> ref compiler line 122
 //		currentList.add(new Instruction(Arrays.asList(new StringFragment(( typeSize(ctx.typename) == 1 ? "LDRSB r" : "LDR r") + regCount  + ", [sp"), v, new StringFragment("]\n")), v));
 		currentList.add(ib.instr().ldrsbVarOffset(typeSize(ctx.typename), regCount, ctx.ident().getText(), funcCallOffset).build());
-		return null;
+		return new Info("argument").setType(ctx.typename.toString());
 	}
 	
 	@Override public Info visitExpr_pair(@NotNull WaccParser.Expr_pairContext ctx) { 
 		ctx.typename = new PAIR_TYPE();
-		
-		return null;
+
+		return new Info("argument").setType(ctx.typename.toString());
 	}
 	
 	@Override public Info visitExpr_array_elem(@NotNull WaccParser.Expr_array_elemContext ctx) {
@@ -2266,15 +2299,15 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	regCount--;
 		//add error msg
     	err.pArray();
-		
-		return null;
+
+		return new Info("argument").setType(ctx.typename.toString());
 	}
 	
 	@Override public Info visitExpr_binary(@NotNull WaccParser.Expr_binaryContext ctx) { 
 		if (prints) System.out.println("visitExpr_binary");
 		visit(ctx.bin_bool());
 		ctx.typename = ctx.bin_bool().returntype;
-		return null;
+		return new Info("argument").setType(ctx.typename.toString());
 	}
 	
 	@Override public Info visitExpr_bin_bool(@NotNull WaccParser.Expr_bin_boolContext ctx) {
@@ -2879,7 +2912,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 	
 		ctx.typename = ctx.unary_oper().returntype;
-		return null;
+		return new Info("argument").setType(ctx.typename.toString());
 	}
 	
 	@Override public Info visitUnary_not(@NotNull WaccParser.Unary_notContext ctx) { 
@@ -2917,7 +2950,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		if (prints) System.out.println("Unary_brackets");
 		visit(ctx.expr());
 		ctx.typename = ctx.expr().typename;
-		return null;
+		return new Info("argument").setType(ctx.typename.toString());
 	}
 	
 	private boolean isAnum(String s) {

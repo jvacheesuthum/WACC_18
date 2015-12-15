@@ -1,6 +1,27 @@
 begin
-  int f(int x, int x) is
-    return 1
+  int f(int[][] x, int y) is
+    int z = call f('a', y);
+    return z
+  end
+  int f(char x, int y) is
+    return 2
   end
 skip
 end
+
+# begin 
+#   int f(int x) is
+#   return x
+#   end
+#   char f(char a) is
+#   return a
+#   end
+#   int f(int[] x, int y, int[][] z) is
+#   return x[2]
+#   end
+# int r = call f(1);
+# char r1 = call f('a');
+# int[] a = [1,2];
+# int[][] b = [a];
+# int r2 = call f(a, a[1], b)
+# end
