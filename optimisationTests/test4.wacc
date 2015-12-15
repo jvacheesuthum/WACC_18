@@ -1,0 +1,35 @@
+begin
+  int i = 0;
+    begin
+      int i = 1;
+        begin 
+          i = 2;
+          print i
+        end;
+      print i
+    end;
+  print i
+end
+
+### output ###
+
+# main:
+# PUSH {lr}
+# SUB sp, sp, #4
+# LDR r4, =1
+# STR r4, [sp]
+# LDR r4, =2
+# STR r4, [sp, #0]
+# LDR r4, [sp, #0]
+# MOV r0, r4
+# BL p_print_int
+# LDR r4, [sp, #0]
+# MOV r0, r4
+# BL p_print_int
+# ADD sp, sp, #4
+# LDR r4, =0
+# MOV r0, r4
+# BL p_print_int
+# LDR r0, =0
+# POP {pc}
+# .ltorg

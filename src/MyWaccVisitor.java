@@ -41,21 +41,21 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 
 	Map<String, Integer> paramOffsetMap = new HashMap<String, Integer>();
-	private Integer paramSizeCount = -999;
+	Integer paramSizeCount = -999;
 
 	protected int ifCount = -1;
 
 	protected int whileCount = -1;
 
-	private boolean fstVisited = false ;
+	boolean fstVisited = false ;
 	
 	boolean prints = true;
-	private final String filename;
+	final String filename;
 
 	int funcCallOffset = 0;
 
-	private int freepairs = 0;
-	private int newpairs = 0;
+	int freepairs = 0;
+	int newpairs = 0;
 
 	private boolean controlFlowTrue = false;
 
@@ -1351,7 +1351,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
     	whileCount++;
     	Instruction BLOinstr = new Instruction("B LW" + (whileCount * 2) + "\n");
     	currentList.add(BLOinstr);
-
     	currentList.add(new Instruction("LW" + ((whileCount * 2) + 1) + ":\n"));
     	int encStackTotal = stackTotal;
 //    	List<Instruction> encWhileList = new ArrayList<Instruction>();
@@ -1408,7 +1407,6 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			System.out.print("if condition is not of type bool");
 			System.exit(200);
 		}
-		
 		return null; 
 	}
 	
