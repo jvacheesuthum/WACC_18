@@ -13,6 +13,8 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 //import sun.jvm.hotspot.debugger.cdbg.Sym;
 
 
+
+
 import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
@@ -41,19 +43,25 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	Map<String, Integer> paramOffsetMap = new HashMap<String, Integer>();
 	private Integer paramSizeCount = -999;
 
-	private int ifCount = -1;
+	protected int ifCount = -1;
 
-	private int whileCount = -1;
+	protected int whileCount = -1;
 
 	private boolean fstVisited = false ;
 	
-	boolean prints = false;
+	boolean prints = true;
 	private final String filename;
 
 	int funcCallOffset = 0;
 
 	private int freepairs = 0;
 	private int newpairs = 0;
+
+	private boolean controlFlowTrue = false;
+
+	private boolean controlFlowFalse = false;
+
+	protected boolean infiniteLoop = false;
 
 
 	public MyWaccVisitor(String filename) {
@@ -929,14 +937,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		return null;
 	}
 
-	@Override public Info visitStat_if(@NotNull WaccParser.Stat_ifContext ctx) {
+	/*@Override public Info visitStat_if(@NotNull WaccParser.Stat_ifContext ctx) {
 		//backend
 		ifCount++ ;
 		//
 
     	if (prints) System.out.println("visitStat_if");
 		visit(ctx.expr());
-		if (prints) System.out.println("expr = "+ ctx.expr().toString());
+		if (prints) System.out.println("expr = "+ ctx.expr().getText());
 
 		//backend - after visit expr
 		int currentIfLable = ifCount * 2;
@@ -1055,6 +1063,170 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		//
 
 		ctx.typename = ctx.stat(0).typename;
+		return null;
+	}*/
+	@Override public Info visitStat_if(@NotNull WaccParser.Stat_ifContext ctx) {
+		//backend
+		ifCount++ ;
+		//
+		//EXTENSION - short circuiting
+		if (ctx.expr().getText().equals(new String("true"))) {
+			if (prints) System.out.println("control flow true");
+			controlFlowTrue = true;
+		}
+		
+		if (ctx.expr().getText().equals(new String("false"))) {
+			if (prints) System.out.println("control flow false");
+			controlFlowFalse = true;
+		}
+
+    	if (prints) System.out.println("visitStat_if");
+		visit(ctx.expr());
+		if (prints) System.out.println("expr = "+ ctx.expr().getText());
+		
+		
+		
+		
+		
+		//---------------------------------------------------
+
+		//backend - after visit expr
+		int currentIfLable = ifCount * 2;
+		
+		if (!(controlFlowTrue || controlFlowFalse)) { //no control flow breaks
+			currentList.add(new Instruction("CMP r" + regCount + ", #0\n"));
+			currentList.add(new Instruction("BEQ L" + (currentIfLable) + "\n"));
+		}
+		//
+
+		if(!(SharedMethods.assignCompat(ctx.expr().typename, new BOOL()))){
+			System.out.print("if condition is not of type bool");
+			System.exit(200);
+		}
+
+		//backend - before visit then-stat
+		int encStackCount = stackTotal;
+		stackTotal = 0;
+		Map<String, Integer> encStackMap = currentStackMap;
+		Map<String,Integer> scopedStackMap = new HashMap<>();
+		currentStackMap = scopedStackMap;
+		List<Instruction> encInstr = currentList;
+		List<Instruction> scopedInstr = new ArrayList<Instruction>();
+		currentList = scopedInstr;
+		//
+
+		currentTable = new SymbolTable(currentTable);
+		visit(ctx.stat(0));
+		currentTable = currentTable.encSymTable;
+
+		//backend - after visit first stat
+		//locating variables from outer scope correctly when there is a change in stack pointer
+		int hasDeclared = stackTotal;
+		currentStackMap.put("total", stackTotal);
+
+		
+		for(Instruction instr: currentList) {
+			//if (instr.isScoped()){
+			//	instr.addScopeDepth(hasDeclared);
+			//}
+			if (instr instanceof Instruction_Return){
+				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
+				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
+			}
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
+			}
+			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
+				// variable total is propagated up the if scopes
+				instr.varsToPos(currentStackMap, hasDeclared);
+			}
+		}
+		
+
+			//adding to encInstrList
+			if(hasDeclared > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclared + "\n"));
+			
+			if (!controlFlowFalse) { //the expr is true and we dont need the if then part
+				for(Instruction in : currentList){
+					//for newly created scopedInstruction
+					if(in.isScoped() && (in.scopeDepth() == 0)) in.addScopeDepth(hasDeclared);
+					encInstr.add(in);
+				}
+			}
+			
+			if(hasDeclared > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclared + "\n"));
+			currentList = encInstr;
+			currentStackMap = encStackMap;
+			stackTotal = encStackCount;
+		
+
+		if (!(controlFlowTrue || controlFlowFalse)) {
+			currentList.add(new Instruction("B L" + (currentIfLable+1) + "\n"));
+		
+
+		//backend - before visit else-stat
+		
+		currentList.add(new Instruction("L"+ currentIfLable +":\n"));
+		}
+		encStackCount = stackTotal;
+		stackTotal = 0;
+		encStackMap = currentStackMap;
+		scopedStackMap = new HashMap<>();
+		currentStackMap = scopedStackMap;
+		encInstr = currentList;
+		scopedInstr = new ArrayList<Instruction>();
+		currentList = scopedInstr;
+		//
+
+
+		currentTable = new SymbolTable(currentTable);
+		visit(ctx.stat(1));
+		currentTable = currentTable.encSymTable;
+
+		//backend - after visit else-stat
+		//locating variables from outer scope correctly when there is a change in stack pointer
+
+		hasDeclared = stackTotal;
+		currentStackMap.put("total", stackTotal);
+		for(Instruction instr: currentList) {
+			//if (instr.isScoped()){
+			//	instr.addScopeDepth(hasDeclared);
+			//}
+			if (instr instanceof Instruction_Return){
+				// to add to stackCount and propagate the instruction up 1 layer, to keep accumulating stackCount to do ADD sp sp correctly
+				((Instruction_Return) instr).addStackCount(currentStackMap.get("total"));
+			}
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
+			}
+			if (instr.needsVarPos() && !(instr instanceof Instruction_Return)) {
+				instr.varsToPos(currentStackMap, hasDeclared);
+			}
+		}
+		
+		if (!controlFlowTrue) { //expr is true so no need else branch
+			//adding to encInstrList
+			if(hasDeclared > 0) encInstr.add(new Instruction("SUB sp, sp, #" + hasDeclared + "\n"));
+			for(Instruction in : currentList){
+				//for newly created scopedInstruction
+				if(in.isScoped() && (in.scopeDepth() == 0)) in.addScopeDepth(hasDeclared);
+				encInstr.add(in);
+			}
+		}
+			if(hasDeclared > 0) encInstr.add(new Instruction("ADD sp, sp, #" + hasDeclared + "\n"));
+			currentList = encInstr;
+			currentStackMap = encStackMap;
+			stackTotal = encStackCount;
+		
+		if (!(controlFlowTrue || controlFlowFalse)) {
+			currentList.add(new Instruction("L"+ (currentIfLable+1) +":\n"));
+		}
+		//
+
+		ctx.typename = ctx.stat(0).typename;
+		controlFlowTrue = false;
+		controlFlowFalse = false;
+
 		return null;
 	}
 
@@ -1201,7 +1373,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		
 		return null; 
 	}
-
+	
+	
 
 	@Override public Info visitIdent(@NotNull WaccParser.IdentContext ctx) {
 
@@ -1739,6 +1912,14 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //			} 
 		}
 		currentList.add(new Instruction("LDR r0, =0\nPOP {pc}\n.ltorg\n"));
+		
+		//extension - control flow analysis for while
+		if (infiniteLoop) {
+			System.out.println("infinite loop");
+			currentList.remove(currentList.size() - 1);
+			currentList.remove(currentList.size() - 1);
+
+		}
 		instrList = Optimise.loadAndStore(instrList, currentStackMap, stackTotal);
 		for(Instruction instr: instrList) {
 //			if (instr.toDeclare()) {
@@ -1935,8 +2116,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			i = 1;
 		}
 
-		currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
-
+		if (!(controlFlowTrue || controlFlowFalse)) {
+			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
+		}
+		
 		return null; 
 	}
 	
