@@ -31,6 +31,10 @@ public class ARRAY_TYPE extends EQUALITY{
 	}
 
 	public String toString(){
+		System.out.print(type);
+		if(type == null){
+			return "emptyAr";
+		}
 		return type.toString() + "Ar";
 	}
 }

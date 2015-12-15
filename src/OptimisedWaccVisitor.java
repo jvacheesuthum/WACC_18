@@ -297,7 +297,6 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 			currentList.add(new Instruction("LDR r" + regCount + ", =" + i.int_value + "\n"));
 		} 
 		if (i.type.equals("bool")) {
-			System.out.println("ddddk");
 			currentList.add(new Instruction("MOV r" + regCount + ", #" + (i.b_value ? 1 : 0) + "\n"));
 		}
 		return null;
