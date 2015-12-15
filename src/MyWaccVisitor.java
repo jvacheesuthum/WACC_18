@@ -925,7 +925,12 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 
 		String param_name = ctx.ident().getText();
 		PARAM p = new PARAM(ctx.type().typename);
-		currentTable.add(param_name, p);
+		if(currentTable.lookup(param_name) == null){
+			currentTable.add(param_name, p);
+		}else{
+			System.out.println("parameters have same name : " + param_name );
+			System.exit(200);
+		}
 		ctx.paramObj = p;
 
 		//backend
