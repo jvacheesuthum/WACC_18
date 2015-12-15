@@ -868,8 +868,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		// visit all parameters (exprs)
 		String listTypesString = "";
 		for (ExprContext each : actuals){
-			Info i = visit(each);
-			listTypesString += "_" + i.type;
+			visit(each);
+			String exprType = each.typename.toString();
+			listTypesString += "_" + exprType;
 		}
 		currentList = realList;
 		// ofV func overload: discard dummy list
@@ -2147,7 +2148,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		currentList.add(new Instruction("LDR r" + regCount + ", =" + i.int_value + "\n"));
 		ctx.typename = new INT();
 
-		return new Info("argument").setType(ctx.typename.toString());
+		//return new Info("argument").setType(ctx.typename.toString());
+		return null;
 	}
 	
 	@Override 
@@ -2163,7 +2165,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
 		}
 
-		return new Info("argument").setType(ctx.typename.toString());
+		//return new Info("argument").setType(ctx.typename.toString());
+		return null;
 	}
 	
 	@Override 
@@ -2193,7 +2196,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 //		currentList.add(new Instruction("MOV r" + regCount +", #" + ctx.char_liter().CHARACTER().getText() + "\n"));
 			currentList.add(new Instruction("MOV r" + regCount +", #" + text + "\n"));
 		}
-		return new Info("argument").setType(ctx.typename.toString());
+		//return new Info("argument").setType(ctx.typename.toString());
+		return null;
 	}
 	
 	@Override 
@@ -2206,7 +2210,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		header.add(new Instruction("msg_" + msgCount + ":\n.word " + (s.length()-2-count) + "\n.ascii " + s + "\n"));
 		currentList.add(new Instruction("LDR r"+ regCount + ", =msg_" + msgCount + "\n"));
 		msgCount++;
-		return new Info("argument").setType(ctx.typename.toString());
+		//return new Info("argument").setType(ctx.typename.toString());
+		return null;
 	}
 	
 	@Override public Info visitExpr_ident(@NotNull WaccParser.Expr_identContext ctx) {
@@ -2230,13 +2235,15 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		//CHECK : bug in functionmanyarguments.wacc -> ref compiler line 122
 //		currentList.add(new Instruction(Arrays.asList(new StringFragment(( typeSize(ctx.typename) == 1 ? "LDRSB r" : "LDR r") + regCount  + ", [sp"), v, new StringFragment("]\n")), v));
 		currentList.add(ib.instr().ldrsbVarOffset(typeSize(ctx.typename), regCount, ctx.ident().getText(), funcCallOffset).build());
-		return new Info("argument").setType(ctx.typename.toString());
+		//return new Info("argument").setType(ctx.typename.toString());
+		return null;
 	}
 	
 	@Override public Info visitExpr_pair(@NotNull WaccParser.Expr_pairContext ctx) { 
 		ctx.typename = new PAIR_TYPE();
 
-		return new Info("argument").setType(ctx.typename.toString());
+		//return new Info("argument").setType(ctx.typename.toString());
+		return null;
 	}
 	
 	@Override public Info visitExpr_array_elem(@NotNull WaccParser.Expr_array_elemContext ctx) {
@@ -2302,14 +2309,16 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		//add error msg
     	err.pArray();
 
-		return new Info("argument").setType(ctx.typename.toString());
+		//return new Info("argument").setType(ctx.typename.toString());
+		return null;
 	}
 	
 	@Override public Info visitExpr_binary(@NotNull WaccParser.Expr_binaryContext ctx) {
 		if (prints) System.out.println("visitExpr_binary");
 		visit(ctx.bin_bool());
 		ctx.typename = ctx.bin_bool().returntype;
-		return new Info("argument").setType(ctx.typename.toString());
+		//return new Info("argument").setType(ctx.typename.toString());
+		return null;
 	}
 	
 	@Override public Info visitExpr_bin_bool(@NotNull WaccParser.Expr_bin_boolContext ctx) {
@@ -2914,7 +2923,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		}
 	
 		ctx.typename = ctx.unary_oper().returntype;
-		return new Info("argument").setType(ctx.typename.toString());
+		//return new Info("argument").setType(ctx.typename.toString());
+		return null;
 	}
 	
 	@Override public Info visitUnary_not(@NotNull WaccParser.Unary_notContext ctx) { 

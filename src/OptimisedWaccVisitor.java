@@ -220,6 +220,7 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 		
 		// Constant Evaluation
 		if (one.type.equals("int") && two.type.equals("int")) {
+			System.out.println("gere");
 			int constant = doMath((ctx.PLUS() != null)? "plus" : "minus", one.int_value, two.int_value);
 			return new Info(constant);
 		}
@@ -296,9 +297,11 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 			currentList.add(new Instruction("LDR r" + regCount + ", =" + i.int_value + "\n"));
 		} 
 		if (i.type.equals("bool")) {
+			System.out.println("ddddk");
 			currentList.add(new Instruction("MOV r" + regCount + ", #" + (i.b_value ? 1 : 0) + "\n"));
 		}
-		return new Info("argument").setType(ctx.typename.toString());
+		return null;
+		//return new Info("argument").setType(ctx.typename.toString());
 	}
 	
 	@Override public Info visitExpr_bin_bool(@NotNull WaccParser.Expr_bin_boolContext ctx) {
