@@ -226,7 +226,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			}
 			if (prints) System.out.println("Before stat");
 		}
-			
+
 
 		if (!(ctx.stat() == null)){
 			visit(ctx.stat());
@@ -934,7 +934,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		paramSizeCount += param_size;
 		//
 
-		return null;
+		return new Info("param").setType(ctx.type().typename.toString());
 	}
 
 	/*@Override public Info visitStat_if(@NotNull WaccParser.Stat_ifContext ctx) {
@@ -1695,12 +1695,15 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		//backend
 		paramSizeCount = 4;
 		//
+
+		String typeList = "";
 		List<ParamContext> pctx = ctx.param();
 		for (ParamContext p : pctx){
-			visit(p);
+			Info x = visit(p);
+			typeList += "_" + x.type;
 		}
 
-		return null;
+		return new Info("paramList").setType(typeList);
 	}
 
 	@Override public Info visitStat_begin_end(@NotNull WaccParser.Stat_begin_endContext ctx) {
