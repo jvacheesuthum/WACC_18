@@ -234,6 +234,8 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 			if (v.isConstant()) {
 				// get the constant expr of variable
 				WaccParser.Assign_rhs_exprContext expr = (WaccParser.Assign_rhs_exprContext) v.getDeclare().assign_rhs();
+				System.out.println("im here");
+				if (expr.expr() == null) {System.out.println("expr is null");}
 				// replace all occurrences of variable with the constant expr
 				for (WaccParser.Expr_identContext e : v.getExprs()) {
 					//e.copyFrom(createEBrackets(expr.expr()));

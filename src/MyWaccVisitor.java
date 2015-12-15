@@ -57,9 +57,9 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	int freepairs = 0;
 	int newpairs = 0;
 
-	private boolean controlFlowTrue = false;
+	protected boolean controlFlowTrue = false;
 
-	private boolean controlFlowFalse = false;
+	protected boolean controlFlowFalse = false;
 
 	protected boolean infiniteLoop = false;
 

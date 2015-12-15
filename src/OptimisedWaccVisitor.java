@@ -652,6 +652,8 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 			regCount ++;
 			System.out.println("6");
 		}
+		System.out.println("one is " + one.type);
+		System.out.println("two is " + two.type);
 
 		if(ctx.math(0).returntype instanceof PAIR_TYPE || 
 				ctx.math(0).returntype instanceof ARRAY_TYPE ||
@@ -695,6 +697,9 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 			currentList.add(new Instruction("LDR r" + regCount + ", =" + one.int_value + "\n"));
 			regCount ++;
 			System.out.println("1");
+		} else if (one.type.equals("char")) {
+			currentList.add(new Instruction("MOV r" + regCount + ", #" + one.stringinfo + "\n"));
+			regCount ++;
 		} else if (one.type.equals("var")){
 //			VariableFragment v  = new VariableFragment(one.stringinfo, funcCallOffset);
 //			String load = (typeSize(ctx.math(0).returntype) == 4)? "LDR" : "LDRSB";
@@ -707,6 +712,9 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 			currentList.add(new Instruction("LDR r" + regCount + ", =" + two.int_value + "\n"));
 			regCount++;
 			System.out.println("3");
+		} else if (two.type.equals("char")) {
+			currentList.add(new Instruction("MOV r" + regCount + ", #" + two.stringinfo + "\n"));
+			regCount ++;
 		} else if (two.type.equals("var")){
 //			VariableFragment v  = new VariableFragment(two.stringinfo, funcCallOffset);
 //			String load = (typeSize(ctx.math(1).returntype) == 4)? "LDR" : "LDRSB";
@@ -759,6 +767,7 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 	}
 	
 	@Override public Info visitExpr_ident(@NotNull WaccParser.Expr_identContext ctx) {
+		if (prints) System.out.println("visitExpr_ident, maybe constant");
 		// optimisation - check if constant//
 		if (ctx.ident().constant) {
 			Info i = visit(ctx.ident().constantExpr);
@@ -792,14 +801,18 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 	@Override public Info visitAtom_brackets(@NotNull WaccParser.Atom_bracketsContext ctx) {
 		// constant optimisation: brackets will no longer load into reg, tries to give its answer upwards
 		// give dummy list to discard
+		System.out.println("BRACKETS");
 		List <Instruction> savedList = currentList;
 		currentList = new LinkedList<Instruction>();
 		Info i = visit(ctx.expr());
-		currentList = savedList;
 		ctx.typename = ctx.expr().typename;
 		if (i != null && i.type != null) {
+			System.out.println("not null");
+			currentList = savedList;
 			return i;
 		}
+		savedList.addAll(currentList);
+		currentList = savedList;
 		return (new Info("")).setType("reg");
 	}
 	
@@ -811,6 +824,56 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 		ctx.typename = new INT();
 		
 		return i; 
+	}
+	
+	@Override 
+	public Info visitExpr_char(@NotNull WaccParser.Expr_charContext ctx) { 
+		if (prints) System.out.println("visitExpr_char");
+		ctx.typename = new CHAR();
+		String text = ctx.char_liter().CHARACTER().getText();
+		
+		
+
+		if(text.length() > 3) {
+			if(text.charAt(2) == '\'') {
+				currentList.add(new Instruction("MOV r" + regCount +", #" + text + "\n"));
+				return null;
+			}
+			System.out.println(text.length());
+			text = text.replace("\\n", "\n");
+			text = text.replace("\\0", "\0");
+			text = text.replace("\\b", "\b");
+			text = text.replace("\\t", "\t");
+			text = text.replace("\\f", "\f");
+			text = text.replace("\\r", "\"");
+			char c = text.charAt(1);
+			int ascii = (int) c;
+			currentList.add(new Instruction("MOV r" + regCount +", #" + ((ascii > 13)? "\'" + text.charAt(2) + "\'": String.valueOf(ascii)) + "\n"));
+			return new Info((ascii > 13)? "\'" + text.charAt(2) + "\'": String.valueOf(ascii)).setType("char");
+		} else {
+//		currentList.add(new Instruction("MOV r" + regCount +", #" + ctx.char_liter().CHARACTER().getText() + "\n"));
+			currentList.add(new Instruction("MOV r" + regCount +", #" + text + "\n"));
+			return new Info(text).setType("char");
+		}
+		//return new Info("argument").setType(ctx.typename.toString());
+		//return null;
+	}
+	
+	@Override 
+	public Info visitExpr_bool(@NotNull WaccParser.Expr_boolContext ctx) {
+		if (prints) System.out.println("visitExpr_bool");
+		ctx.typename = new BOOL();
+		int i = 0;
+		if (ctx.bool_liter().TRUE() != null) {
+			i = 1;
+		}
+
+		if (!(controlFlowTrue || controlFlowFalse)) {
+			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
+		}
+
+		//return new Info("argument").setType(ctx.typename.toString());
+		return new Info(i == 1);
 	}
 
 
