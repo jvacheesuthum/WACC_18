@@ -298,7 +298,7 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 		if (i.type.equals("bool")) {
 			currentList.add(new Instruction("MOV r" + regCount + ", #" + (i.b_value ? 1 : 0) + "\n"));
 		}
-		return null;
+		return new Info("argument").setType(ctx.typename.toString());
 	}
 	
 	@Override public Info visitExpr_bin_bool(@NotNull WaccParser.Expr_bin_boolContext ctx) {

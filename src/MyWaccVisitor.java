@@ -868,7 +868,8 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		// visit all parameters (exprs)
 		String listTypesString = "";
 		for (ExprContext each : actuals){
-			listTypesString += "_" + visit(each).type;
+			Info i = visit(each);
+			listTypesString += "_" + i.type;
 		}
 		currentList = realList;
 		// ofV func overload: discard dummy list
@@ -2304,7 +2305,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		return new Info("argument").setType(ctx.typename.toString());
 	}
 	
-	@Override public Info visitExpr_binary(@NotNull WaccParser.Expr_binaryContext ctx) { 
+	@Override public Info visitExpr_binary(@NotNull WaccParser.Expr_binaryContext ctx) {
 		if (prints) System.out.println("visitExpr_binary");
 		visit(ctx.bin_bool());
 		ctx.typename = ctx.bin_bool().returntype;
@@ -2787,7 +2788,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			if (prints) System.out.println("got " +  ctx.atom(0).typename);
 			System.exit(200);
 		}
-		if (prints) System.out.println("HERE: " + ctx.atom(1).typename);
+		if (prints) System.out.println("HERE2: " + ctx.atom(1).typename);
 		if(!SharedMethods.assignCompat(ctx.atom(1).typename, ctx.argtype)) {
 			System.exit(200);
 		}

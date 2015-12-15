@@ -31,6 +31,6 @@ public class ARRAY_TYPE extends EQUALITY{
 	}
 
 	public String toString(){
-		return type.toString() + "[]";
+		return type.toString() + "Ar";
 	}
 }
