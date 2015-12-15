@@ -49,7 +49,10 @@ public class PAIR_TYPE extends EQUALITY {
 		return false;
 	}
 
-	public String toString(){
+	public String toString() {
+		if (t1 instanceof NULL && t2 instanceof NULL) {
+			return "pair";
+		}
 		return "(" + t1.toString() + "," + t2.toString() + ")";
 	}
 }

@@ -231,6 +231,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 		// overloading func: after visiting paramlist, then addfunc (id + types) to the table //
 		// since we are in symtab of this function, we need to look up all from the encSymtab
 		String funcNameWithTypes = ctx.ident().getText() + paramTypesString;
+		System.out.println(funcNameWithTypes);
 		IDENTIFIER id = currentTable.encSymTable.lookupAllFunc(funcNameWithTypes);
 		//System.out.println(id);
 		if(((FUNCTION) id).symtab != null) System.exit(200);
