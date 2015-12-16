@@ -11,10 +11,10 @@ ANTLR	:= antlrBuild
 FIND	:= find
 RM	:= rm -rf
 MKDIR	:= mkdir -p
-#JAVA	:= /usr/bin/java
-#JAVAC	:= /usr/bin/javac
-JAVA	:= /usr/lib/jvm/jdk-8-oracle-x64/bin/java
-JAVAC	:= /usr/lib/jvm/jdk-8-oracle-x64/bin/javac
+JAVA	:= /usr/bin/java
+JAVAC	:= /usr/bin/javac
+#JAVA	:= /usr/lib/jvm/jdk-8-oracle-x64/bin/java
+#JAVAC	:= /usr/lib/jvm/jdk-8-oracle-x64/bin/javac
 
 JFLAGS	:= -sourcepath $(SOURCE_DIR) -d $(OUTPUT_DIR) -cp lib/antlr-4.4-complete.jar 
 
