@@ -1962,11 +1962,11 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			currentList.remove(currentList.size() - 1);
 
 		}
-		instrList = Optimise.loadAndStore(instrList, currentStackMap, stackTotal);
+//		instrList = Optimise.loadAndStore(instrList, currentStackMap, stackTotal);
 		for(Instruction instr: instrList) {
-//			if (instr.toDeclare()) {
-//				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
-//			}
+			if (instr.toDeclare()) {
+				stackTotal = instr.allocateStackPos(stackTotal, currentStackMap);
+			}
 			if (instr.needsVarPos()) {
 				instr.varsToPos(currentStackMap, 0);
 			}

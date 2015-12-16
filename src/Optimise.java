@@ -69,6 +69,7 @@ public class Optimise {
 				currRegCount = Integer.parseInt(first.substring(6, 7));
 				Integer lhsReg = Integer.parseInt(first.substring(10, 11));
 				Integer rhsReg = Integer.parseInt(first.substring(14, 15));
+				if(registers[rhsReg] == null) System.out.println("NULLLLLLLLLLLLL");
 				registers[currRegCount] = registers[lhsReg] + registers[rhsReg];
 				continue;
 			}
@@ -108,6 +109,8 @@ public class Optimise {
 					variable = l.getVariables().get(0).getVariable();
 					value = currentStackMap.get(variable);
 				}
+				System.out.println("OFFSET IN STR: " + offset);
+				System.out.println("VALUE IN STR: " + value);
 				Integer index = offset - value;
 				System.out.println("STR index: " + index);
 				if(memory.get(index) == null) {
@@ -129,8 +132,9 @@ public class Optimise {
 				if(l.getVariables() == null) {
 					try {
 						System.out.println("SUBSTRING: " + first.substring(9, first.length()));
-						 value = Integer.parseInt(first.substring(9, first.length() - 1));//for =number case
+						value = Integer.parseInt(first.substring(9, first.length() - 1));//for =number case
 					} catch (NumberFormatException e) {
+						registers[currRegCount] = null;
 						continue;
 					}
 				} else {
@@ -170,8 +174,9 @@ public class Optimise {
 	private static Integer findOffset(Instruction l, int pos) {
 		Integer result;
 		try {
-			System.out.println("SUBSTRING: " + l.toString().substring(14, l.toString().length() - 2));
-			result = Integer.parseInt(l.toString().substring(14, l.toString().length() - 2));
+			int sqrbrac = l.toString().indexOf(']');
+			System.out.println("SUBSTRING: " + l.toString().substring(14, sqrbrac));
+			result = Integer.parseInt(l.toString().substring(14, sqrbrac));
 		} catch (NumberFormatException e) {
 			System.out.println("RESULT: " + null);
 			return null;
