@@ -96,14 +96,15 @@ public class Optimise {
 				System.out.println("STR VARIABLE: " + variable);
 				System.out.println("STR VARIABLE AFTER LOOKUP: " + currentStackMap.get(variable));
 			}
-//			if(first.charAt(0) == 'B' || first.contains("BEQ")) {
+			if(first.charAt(0) == 'B' || first.contains("BEQ")) {
 //				System.out.println("BRANCH STATEMENT");
 //				String label = first.substring(first.indexOf('L'));
 //				label = label.substring(0, label.indexOf("\n"));
 //				System.out.println("LABEL: " + label);
 //				savedOffset.put(label, offset);
 //				System.out.println("SavedOFFSET: " + savedOffset);
-//			}
+				memory.clear();
+			}
 			if(first.contains("SUB sp, sp")) {
 				if(l.getVariables() != null) {
 					variable = l.getVariables().get(0).getVariable();
@@ -188,6 +189,7 @@ public class Optimise {
 					System.out.println("MEMORY print: " + memory);
 					continue;
 				}
+				if(registers[currRegCount] == null) continue;
 				if(memory.get(index).equals(registers[currRegCount])) {
 //					indexToRemove.add(list.indexOf(l) + indexOffset);
 					result.remove(l);
@@ -220,7 +222,7 @@ public class Optimise {
 				}
 				System.out.println("REG VALUE: " + registers[currRegCount]);
 				System.out.println("VALUE AFTER: " + value);
-				if(registers[currRegCount] == value && (registers[currRegCount] != null || value != null)) {
+				if(registers[currRegCount] == value /*&& (registers[currRegCount] != null || value != null)*/) {
 //					indexToRemove.add(list.indexOf(l) + indexOffset);
 					result.remove(l);
 				} else {
