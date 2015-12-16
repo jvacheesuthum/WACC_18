@@ -454,8 +454,7 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 		
 		// Constant evaluation
 		if (b.type.equals("bool") && m.type.equals("bool")) {
-			boolean result = b.b_value == m.b_value;
-			return new Info((ctx.AND() != null)? result : !result);
+			return new Info((ctx.AND() != null)? b.b_value && m.b_value : b.b_value || m.b_value);
 		}		
 		// end of optimisation
 		
