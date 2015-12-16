@@ -126,8 +126,9 @@ public class Optimise {
 				System.out.println("VALUE BEFORE: " + value);
 				System.out.println("OFFSET: " + offset);
 				if(first.charAt(9) == 's') {
-					if(value == 0) continue;
-					value = memory.get(offset - value);
+					continue;
+//					if(value == 0) continue;
+//					value = memory.get(offset - value);
 				}
 				System.out.println("REG VALUE: " + registers[currRegCount]);
 				System.out.println("VALUE AFTER: " + value);
