@@ -188,7 +188,7 @@ public class Optimise {
 					System.out.println("MEMORY print: " + memory);
 					continue;
 				}
-				if(memory.get(index).equals(registers[currRegCount])) {
+				if(memory.get(index).equals(registers[currRegCount]) && registers[currRegCount] != null) {
 //					indexToRemove.add(list.indexOf(l) + indexOffset);
 					result.remove(l);
 				} else {
@@ -220,7 +220,7 @@ public class Optimise {
 				}
 				System.out.println("REG VALUE: " + registers[currRegCount]);
 				System.out.println("VALUE AFTER: " + value);
-				if(registers[currRegCount] == value) {
+				if(registers[currRegCount] == value && registers[currRegCount] != null && value != null) {
 //					indexToRemove.add(list.indexOf(l) + indexOffset);
 					result.remove(l);
 				} else {
