@@ -5,6 +5,7 @@ import java.io.FileReader;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
+import extension.BinopTreeReorder;
 import extension.VariableVisitor;
 import SemanticAnalyser.SyntaxErrorListener;
 import antlr.*;
@@ -63,6 +64,11 @@ public class Main {
 		    System.out.println("====Optimising====");
 		    	WaccParser.ProgramContext ctx = new VariableVisitor().visit(tree);
 		    System.out.println("====Finished First Pass====");
+		    
+/*		    System.out.println("====Optimising 2 ====");
+	    	ctx = new BinopTreeReorder().visit(ctx);
+	    	System.out.println("====Finished Second Pass====");
+	    	*/
 		    
 		    System.out.println("====");
 		    MyWaccVisitor visitor = new OptimisedWaccVisitor(filename + ".s");
