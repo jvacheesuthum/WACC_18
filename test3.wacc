@@ -32,6 +32,7 @@
 begin 
   int x = 5;
     begin
+      print x;
       # bool x = true;
       #char[] x = ['a','a']; 
       pair(char, char) x = newpair('a','a');
