@@ -220,7 +220,7 @@ public class Optimise {
 				}
 				System.out.println("REG VALUE: " + registers[currRegCount]);
 				System.out.println("VALUE AFTER: " + value);
-				if(registers[currRegCount] == value && registers[currRegCount] != null && value != null) {
+				if(registers[currRegCount] == value && (registers[currRegCount] != null || value != null)) {
 //					indexToRemove.add(list.indexOf(l) + indexOffset);
 					result.remove(l);
 				} else {
