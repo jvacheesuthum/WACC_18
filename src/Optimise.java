@@ -17,30 +17,31 @@ public class Optimise {
 	private static Integer offset = 0;
 	
 	public static List<Instruction> optimiseInstructions(List<Instruction> list, Map<String, Integer> currentStackMap, int stackTotal) {
-		List<List<Instruction>> sections = new ArrayList<List<Instruction>>();
-		List<Instruction> result = new ArrayList<Instruction>();
-		int fromIndex = 0;
-		for(Instruction l : list) {
-			if(l.toString().contains(":")) {
-				List<Instruction> section = list.subList(fromIndex, list.indexOf(l));
-				sections.add(section);
-				fromIndex = list.indexOf(l);
-			}
-			if(l.toString().contains(".ltorg")) {
-				List<Instruction> section = list.subList(fromIndex, list.indexOf(l) + 1);
-				sections.add(section);
-			}
-		}
-		
-		List<Instruction> main = sections.remove(1);
-		sections.add(main);
-		for(int i = sections.size() - 1; i > 0; i--) {
-			main = sections.get(i);
-			main = loadAndStore(main, currentStackMap, stackTotal);
-			memory.clear();
-			result.addAll(main);
-		}
-		return result;
+//		List<List<Instruction>> sections = new ArrayList<List<Instruction>>();
+//		List<Instruction> result = new ArrayList<Instruction>();
+//		int fromIndex = 0;
+//		for(Instruction l : list) {
+//			if(l.toString().contains(":")) {
+//				List<Instruction> section = list.subList(fromIndex, list.indexOf(l));
+//				sections.add(section);
+//				fromIndex = list.indexOf(l);
+//			}
+//			if(l.toString().contains(".ltorg")) {
+//				List<Instruction> section = list.subList(fromIndex, list.indexOf(l) + 1);
+//				sections.add(section);
+//			}
+//		}
+//		
+//		List<Instruction> main = sections.remove(1);
+//		sections.add(main);
+//		for(int i = sections.size() - 1; i > 0; i--) {
+//			main = sections.get(i);
+//			main = loadAndStore(main, currentStackMap, stackTotal);
+//			memory.clear();
+//			result.addAll(main);
+//		}
+//		return result;
+		return null;
 	}
 	public static List<Instruction> loadAndStore(List<Instruction> list, Map<String, Integer> currentStackMap, int stackTotal) {
 		List<Instruction> result = new ArrayList<Instruction>();
@@ -67,7 +68,7 @@ public class Optimise {
 				System.out.println("STR VARIABLE: " + variable);
 				System.out.println("STR VARIABLE AFTER LOOKUP: " + currentStackMap.get(variable));
 			}
-			if(first.charAt(0) == 'B' || first.contains("BEQ")) {
+			if(first.charAt(0) == 'B' || first.contains("BEQ") || first.contains(":")) {
 				memory.clear();
 			}
 			if(first.contains("SUB sp, sp")) {
