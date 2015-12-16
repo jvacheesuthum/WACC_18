@@ -65,6 +65,20 @@ public class Optimise {
 				System.out.println("=============END==============");
 				continue;
 			}
+			if(first.contains("ADDS r")) {
+				currRegCount = Integer.parseInt(first.substring(6, 7));
+				Integer lhsReg = Integer.parseInt(first.substring(10, 11));
+				Integer rhsReg = Integer.parseInt(first.substring(14, 15));
+				registers[currRegCount] = registers[lhsReg] + registers[rhsReg];
+				continue;
+			}
+			if(first.contains("SUBS r")) {
+				currRegCount = Integer.parseInt(first.substring(6, 7));
+				Integer lhsReg = Integer.parseInt(first.substring(10, 11));
+				Integer rhsReg = Integer.parseInt(first.substring(14, 15));
+				registers[currRegCount] = registers[lhsReg] - registers[rhsReg];
+				continue;
+			}
 			
 			instrPart = first.substring(0, 3); //getting the LDR or STR etc.
 			System.out.println("instrPart: " + instrPart);
