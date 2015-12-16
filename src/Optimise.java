@@ -14,10 +14,10 @@ public class Optimise {
 	
 	private static Map<Integer, Integer> memory = new HashMap<Integer, Integer>(); //Map<Memory position, value>
 	private static Integer[] registers = new Integer[15]; //there are 15 reg?
-	private static List<Integer> indexToRemove = new LinkedList<Integer>(); // List for index in instrList to be removed
+//	private static List<Integer> indexToRemove = new LinkedList<Integer>(); // List for index in instrList to be removed
 	private static Integer offset = 0;
-	private static Map<String, Integer> savedOffset = new HashMap<String, Integer>();
-	private static Integer indexOffset = 0;
+//	private static Map<String, Integer> savedOffset = new HashMap<String, Integer>();
+//	private static Integer indexOffset = 0;
 	
 	public static List<Instruction> optimiseInstructions(List<Instruction> list, Map<String, Integer> currentStackMap, int stackTotal) {
 		List<List<Instruction>> sections = new ArrayList<List<Instruction>>();
@@ -61,20 +61,20 @@ public class Optimise {
 		result.addAll(list);
 		String instrPart; // STR or LDR
 		String variable = null; //
-		Integer tempOffset = 0;
-		String startLabel = list.get(0).toString();
-		startLabel = startLabel.substring(0, startLabel.indexOf(":"));
-		System.out.println("StartLabel: " + startLabel);
-		if(startLabel.contains("L")) {
-			System.out.println("SavedOffset: " + savedOffset);
-			System.out.println("SupposedLabel: " + savedOffset.get("LW0"));
-			System.out.println("ActualLabel: " + startLabel);
-			if(savedOffset.containsKey(startLabel)) {
-				tempOffset = offset;
-				offset = savedOffset.get(startLabel);
-				System.out.println("OFFSET BEFORE LIST TRAVERSAL: " + offset);
-			}
-		}
+//		Integer tempOffset = 0;
+//		String startLabel = list.get(0).toString();
+//		startLabel = startLabel.substring(0, startLabel.indexOf(":"));
+//		System.out.println("StartLabel: " + startLabel);
+//		if(startLabel.contains("L")) {
+//			System.out.println("SavedOffset: " + savedOffset);
+//			System.out.println("SupposedLabel: " + savedOffset.get("LW0"));
+//			System.out.println("ActualLabel: " + startLabel);
+//			if(savedOffset.containsKey(startLabel)) {
+//				tempOffset = offset;
+//				offset = savedOffset.get(startLabel);
+//				System.out.println("OFFSET BEFORE LIST TRAVERSAL: " + offset);
+//			}
+//		}
 		System.out.println("OFFSET START: " + offset);
 		for(Instruction l : list) {
 			System.out.print("Registers: [");
@@ -86,9 +86,6 @@ public class Optimise {
 			if (l.toDeclare()) {
 				stackTotal = l.allocateStackPos(stackTotal, currentStackMap);
 			} // needed whether or not is is to be optimised
-//			if (l.needsVarPos()) {
-//				l.varsToPos(currentStackMap, 0);
-//			}
 			int currRegCount; //current Register no. to be compared with previous
 			String first = l.getInstructions().get(0).getString(); //first whole instruction (e.g. LDR r4, =2 or STR r4, [sp)
 			System.out.println("=============BEGIN==============");
@@ -99,14 +96,14 @@ public class Optimise {
 				System.out.println("STR VARIABLE: " + variable);
 				System.out.println("STR VARIABLE AFTER LOOKUP: " + currentStackMap.get(variable));
 			}
-			if(first.charAt(0) == 'B' || first.contains("BEQ")) {
-				System.out.println("BRANCH STATEMENT");
-				String label = first.substring(first.indexOf('L'));
-				label = label.substring(0, label.indexOf("\n"));
-				System.out.println("LABEL: " + label);
-				savedOffset.put(label, offset);
-				System.out.println("SavedOFFSET: " + savedOffset);
-			}
+//			if(first.charAt(0) == 'B' || first.contains("BEQ")) {
+//				System.out.println("BRANCH STATEMENT");
+//				String label = first.substring(first.indexOf('L'));
+//				label = label.substring(0, label.indexOf("\n"));
+//				System.out.println("LABEL: " + label);
+//				savedOffset.put(label, offset);
+//				System.out.println("SavedOFFSET: " + savedOffset);
+//			}
 			if(first.contains("SUB sp, sp")) {
 				if(l.getVariables() != null) {
 					variable = l.getVariables().get(0).getVariable();
@@ -137,7 +134,9 @@ public class Optimise {
 				currRegCount = Integer.parseInt(first.substring(6, 7));
 				Integer lhsReg = Integer.parseInt(first.substring(10, 11));
 				Integer rhsReg = Integer.parseInt(first.substring(14, 15));
-				if(registers[currRegCount] == null) System.out.println("NULLLLLLLLLLLLL");
+				if(registers[currRegCount] == null || registers[lhsReg] == null || registers[rhsReg] == null) {
+					continue;
+				}
 				registers[currRegCount] = registers[lhsReg] + registers[rhsReg];
 				continue;
 			}
@@ -145,6 +144,9 @@ public class Optimise {
 				currRegCount = Integer.parseInt(first.substring(6, 7));
 				Integer lhsReg = Integer.parseInt(first.substring(10, 11));
 				Integer rhsReg = Integer.parseInt(first.substring(14, 15));
+				if(registers[currRegCount] == null || registers[lhsReg] == null || registers[rhsReg] == null) {
+					continue;
+				}
 				registers[currRegCount] = registers[lhsReg] - registers[rhsReg];
 				continue;
 			}
@@ -227,9 +229,9 @@ public class Optimise {
 			}
 			System.out.println("=============END==============");
 		}
-		if(savedOffset.containsKey(list.get(0).toString())) {
-			offset = tempOffset;
-		}
+//		if(savedOffset.containsKey(list.get(0).toString())) {
+//			offset = tempOffset;
+//		}
 		return result;
 		
 	}
