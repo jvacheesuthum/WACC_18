@@ -29,4 +29,12 @@ public class ARRAY_TYPE extends EQUALITY{
 		}
 		return false;
 	}
+
+	public String toString(){
+		System.out.print(type);
+		if(type == null){
+			return "emptyAr";
+		}
+		return type.toString() + "Ar";
+	}
 }

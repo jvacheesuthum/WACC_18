@@ -1,4 +1,10 @@
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
 import org.antlr.v4.runtime.misc.NotNull;
+
 import SemanticAnalyser.*;
 import antlr.WaccParser;
 import backEnd.*;
@@ -9,6 +15,88 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 	public OptimisedWaccVisitor(String filename) {
 		super(filename);
 	}
+	
+    @Override 
+    public Info visitStat_declare(@NotNull WaccParser.Stat_declareContext ctx) {
+    	if (prints) System.out.println("visitStat_declare");
+    	
+    	// constant optimisation. variables that are constant will not be declared.
+		List<Instruction> savedList = currentList;
+    	if (ctx.ident().constant) {
+    		// put a dummy list to throw away.
+    		currentList = new LinkedList<Instruction>();
+    	}
+    	// end of optimisation
+  	
+      WaccParser.Assign_rhsContext rhs = ctx.assign_rhs();
+      visit(rhs);
+      if (prints) System.out.println("SEP: ");
+      visit(ctx.type());
+
+      if (prints) System.out.println("After visit declare lhs and rhs");
+      if (prints) System.out.println("declare rhs: " + rhs.typename);
+      if (prints) System.out.println("declare lhs: " + ctx.type().typename);
+      
+      //---------------------- catching declaration of array with empty array ie int[] x = [] should be fine
+      
+      if(ctx.type().typename instanceof ARRAY_TYPE) {
+        if(rhs.typename instanceof ARRAY_TYPE) {
+          if(((ARRAY_TYPE)rhs.typename).TYPE() == null){
+            VARIABLE var = new VARIABLE(rhs.typename);
+            currentTable.add(ctx.ident().getText(), var);
+            return null;
+          }
+        }
+      }
+      //------------------------
+      
+      if(rhs.typename == null) {
+    	  rhs.typename = new NULL();
+      }
+      
+      if(!SharedMethods.assignCompat(ctx.type().typename, rhs.typename)) {
+ //   	  throw new Error("Different type");
+      	  System.exit(200);
+      }
+
+      if (currentTable.lookup(ctx.ident().getText()) != null) {
+ //   	  throw new Error("Variable already declared");
+    	  if (prints) System.out.println("var already declared: " + ctx.ident().getText());
+      	  System.exit(200);
+      }
+
+      VARIABLE var = new VARIABLE(rhs.typename);
+      currentTable.add(ctx.ident().getText(), var);
+  	if (!ctx.ident().constant) {
+      int i = typeSize(ctx.type().typename);
+      PositionFragment position= new PositionFragment(i);
+      stackTotal += i;
+      if (i == 1) {
+    	  currentList.add(new Instruction(Arrays.asList(new StringFragment("STRB r"+ regCount + ", [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
+      } else {
+    	 currentList.add(new Instruction(Arrays.asList(new StringFragment("STR r" + regCount + ", [sp"), position, new StringFragment("]\n")), new VariableFragment(ctx.ident().getText()), position));
+      }
+      
+      if (rhs.typename instanceof NULL) {
+          currentList.add(new Instruction("LDR r"+ regCount + (fstVisited ? ", [sp, #4]\n" : ", [sp]\n")));
+          fstVisited = false;
+      }
+      
+      
+      if (rhs.typename instanceof NULL && ctx.type().typename instanceof PAIR_TYPE) {
+    	  newpairs++;
+    	  System.out.println("LHS IS NULL RHS IS PAIRR");
+      }
+	}
+  	// constant optimisation. variables that are constant will not be declared.
+  	if (ctx.ident().constant) {
+		// restore previous list, throw away any declarations
+		currentList = savedList;
+	}
+	// end of optimisation
+      
+  	  return null;
+    }
 	
 	@Override public Info visitExpr_bin_plus_plus(@NotNull WaccParser.Expr_bin_plus_plusContext ctx) {
 		if (prints) System.out.println("visitExpr_bin_math_math");
@@ -220,6 +308,7 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 		
 		// Constant Evaluation
 		if (one.type.equals("int") && two.type.equals("int")) {
+			System.out.println("gere");
 			int constant = doMath((ctx.PLUS() != null)? "plus" : "minus", one.int_value, two.int_value);
 			return new Info(constant);
 		}
@@ -298,7 +387,8 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 		if (i.type.equals("bool")) {
 			currentList.add(new Instruction("MOV r" + regCount + ", #" + (i.b_value ? 1 : 0) + "\n"));
 		}
-		return null;
+
+		return i;
 	}
 	
 	@Override public Info visitExpr_bin_bool(@NotNull WaccParser.Expr_bin_boolContext ctx) {
@@ -325,8 +415,7 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 		
 		// Constant evaluation
 		if (one.type.equals("bool") && two.type.equals("bool")) {
-			boolean result = one.b_value == two.b_value;
-			return new Info((ctx.AND() != null)? result : !result);
+			return new Info((ctx.AND() != null)? one.b_value && two.b_value : one.b_value || two.b_value);
 		}
 		// end of optimisation
 		
@@ -366,8 +455,7 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 		
 		// Constant evaluation
 		if (b.type.equals("bool") && m.type.equals("bool")) {
-			boolean result = b.b_value == m.b_value;
-			return new Info((ctx.AND() != null)? result : !result);
+			return new Info((ctx.AND() != null)? b.b_value && m.b_value : b.b_value || m.b_value);
 		}		
 		// end of optimisation
 		
@@ -563,6 +651,8 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 			regCount ++;
 			System.out.println("6");
 		}
+		System.out.println("one is " + one.type);
+		System.out.println("two is " + two.type);
 
 		if(ctx.math(0).returntype instanceof PAIR_TYPE || 
 				ctx.math(0).returntype instanceof ARRAY_TYPE ||
@@ -606,6 +696,9 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 			currentList.add(new Instruction("LDR r" + regCount + ", =" + one.int_value + "\n"));
 			regCount ++;
 			System.out.println("1");
+		} else if (one.type.equals("char")) {
+			currentList.add(new Instruction("MOV r" + regCount + ", #" + one.stringinfo + "\n"));
+			regCount ++;
 		} else if (one.type.equals("var")){
 //			VariableFragment v  = new VariableFragment(one.stringinfo, funcCallOffset);
 //			String load = (typeSize(ctx.math(0).returntype) == 4)? "LDR" : "LDRSB";
@@ -618,6 +711,9 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 			currentList.add(new Instruction("LDR r" + regCount + ", =" + two.int_value + "\n"));
 			regCount++;
 			System.out.println("3");
+		} else if (two.type.equals("char")) {
+			currentList.add(new Instruction("MOV r" + regCount + ", #" + two.stringinfo + "\n"));
+			regCount ++;
 		} else if (two.type.equals("var")){
 //			VariableFragment v  = new VariableFragment(two.stringinfo, funcCallOffset);
 //			String load = (typeSize(ctx.math(1).returntype) == 4)? "LDR" : "LDRSB";
@@ -654,6 +750,129 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 //			currentList.add(new Instruction("CMP r" + regCount + ", #1\nBEQ L" + (whileCount + 1) + "\n"));
 //		}
 		return new Info("r" + regCount).setType("reg"); 
+	}
+	
+	@Override public Info visitAtom_ident(@NotNull WaccParser.Atom_identContext ctx) {
+		// optimisation - check if constant//
+		if (ctx.ident().constant) {
+			Info i = visit(ctx.ident().constantAtom);
+			ctx.typename = ctx.ident().constantAtom.typename;
+			return i;
+		}
+		// end of optimisation
+		visit(ctx.ident());
+		ctx.typename = ctx.ident().typename;
+		return (new Info(ctx.ident().VARIABLE().getText())).setType("var");
+	}
+	
+	@Override public Info visitExpr_ident(@NotNull WaccParser.Expr_identContext ctx) {
+		if (prints) System.out.println("visitExpr_ident, maybe constant");
+		// optimisation - check if constant//
+		if (ctx.ident().constant) {
+			Info i = visit(ctx.ident().constantExpr);
+			ctx.typename = ctx.ident().constantExpr.typename;
+			return i;
+		}
+		// end of optimisation
+		if (prints) System.out.println("visitExpr_ident");
+		visit(ctx.ident());
+
+		ctx.typename = ctx.ident().typename;
+		String id = ctx.ident().getText();
+
+		if(ctx.typename == null || ctx.typename instanceof NULL) {
+			return null;
+		}
+		//also check if the ident has been declared
+
+		if (currentTable.lookupAll(id) == null) System.exit(200);//throw new Error(id + "has not been declared");
+		// do we have static variabsle in Wacc language. ^this would not support static var usage in stat in function declaration
+
+
+		System.out.println("!!!!!!!!!!!!!" + ctx.ident().getText() + "//funcOffset: " + funcCallOffset);
+//		VariableFragment v = new VariableFragment(ctx.ident().getText(), funcCallOffset);
+		//CHECK : bug in functionmanyarguments.wacc -> ref compiler line 122
+//		currentList.add(new Instruction(Arrays.asList(new StringFragment(( typeSize(ctx.typename) == 1 ? "LDRSB r" : "LDR r") + regCount  + ", [sp"), v, new StringFragment("]\n")), v));
+		currentList.add(ib.instr().ldrsbVarOffset(typeSize(ctx.typename), regCount, ctx.ident().getText(), funcCallOffset).build());
+		return null;
+	}
+	
+	@Override public Info visitAtom_brackets(@NotNull WaccParser.Atom_bracketsContext ctx) {
+		// constant optimisation: brackets will no longer load into reg, tries to give its answer upwards
+		// give dummy list to discard
+		System.out.println("BRACKETS");
+		List <Instruction> savedList = currentList;
+		currentList = new LinkedList<Instruction>();
+		Info i = visit(ctx.expr());
+		ctx.typename = ctx.expr().typename;
+		if (i != null && i.type != null) {
+			System.out.println("not null");
+			currentList = savedList;
+			return i;
+		}
+		savedList.addAll(currentList);
+		currentList = savedList;
+		return (new Info("")).setType("reg");
+	}
+	
+	@Override 
+	public Info visitExpr_int(@NotNull WaccParser.Expr_intContext ctx) { 
+		if (prints) System.out.println("visitExpr_int");
+		Info i = visit(ctx.int_liter());
+		currentList.add(new Instruction("LDR r" + regCount + ", =" + i.int_value + "\n"));
+		ctx.typename = new INT();
+		
+		return i; 
+	}
+	
+	@Override 
+	public Info visitExpr_char(@NotNull WaccParser.Expr_charContext ctx) { 
+		if (prints) System.out.println("visitExpr_char");
+		ctx.typename = new CHAR();
+		String text = ctx.char_liter().CHARACTER().getText();
+		
+		
+
+		if(text.length() > 3) {
+			if(text.charAt(2) == '\'') {
+				currentList.add(new Instruction("MOV r" + regCount +", #" + text + "\n"));
+				return null;
+			}
+			System.out.println(text.length());
+			text = text.replace("\\n", "\n");
+			text = text.replace("\\0", "\0");
+			text = text.replace("\\b", "\b");
+			text = text.replace("\\t", "\t");
+			text = text.replace("\\f", "\f");
+			text = text.replace("\\r", "\"");
+			char c = text.charAt(1);
+			int ascii = (int) c;
+			currentList.add(new Instruction("MOV r" + regCount +", #" + ((ascii > 13)? "\'" + text.charAt(2) + "\'": String.valueOf(ascii)) + "\n"));
+			return new Info((ascii > 13)? "\'" + text.charAt(2) + "\'": String.valueOf(ascii)).setType("char");
+		} else {
+//		currentList.add(new Instruction("MOV r" + regCount +", #" + ctx.char_liter().CHARACTER().getText() + "\n"));
+			currentList.add(new Instruction("MOV r" + regCount +", #" + text + "\n"));
+			return new Info(text).setType("char");
+		}
+		//return new Info("argument").setType(ctx.typename.toString());
+		//return null;
+	}
+	
+	@Override 
+	public Info visitExpr_bool(@NotNull WaccParser.Expr_boolContext ctx) {
+		if (prints) System.out.println("visitExpr_bool");
+		ctx.typename = new BOOL();
+		int i = 0;
+		if (ctx.bool_liter().TRUE() != null) {
+			i = 1;
+		}
+
+		if (!(controlFlowTrue || controlFlowFalse)) {
+			currentList.add(new Instruction("MOV r" + regCount +", #" + i + "\n"));
+		}
+
+		//return new Info("argument").setType(ctx.typename.toString());
+		return new Info(i == 1);
 	}
 
 

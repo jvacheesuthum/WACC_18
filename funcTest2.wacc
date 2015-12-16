@@ -1,0 +1,6 @@
+begin
+int f(int a) is
+  return a
+end
+int a = call f(1+1)
+end

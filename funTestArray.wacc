@@ -1,0 +1,6 @@
+begin
+int f(int[] a) is
+  return a[0]
+end
+skip
+end

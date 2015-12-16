@@ -9,7 +9,7 @@ options {
 }
 
 ident
-locals[TYPE typename]
+locals[TYPE typename, ExprContext constantExpr, AtomContext constantAtom, boolean constant]
 : VARIABLE;
 
 pair_liter: NUL;
@@ -23,6 +23,7 @@ str_liter: STR ;
 char_liter: CHARACTER ;
 
 bool_liter: TRUE | FALSE ;
+
 
 int_sign: PLUS | MINUS ;
 
