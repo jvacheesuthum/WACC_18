@@ -1,7 +1,9 @@
 package extension;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by vasin on 13/12/2015.
@@ -9,6 +11,7 @@ import java.util.Map;
 public class ScopeMap<T,K> {
     private ScopeMap<T, K> encMap;
     private HashMap<T, K> thisMap;
+    private Set<String> arraysOrPairsDeclared = new HashSet<String>();
 
     public ScopeMap(ScopeMap<T,K> encMap){
         this.thisMap = new HashMap<T,K>();
@@ -31,12 +34,21 @@ public class ScopeMap<T,K> {
         return encMap != null;
     }
 
+    private HashMap getMap(){
+        return thisMap;
+    }
+
     public K outwardsGet(T t){
         ScopeMap<T,K> currentSM = this;
 
         while(currentSM.get(t) == null && currentSM.hasEnc()){
+            if(arraysOrPairsDeclared.contains(t)) return null;
             currentSM = currentSM.getEnc();
         }
         return currentSM.get(t);
+    }
+
+    public void addArrayOrPairDeclared(String name) {
+        arraysOrPairsDeclared.add(name);
     }
 }
