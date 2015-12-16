@@ -40,6 +40,8 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 	
 	@Override public WaccParser.ProgramContext visitStat_declare(@NotNull WaccParser.Stat_declareContext ctx) {
 		// add new variable to list of variables, remembering where it is declared.
+		System.out.println("!@£$%^ " + ctx.assign_rhs().getText());
+		System.out.println("!@£$%^ " + (ctx.assign_rhs() instanceof WaccParser.Assign_rhs_exprContext));
 		if (ctx.assign_rhs() instanceof WaccParser.Assign_rhs_exprContext) {
 			WaccParser.Assign_rhs_exprContext expr = (WaccParser.Assign_rhs_exprContext) ctx.assign_rhs();
 			if (!(expr.expr() instanceof WaccParser.Expr_strContext)) {
@@ -47,6 +49,9 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 				vars.add(v);
 				map.put(ctx.ident().VARIABLE().getText(), v);
 			}
+		}
+		else{
+			map.addArrayOrPairDeclared(ctx.ident().VARIABLE().getText());
 		}
 		return visitChildren(ctx);
 
@@ -92,7 +97,7 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		vars = new LinkedList<VariableDependencies>();
 
 		WaccParser.ProgramContext output = visit(ctx.stat());
-		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		optimiseConstants();
 
 		vars = encVars;
 		map  = map.getEnc();
@@ -107,7 +112,7 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		map = new ScopeMap<>(map);
 		vars = new LinkedList<VariableDependencies>();
 		visit(ctx.stat(0));
-		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		optimiseConstants();
 		vars = encVars;
 		map  = map.getEnc();
 
@@ -115,7 +120,7 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		map = new ScopeMap<>(map);
 		vars = new LinkedList<VariableDependencies>();
 		visit(ctx.stat(1));
-		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		optimiseConstants();
 		vars = encVars;
 		map  = map.getEnc();
 
@@ -128,7 +133,7 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		map = new ScopeMap<>(map);
 		vars = new LinkedList<VariableDependencies>();
 		visit(ctx.stat());
-		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		optimiseConstants();
 		vars = encVars;
 		map  = map.getEnc();
 
@@ -142,18 +147,18 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		List<VariableDependencies> encVars = vars;
 		map = new ScopeMap<>(map);
 		vars = new LinkedList<VariableDependencies>();
-		visit(ctx.stat(0));
+		if (ctx.stat(0) != null) visit(ctx.stat(0));
 		visit(ctx.stat_return(0));
-		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		optimiseConstants();
 		vars = encVars;
 		map  = map.getEnc();
 
 		encVars = vars;
 		map = new ScopeMap<>(map);
 		vars = new LinkedList<VariableDependencies>();
-		visit(ctx.stat(1));
+		if (ctx.stat(1) != null) visit(ctx.stat(1));
 		visit(ctx.stat_return(1));
-		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		optimiseConstants();
 		vars = encVars;
 		map  = map.getEnc();
 
@@ -166,18 +171,18 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		List<VariableDependencies> encVars = vars;
 		map = new ScopeMap<>(map);
 		vars = new LinkedList<VariableDependencies>();
-		visit(ctx.stat(0));
+		if (ctx.stat(0) != null) visit(ctx.stat(0));
 		visit(ctx.if_layers(0));
-		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		optimiseConstants();
 		vars = encVars;
 		map  = map.getEnc();
 
 		encVars = vars;
 		map = new ScopeMap<>(map);
 		vars = new LinkedList<VariableDependencies>();
-		visit(ctx.stat(1));
+		if (ctx.stat(1) != null) visit(ctx.stat(1));
 		visit(ctx.if_layers(1));
-		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		optimiseConstants();
 		vars = encVars;
 		map  = map.getEnc();
 
@@ -190,18 +195,18 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		List<VariableDependencies> encVars = vars;
 		map = new ScopeMap<>(map);
 		vars = new LinkedList<VariableDependencies>();
-		visit(ctx.stat(0));
+		if (ctx.stat(0) != null) visit(ctx.stat(0));
 		visit(ctx.if_layers());
-		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		optimiseConstants();
 		vars = encVars;
 		map  = map.getEnc();
 
 		encVars = vars;
 		map = new ScopeMap<>(map);
 		vars = new LinkedList<VariableDependencies>();
-		visit(ctx.stat(1));
+		if (ctx.stat(1) != null) visit(ctx.stat(1));
 		visit(ctx.stat_return());
-		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		optimiseConstants();
 		vars = encVars;
 		map  = map.getEnc();
 
@@ -213,18 +218,18 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		List<VariableDependencies> encVars = vars;
 		map = new ScopeMap<>(map);
 		vars = new LinkedList<VariableDependencies>();
-		visit(ctx.stat(0));
+		if (ctx.stat(0) != null) visit(ctx.stat(0));
 		visit(ctx.stat_return());
-		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		optimiseConstants();
 		vars = encVars;
 		map  = map.getEnc();
 
 		encVars = vars;
 		map = new ScopeMap<>(map);
 		vars = new LinkedList<VariableDependencies>();
-		visit(ctx.stat(1));
+		if (ctx.stat(1) != null) visit(ctx.stat(1));
 		visit(ctx.if_layers());
-		optimiseConstants(); // will this mess up the .constant .constantExpr .constantAtom ? ? ?
+		optimiseConstants();
 		vars = encVars;
 		map  = map.getEnc();
 
