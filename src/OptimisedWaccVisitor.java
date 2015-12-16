@@ -805,8 +805,8 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 		currentList = new LinkedList<Instruction>();
 		Info i = visit(ctx.expr());
 		ctx.typename = ctx.expr().typename;
-		if (i != null && i.type != null) {
-			System.out.println("not null");
+		if (i != null && i.type != null && !i.type.equals("reg")) {
+			System.out.println("not null, not reg");
 			currentList = savedList;
 			return i;
 		}

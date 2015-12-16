@@ -1,0 +1,48 @@
+
+# begin
+# 
+#   int x = 5;
+#   # int[] y = [1, 2, 3];
+#   # char[] z = ['a', 'b', 'c'];
+#   # pair(int[], char[]) x = newpair(y, z);
+#   
+#        begin
+#          int[] y = [1, 2, 3];
+#          char[] z = ['a', 'b', 'c'];
+#          pair(int[], char[]) x = newpair(y, z);
+#          int[] a = fst x;
+#          char[] b = snd x
+#        end;
+#                     
+#             
+#   println x # int
+# 
+# end
+
+## this one works ##
+## begin
+##   int x = 5;
+##     begin 
+##       char x = 'a';
+##       print x 
+##     end;
+##   print x
+## end
+
+begin 
+  int x = 5;
+    begin
+      print x;
+      # bool x = true;
+      #char[] x = ['a','a']; 
+      pair(char, char) x = newpair('a','a');
+      print x
+    end
+end
+
+# begin 
+# int x = 5;
+# pair(char,char) x = newpair('a','a');
+# char y = fst x;
+# print y
+# end
