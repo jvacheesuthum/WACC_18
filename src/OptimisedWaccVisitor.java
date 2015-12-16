@@ -64,9 +64,10 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
     	  if (prints) System.out.println("var already declared: " + ctx.ident().getText());
       	  System.exit(200);
       }
-	if (!ctx.ident().constant) {
+
       VARIABLE var = new VARIABLE(rhs.typename);
       currentTable.add(ctx.ident().getText(), var);
+  	if (!ctx.ident().constant) {
       int i = typeSize(ctx.type().typename);
       PositionFragment position= new PositionFragment(i);
       stackTotal += i;
