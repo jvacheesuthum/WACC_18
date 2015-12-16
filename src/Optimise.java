@@ -188,7 +188,7 @@ public class Optimise {
 					System.out.println("MEMORY print: " + memory);
 					continue;
 				}
-				if(memory.get(index).equals(registers[currRegCount]) && registers[currRegCount] != null) {
+				if(memory.get(index).equals(registers[currRegCount])) {
 //					indexToRemove.add(list.indexOf(l) + indexOffset);
 					result.remove(l);
 				} else {
