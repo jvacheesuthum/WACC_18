@@ -41,9 +41,12 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 	@Override public WaccParser.ProgramContext visitStat_declare(@NotNull WaccParser.Stat_declareContext ctx) {
 		// add new variable to list of variables, remembering where it is declared.
 		if (ctx.assign_rhs() instanceof WaccParser.Assign_rhs_exprContext) {
-			VariableDependencies v = new VariableDependencies(ctx);
-			vars.add(v);
-			map.put(ctx.ident().VARIABLE().getText(), v);
+			WaccParser.Assign_rhs_exprContext expr = (WaccParser.Assign_rhs_exprContext) ctx.assign_rhs();
+			if (!(expr.expr() instanceof WaccParser.Expr_strContext)) {
+				VariableDependencies v = new VariableDependencies(ctx);
+				vars.add(v);
+				map.put(ctx.ident().VARIABLE().getText(), v);
+			}
 		}
 		return visitChildren(ctx);
 
