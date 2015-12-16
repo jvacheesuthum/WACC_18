@@ -119,4 +119,8 @@ public class Instruction {
 	public List<VariableFragment> getVariables() {
 		return variables;
 	}
+	
+	public PositionFragment getPos() {
+		return pos;
+	}
 }
