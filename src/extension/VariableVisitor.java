@@ -46,6 +46,8 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 				VariableDependencies v = new VariableDependencies(ctx);
 				vars.add(v);
 				map.put(ctx.ident().VARIABLE().getText(), v);
+			}else{
+				map.addArrayOrPairDeclared(ctx.ident().VARIABLE().getText());
 			}
 		}
 		else{
