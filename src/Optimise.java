@@ -43,6 +43,9 @@ public class Optimise {
 			}
 			if(first.charAt(0) == 'B' || first.contains("BEQ") || first.contains(":")) {
 				memory.clear();
+				for(int i = 0; i < 15; i++) {
+					registers[i] = null;
+				}
 			}
 			if(first.contains("SUB sp, sp")) {
 				if(l.getVariables() != null) {
@@ -122,7 +125,7 @@ public class Optimise {
 				System.out.println("STR index: " + index);
 				if(memory.get(index) == null) {
 					memory.put(index, registers[currRegCount]);
-					System.out.println("MEMORY print: " + memory);
+					System.out.println("MEMORY print1: " + memory);
 					continue;
 				}
 				if(registers[currRegCount] == null) continue;
@@ -132,7 +135,7 @@ public class Optimise {
 					memory.put(index, registers[currRegCount]);
 					System.out.println("REGISTER R: " + registers[currRegCount]);
 				}
-				System.out.println("MEMORY print: " + memory);
+				System.out.println("MEMORY print2: " + memory);
 			}
 			if(instrPart.equals("LDR")) {
 				System.out.println("IN LDR");
