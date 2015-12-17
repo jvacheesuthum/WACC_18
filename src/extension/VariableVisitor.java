@@ -25,12 +25,21 @@ import antlr.WaccParserBaseVisitor;
  * their occurrences (expr_ident and atom_ident) are replaced with their constant values.
  * 
  * SCOPING TO BE IMPLEMENTED.
+ * 
+ * update : variable depending on another variable will subscribe to it.
+ * variable will notify its subscribers if it becomes not constant
+ * variables that subscribe AFTER a variable is declared not constant will not be told 
+ * because it is assumed that the variable is not going to be changed again
+ * if it is then changed again, all subscribers will be notified again.
+ * 
  */
 
 public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramContext> {
 	
 	private List<VariableDependencies> vars = new LinkedList<VariableDependencies>();
 	private ScopeMap<String, VariableDependencies> map = new ScopeMap<>(null);
+	private boolean inDeclaration = false;
+	private VariableDependencies beingDeclared;
 
 	@Override public WaccParser.ProgramContext visitProgram(@NotNull WaccParser.ProgramContext ctx) { 
 		visitChildren(ctx);
@@ -46,6 +55,11 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 				VariableDependencies v = new VariableDependencies(ctx);
 				vars.add(v);
 				map.put(ctx.ident().VARIABLE().getText(), v);
+				inDeclaration = true;
+				beingDeclared = v;
+				visit(ctx.assign_rhs());
+				inDeclaration = false;
+				beingDeclared = null;
 			}else{
 				map.addArrayOrPairDeclared(ctx.ident().VARIABLE().getText());
 			}
@@ -53,7 +67,7 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		else{
 			map.addArrayOrPairDeclared(ctx.ident().VARIABLE().getText());
 		}
-		return visitChildren(ctx);
+		return null;
 
 	}
 	
@@ -62,6 +76,9 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		VariableDependencies v = map.outwardsGet(ctx.ident().VARIABLE().getText());
 		if (v != null) {
 			v.addExpr(ctx);
+			if (inDeclaration) {
+				v.addSubscriber(beingDeclared);
+			}
 		}
 		return visitChildren(ctx); }
 	
@@ -70,6 +87,9 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		VariableDependencies v = map.outwardsGet(ctx.ident().VARIABLE().getText());
 		if (v != null) {
 			v.addAtom(ctx);
+			if (inDeclaration) {
+				v.addSubscriber(beingDeclared);
+			}
 		}
 		return visitChildren(ctx); }
 	

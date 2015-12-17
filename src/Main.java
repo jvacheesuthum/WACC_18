@@ -65,10 +65,11 @@ public class Main {
 		    	WaccParser.ProgramContext ctx = new VariableVisitor().visit(tree);
 		    System.out.println("====Finished First Pass====");
 		    
-/*		    System.out.println("====Optimising 2 ====");
-	    	ctx = new BinopTreeReorder().visit(ctx);
+		    
+		    System.out.println("====Optimising 2 ====");
+	    	ctx = new BinopTreeReorder().visit(ctx).getCtx();
 	    	System.out.println("====Finished Second Pass====");
-	    	*/
+	    	
 		    
 		    System.out.println("====");
 		    MyWaccVisitor visitor = new OptimisedWaccVisitor(filename + ".s");

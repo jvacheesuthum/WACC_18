@@ -245,7 +245,9 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 	@Override public Info visitExpr_bin_math_math(@NotNull WaccParser.Expr_bin_math_mathContext ctx) {
 		if (prints) System.out.println("visitExpr_bin_math_math");
 		Info p = visit(ctx.math());
+		regCount ++ ;
 		Info a = visit(ctx.plusminus());
+		regCount --;
 		ctx.returntype = new INT();
 		ctx.argtype = new INT();
 		if(!SharedMethods.assignCompat(ctx.math().returntype, ctx.argtype)) {
