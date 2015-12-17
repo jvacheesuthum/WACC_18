@@ -114,7 +114,7 @@ public class Optimise {
 					variable = l.getVariables().get(0).getVariable();
 					value = currentStackMap.get(variable);
 				}
-				if(first.charAt(9) == 's') { //check if ldr r_, s <--- stack pointer
+				if(first.charAt(9) == 's' && value != null) { //check if ldr r_, s <--- stack pointer
 					value = memory.get(offset - value);
 				}
 				if(value == null) continue;
