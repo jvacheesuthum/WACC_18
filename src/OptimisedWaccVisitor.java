@@ -88,6 +88,10 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
     	  System.out.println("LHS IS NULL RHS IS PAIRR");
       }
 	}
+    if (rhs.typename instanceof NULL && ctx.type().typename instanceof PAIR_TYPE) {
+  	  newpairs++;
+  	  System.out.println("LHS IS NULL RHS IS PAIRR");
+    }
   	// constant optimisation. variables that are constant will not be declared.
   	if (ctx.ident().constant) {
 		// restore previous list, throw away any declarations
