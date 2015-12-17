@@ -81,17 +81,11 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
           currentList.add(new Instruction("LDR r"+ regCount + (fstVisited ? ", [sp, #4]\n" : ", [sp]\n")));
           fstVisited = false;
       }
-      
-      
       if (rhs.typename instanceof NULL && ctx.type().typename instanceof PAIR_TYPE) {
-    	  newpairs++;
+    	  newpairs++; //<--- need this whenever there is a new pair, tried moving it out but causes other things to break
     	  System.out.println("LHS IS NULL RHS IS PAIRR");
       }
 	}
-    if (rhs.typename instanceof NULL && ctx.type().typename instanceof PAIR_TYPE) {
-  	  newpairs++;
-  	  System.out.println("LHS IS NULL RHS IS PAIRR");
-    }
   	// constant optimisation. variables that are constant will not be declared.
   	if (ctx.ident().constant) {
 		// restore previous list, throw away any declarations
