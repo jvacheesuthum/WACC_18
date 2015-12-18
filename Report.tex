@@ -1,6 +1,8 @@
 \documentclass[11pt]{article}
 
 \usepackage{fullpage}
+\usepackage{multicol}
+\addtolength{\textheight}{2cm}
 
 \begin{document}
 
@@ -13,6 +15,7 @@
 
 This report covers the details of the design of our WACC Project, and our reflections on the work. It includes the following sections:
 
+\begin{multicols}{2}
 \begin{itemize}
   \item The Product
   \item The Project Management
@@ -29,18 +32,23 @@ This report covers the details of the design of our WACC Project, and our reflec
     \item Constant Evaluation and Propagation Analysis
   \end{itemize}
 \end{itemize}
+\end{multicols}
 
 \section{The Product}
 
-Bacon ipsum dolor amet biltong boudin shoulder landjaeger shank shankle swine flank beef. Shankle meatloaf spare ribs leberkas picanha. Turducken fatback shankle hamburger landjaeger ham venison drumstick tail pork alcatra spare ribs biltong corned beef. Brisket venison flank hamburger tongue spare ribs turducken pig ham hock.
+We have decided to approach front end with ANTLR tools provided. ANTLR lexer is used to tokenise the input while the parser produces the context for visitor pattern. In the parser we've added extra locals to contain vital fields for the semantic checks such as the `typename' which is used to compare types while visiting the parse tree by ``passing up" the types from terminal nodes of the tree up to where comparison is required. These `types' are defined by classes to represent the type and its internal structure (e.g. array). Deeper details will be covered in the design choices section. Nevertheless, the front end of the compiler is able to successfully parse a valid WACC program and produce a parse tree to represent the program as well as exit with appropriate error codes for invalid ones.
 
 \medskip
 
-Chuck porchetta landjaeger pastrami tail kevin frankfurter sausage. Shoulder tail pork belly, shank brisket kielbasa bresaola rump hamburger pastrami. Chicken meatloaf jerky t-bone, fatback doner sirloin pork loin hamburger ham tongue tri-tip shankle. Venison filet mignon bacon short loin, beef ribs prosciutto bresaola leberkas frankfurter pork belly kielbasa sirloin andouille.
+Our unique approach at the back end has allowed us to produce machine code within the same visit as the semantic check. `Instruction' lists are used to store code produced along the visit, separated from the header and footer codes (e.g. messages and pre-defined functions). In order to be able to locate variable declarations on the stack, we build our instruction by using instruction `fragments', which granted us to allocate and look up variable positions within one visit. The details are covered in the design choices section. The implementation of the back end is capable of generating accurate machine code, which executes correctly according to the written WACC program, meeting the functional specification.
 
 \medskip
 
-Turducken picanha spare ribs, pancetta cupim filet mignon sausage shankle short ribs brisket venison. Fatback pork belly bresaola, venison ham flank tail. Shank pork fatback, landjaeger meatloaf andouille filet mignon boudin cupim pastrami brisket meatball. Ground round spare ribs corned beef chuck doner. Ball tip drumstick frankfurter, swine sausage ham capicola fatback corned beef ribeye beef ham hock tongue tenderloin pastrami.
+However, the drawback of our WACC compiler comes along with generating ARM machine code within the same visitor as semantic checks. One visit certainly makes the compiler faster, but it sacrifices some readability of the code as our visitor class is now twice as long compared to the first milestone. We have tried out best to separate codes from two ends with clear comments but the readability is still not as good as the case where a different visit is performed for back end in a different class. This also follows to potential issues in future development. Now that the machine code generation is implemented in the same visitor, optimisation has to be carried out here too, and to be able to turn different optimisations on and off, we will either have to sacrifice extra readability in the code or create a new visitor pattern for the optimisation. The latter one follows that there will be code repetition and bug fixes will have to be accomplished in two or more different classes.
+
+\medskip
+
+Performance-wise, MyWaccVisitor, as mentioned above, visits the parse tree only once to accomplish syntax and semantic check as well as produce ARM code. This means it takes shorter time to execute the compiler then 2 visits approaches, making execution time the main `edge' of our unique WACC visitor.
 
 \section{The Project Management}
 
@@ -48,7 +56,7 @@ For front-end before starting any planning, we had each of our group members rea
 
 \medskip
 
-The way we approached back-end was quite similar to our front-end. Again we decided to use the ANTLR tool to generate our assembly code in our visitor pattern as we do our semantic check. We also used our own branch on Git again for each of our assembly code generation. We tried to split the work equally but we soon realised that some parts require very similar implementations (for example, the scope of variables in while and if) and this lead to uneven workloads. A way that we could’ve prevented this is to not split the work by syntax (E.g. print, while, if) but by how the syntax is implemented in assembly (if and while have similar scope implementation whereas print and branching have similar labels and format). We managed to have a working implementation before the deadline but again, time management could be improved as we fixed our final bug a couple hours before the deadline.
+The way we approached back-end was quite similar to our front-end. Again we decided to use the ANTLR tool to generate our assembly code in our visitor pattern as we do our semantic check. We also used our own branch on Git again for each of our assembly code generation. We tried to split the work equally but we soon realised that some parts require very similar implementations (for example, the scope of variables in while and if) and this lead to uneven workloads. A way that we could've prevented this is to not split the work by syntax (E.g. print, while, if) but by how the syntax is implemented in assembly (if and while have similar scope implementation whereas print and branching have similar labels and format). We managed to have a working implementation before the deadline but again, time management could be improved as we fixed our final bug a couple hours before the deadline.
 
 \medskip
 
@@ -84,23 +92,19 @@ Due to the complex construction of an Instruction, we decided to create an Instr
 
 \subsection{Control Flow Analysis}
 
-Bacon ipsum dolor amet biltong boudin shoulder landjaeger shank shankle swine flank beef. Shankle meatloaf spare ribs leberkas picanha. Turducken fatback shankle hamburger landjaeger ham venison drumstick tail pork alcatra spare ribs biltong corned beef. Brisket venison flank hamburger tongue spare ribs turducken pig ham hock.
-
-\medskip
-
-Chuck porchetta landjaeger pastrami tail kevin frankfurter sausage. Shoulder tail pork belly, shank brisket kielbasa bresaola rump hamburger pastrami. Chicken meatloaf jerky t-bone, fatback doner sirloin pork loin hamburger ham tongue tri-tip shankle. Venison filet mignon bacon short loin, beef ribs prosciutto bresaola leberkas frankfurter pork belly kielbasa sirloin andouille.
+WaccVisitorWithCFA class is a visitor extended from our basic visitor to support basic control flow analysis. It works by observing the expression context in if-else and while clause if it is true or false. This is followed by elimination of extra redundant code. For example ``if true then c1 else c2" with this optimisation turned on will only produce code for c1, without branching. For while loop, true condition will trigger an infinite loop code and false condition will prevent any code from being generated. All these operate on Boolean switches, which are turned on when a true-false expr is detected. These switches control whether or not the ARM machine code should be produce for any section in that program. 
 
 \subsection{Function Overloading}
 
-Our solution for making the language support overloading function is by labelling each function by its name followed by its type before storing it in a symbol table. An example of this would be a function named ‘increment’ which accepts a single ‘int’ argument. This function would be recognised as ‘increment\_int’ in our program. This would then allow us to overload a function with the same name and a different argument type.
+Our solution for making the language support overloading function is by labelling each function by its name followed by its type before storing it in a symbol table. An example of this would be a function named `increment' which accepts a single `int' argument. This function would be recognised as `increment\_int' in our program. This would then allow us to overload a function with the same name and a different argument type.
 
 \medskip 
 
-In the implementation of this feature, we have had to modify our method of visiting function to retrieve the types of the arguments or parameters first before looking it up, putting it into the symbol table, or generating the assembly code in the ‘call’ statement. This modification has not involve a change in our design.
+In the implementation of this feature, we have had to modify our method of visiting function to retrieve the types of the arguments or parameters first before looking it up, putting it into the symbol table, or generating the assembly code in the `call' statement. This modification has not involve a change in our design.
 
 \subsection{Instruction Evaluation}
 
-We added an Optimise class which contains an integer array which holds the value of the registers and a hashmap which acts as the memory. Whenever a load instruction is detected, it will check whether or not the register already contains the value by using the array index as the register number. If it is, the instruction will be considered redundant and removed. Similarly, a store instruction into the memory will be checked with the hashmap which maps the integer (offset from the stack pointer) to its value. The memory and registers will be cleared after each branch and label instruction. The offset is calculated each time there is a ‘SUB sp, sp’ or ‘ADD sp, sp’ instruction. We also had to take into account that register could be updated with ‘ADDS’ or ‘SUBS’ instructions. A lot of string manipulations were used to extract the numbers (offset and register) and we had to traverse the instruction list once to find the redundant instructions. 
+We added an Optimise class which contains an integer array which holds the value of the registers and a hashmap which acts as the memory. Whenever a load instruction is detected, it will check whether or not the register already contains the value by using the array index as the register number. If it is, the instruction will be considered redundant and removed. Similarly, a store instruction into the memory will be checked with the hashmap which maps the integer (offset from the stack pointer) to its value. The memory and registers will be cleared after each branch and label instruction. The offset is calculated each time there is a `SUB sp, sp'or `ADD sp, sp' instruction. We also had to take into account that register could be updated with `ADDS' or `SUBS' instructions. A lot of string manipulations were used to extract the numbers (offset and register) and we had to traverse the instruction list once to find the redundant instructions. 
 
 \subsection{Constant Evaluation and Propagation Analysis}
 
