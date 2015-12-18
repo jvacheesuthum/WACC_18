@@ -8,9 +8,14 @@ import backEnd.Instruction;
 
 public class Optimise {
 	
+	public static boolean optimise = false;
 	private static Map<Integer, Integer> memory = new HashMap<Integer, Integer>(); //Map<Memory position, value>
 	private static Integer[] registers = new Integer[15]; //there are 15 reg?
 	private static Integer offset = 0; //used for SUB sp, sp and ADD sp, sp to store the proper position of value in memory
+	
+	public static void setOptimise() {
+		optimise = true;
+	}
 	
 	public static List<Instruction> loadAndStore(List<Instruction> list, Map<String, Integer> currentStackMap, int stackTotal) {
 		List<Instruction> result = new ArrayList<Instruction>();

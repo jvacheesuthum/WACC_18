@@ -71,7 +71,7 @@ public class Main {
 		    					visitor = new OptimisedWaccVisitor(filename + ".s"); break;
 		    	case "-CFA": visitor = new WaccVisitorWithCFA(filename + ".s"); break;
 		    	// add here!
-		    	case "-IE": break;
+		    	case "-IE": Optimise.optimise = true; break;
 		    	}
 		    }
 
