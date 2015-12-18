@@ -66,12 +66,15 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		else{
 			map.addArrayOrPairDeclared(ctx.ident().VARIABLE().getText());
 		}
-		return null;
+		return visitChildren(ctx);
 
 	}
+
+
 	
 	@Override public WaccParser.ProgramContext visitExpr_ident(@NotNull WaccParser.Expr_identContext ctx) {
 		//add this expr as dependent on the variable
+		System.out.println(ctx.ident().VARIABLE().getText());
 		VariableDependencies v = map.outwardsGet(ctx.ident().VARIABLE().getText());
 		// if we are in declaration and v ==null then we are doing something with array and pair. danger.
 		if (inDeclaration && v == null) {
@@ -103,6 +106,7 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 			v.notConstant();
 		}
 		return visitChildren(ctx); }
+
 	
 	@Override public WaccParser.ProgramContext visitAssign_lhs_ident(@NotNull WaccParser.Assign_lhs_identContext ctx) {
 		//mark this variable as not constant (re-assigned or read)
@@ -312,5 +316,7 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		expr.parent = b;
 		return b;
 	}
+	
+	
 
 }

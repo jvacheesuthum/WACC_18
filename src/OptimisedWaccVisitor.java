@@ -16,6 +16,8 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 		super(filename);
 	}
 	
+	private boolean prints = true;
+	
     @Override 
     public Info visitStat_declare(@NotNull WaccParser.Stat_declareContext ctx) {
     	if (prints) System.out.println("visitStat_declare");
@@ -766,7 +768,7 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 	}
 	
 	@Override public Info visitExpr_ident(@NotNull WaccParser.Expr_identContext ctx) {
-		if (prints) System.out.println("visitExpr_ident, maybe constant");
+		if (prints) System.out.println("visitExpr_ident, maybe constant: " + ctx.ident().getText());
 		// optimisation - check if constant//
 		if (ctx.ident().constant) {
 			Info i = visit(ctx.ident().constantExpr);
