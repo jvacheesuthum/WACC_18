@@ -57,12 +57,11 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	int freepairs = 0;
 	int newpairs = 0;
 
+	// for control flow analysis 
 	protected boolean controlFlowTrue = false;
-
 	protected boolean controlFlowFalse = false;
-
 	protected boolean infiniteLoop = false;
-
+	//---------------
 
 	public MyWaccVisitor(String filename) {
 		
@@ -2313,10 +2312,10 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 	
 	@Override public Info visitExpr_binary(@NotNull WaccParser.Expr_binaryContext ctx) {
 		if (prints) System.out.println("visitExpr_binary");
-		visit(ctx.bin_bool());
+		Info b = visit(ctx.bin_bool());
 		ctx.typename = ctx.bin_bool().returntype;
 		//return new Info("argument").setType(ctx.typename.toString());
-		return null;
+		return b;
 	}
 	
 	@Override public Info visitExpr_bin_bool(@NotNull WaccParser.Expr_bin_boolContext ctx) {
@@ -2446,6 +2445,7 @@ public class MyWaccVisitor extends WaccParserBaseVisitor<Info> {
 			regCount++;
 			
 			currentList.add(new Instruction("CMP r" + (regCount - 2) + ", r" + (regCount - 1) + "\n"));
+			
 			if (ctx.IS_EQUAL() != null) {
 				currentList.add(ib.instr().movop("EQ", regCount-2, 1).build());
 				currentList.add(ib.instr().movop("NE", regCount-2, 0).build());
