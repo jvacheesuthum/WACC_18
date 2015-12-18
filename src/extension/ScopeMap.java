@@ -2,7 +2,6 @@ package extension;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 /**
@@ -32,10 +31,6 @@ public class ScopeMap<T,K> {
 
     public boolean hasEnc(){
         return encMap != null;
-    }
-
-    private HashMap getMap(){
-        return thisMap;
     }
 
     public K outwardsGet(T t){

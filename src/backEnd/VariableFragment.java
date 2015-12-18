@@ -31,7 +31,9 @@ public class VariableFragment extends InstructionFragment {
 	
 	@Override
 	public String getString() {
-		assert s !=null: "Don't know the position of variable " + variable + " yet!";
+		if (s == null) {
+			System.out.println("variable cannot be found:" + variable);
+		}
 		return s;
 	}
 

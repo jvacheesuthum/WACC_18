@@ -81,10 +81,8 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
           currentList.add(new Instruction("LDR r"+ regCount + (fstVisited ? ", [sp, #4]\n" : ", [sp]\n")));
           fstVisited = false;
       }
-      
-      
       if (rhs.typename instanceof NULL && ctx.type().typename instanceof PAIR_TYPE) {
-    	  newpairs++;
+    	  newpairs++; //<--- need this whenever there is a new pair, tried moving it out but causes other things to break
     	  System.out.println("LHS IS NULL RHS IS PAIRR");
       }
 	}
@@ -245,7 +243,9 @@ public class OptimisedWaccVisitor extends MyWaccVisitor {
 	@Override public Info visitExpr_bin_math_math(@NotNull WaccParser.Expr_bin_math_mathContext ctx) {
 		if (prints) System.out.println("visitExpr_bin_math_math");
 		Info p = visit(ctx.math());
+		regCount ++ ;
 		Info a = visit(ctx.plusminus());
+		regCount --;
 		ctx.returntype = new INT();
 		ctx.argtype = new INT();
 		if(!SharedMethods.assignCompat(ctx.math().returntype, ctx.argtype)) {

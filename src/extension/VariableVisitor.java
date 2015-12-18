@@ -12,7 +12,6 @@ import antlr.WaccLexer;
 import antlr.WaccParser;
 import antlr.WaccParser.AtomContext;
 import antlr.WaccParser.ExprContext;
-import antlr.WaccParser.StatContext;
 import antlr.WaccParserBaseVisitor;
 
 /* ------------------------------------------
@@ -25,12 +24,21 @@ import antlr.WaccParserBaseVisitor;
  * their occurrences (expr_ident and atom_ident) are replaced with their constant values.
  * 
  * SCOPING TO BE IMPLEMENTED.
+ * 
+ * update : variable depending on another variable will subscribe to it.
+ * variable will notify its subscribers if it becomes not constant
+ * variables that subscribe AFTER a variable is declared not constant will not be told 
+ * because it is assumed that the variable is not going to be changed again
+ * if it is then changed again, all subscribers will be notified again.
+ * 
  */
 
 public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramContext> {
 	
 	private List<VariableDependencies> vars = new LinkedList<VariableDependencies>();
 	private ScopeMap<String, VariableDependencies> map = new ScopeMap<>(null);
+	private boolean inDeclaration = false;
+	private VariableDependencies beingDeclared;
 
 	@Override public WaccParser.ProgramContext visitProgram(@NotNull WaccParser.ProgramContext ctx) { 
 		visitChildren(ctx);
@@ -40,28 +48,40 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 	
 	@Override public WaccParser.ProgramContext visitStat_declare(@NotNull WaccParser.Stat_declareContext ctx) {
 		// add new variable to list of variables, remembering where it is declared.
-		System.out.println("!@£$%^ " + ctx.assign_rhs().getText());
-		System.out.println("!@£$%^ " + (ctx.assign_rhs() instanceof WaccParser.Assign_rhs_exprContext));
 		if (ctx.assign_rhs() instanceof WaccParser.Assign_rhs_exprContext) {
 			WaccParser.Assign_rhs_exprContext expr = (WaccParser.Assign_rhs_exprContext) ctx.assign_rhs();
 			if (!(expr.expr() instanceof WaccParser.Expr_strContext)) {
 				VariableDependencies v = new VariableDependencies(ctx);
 				vars.add(v);
 				map.put(ctx.ident().VARIABLE().getText(), v);
+				inDeclaration = true;
+				beingDeclared = v;
+				visit(ctx.assign_rhs());
+				inDeclaration = false;
+				beingDeclared = null;
+			}else{
+				map.addArrayOrPairDeclared(ctx.ident().VARIABLE().getText());
 			}
 		}
 		else{
 			map.addArrayOrPairDeclared(ctx.ident().VARIABLE().getText());
 		}
-		return visitChildren(ctx);
+		return null;
 
 	}
 	
 	@Override public WaccParser.ProgramContext visitExpr_ident(@NotNull WaccParser.Expr_identContext ctx) {
 		//add this expr as dependent on the variable
 		VariableDependencies v = map.outwardsGet(ctx.ident().VARIABLE().getText());
+		// if we are in declaration and v ==null then we are doing something with array and pair. danger.
+		if (inDeclaration && v == null) {
+			beingDeclared.notConstant();
+		}
 		if (v != null) {
 			v.addExpr(ctx);
+			if (inDeclaration) {
+				v.addSubscriber(beingDeclared);
+			}
 		}
 		return visitChildren(ctx); }
 	
@@ -70,6 +90,9 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		VariableDependencies v = map.outwardsGet(ctx.ident().VARIABLE().getText());
 		if (v != null) {
 			v.addAtom(ctx);
+			if (inDeclaration) {
+				v.addSubscriber(beingDeclared);
+			}
 		}
 		return visitChildren(ctx); }
 	
@@ -262,12 +285,6 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		}
 	}
 
-	private StatContext createSkip() {
-		ParseTree dummy = dummyTree("begin skip end");
-		DummySkipCtx dsc = new DummySkipCtx();
-		return dsc.visit(dummy);
-	}
-
 	private ParseTree dummyTree(String string) {
 		//create a dummy tree to extract parts from
 		ANTLRInputStream input = new ANTLRInputStream(string);
@@ -289,20 +306,6 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		if (b == null) {System.out.println("wtf");}
 		if (b.expr() == null) {System.out.println("wtf2");}
 		//b.expr().copyFrom(expr);
-		b.removeLastChild();
-		b.removeLastChild();
-		b.addChild(expr);
-		expr.parent = b;
-		return b;
-	}
-
-	private ExprContext createEBrackets(ExprContext expr) {
-		//create a dummy brackets expr context, that brackets this expr
-	    ParseTree dummy = dummyTree("begin int x = (1) end"); // begin parsing at program rule
-	    DummyEBracketCtx dbc = new DummyEBracketCtx();
-	    WaccParser.Expr_bracketsContext b = dbc.visit(dummy);
-		//b.expr().copyFrom(expr);
-	    if (b == null) {System.out.println("wtf");}
 		b.removeLastChild();
 		b.removeLastChild();
 		b.addChild(expr);

@@ -11,6 +11,7 @@ public class VariableDependencies {
 	private boolean constant = true;
 	private List<WaccParser.Expr_identContext> exprs = new ArrayList<WaccParser.Expr_identContext>();
 	private List<WaccParser.Atom_identContext> atoms = new ArrayList<WaccParser.Atom_identContext>();
+	private List<VariableDependencies> subscribers = new ArrayList<VariableDependencies>();
 
 	public VariableDependencies(WaccParser.Stat_declareContext declare) {
 		this.declare = declare;
@@ -22,6 +23,10 @@ public class VariableDependencies {
 	
 	public void addAtom(WaccParser.Atom_identContext ctx) {
 		atoms.add(ctx);
+	}
+	
+	public void addSubscriber(VariableDependencies v) {
+		subscribers.add(v);
 	}
 	
 	//-----------------getters------------------------------------------------------
@@ -44,6 +49,10 @@ public class VariableDependencies {
 	
 	public void notConstant() {
 		constant = false;
+		for (VariableDependencies v : subscribers) {
+			System.out.println("notifying subscriber: " + v.getDeclare().ident().getText());
+			v.notConstant();
+		}
 	}
 
 }
