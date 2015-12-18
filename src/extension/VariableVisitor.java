@@ -12,7 +12,6 @@ import antlr.WaccLexer;
 import antlr.WaccParser;
 import antlr.WaccParser.AtomContext;
 import antlr.WaccParser.ExprContext;
-import antlr.WaccParser.StatContext;
 import antlr.WaccParserBaseVisitor;
 
 /* ------------------------------------------
@@ -74,6 +73,10 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 	@Override public WaccParser.ProgramContext visitExpr_ident(@NotNull WaccParser.Expr_identContext ctx) {
 		//add this expr as dependent on the variable
 		VariableDependencies v = map.outwardsGet(ctx.ident().VARIABLE().getText());
+		// if we are in declaration and v ==null then we are doing something with array and pair. danger.
+		if (inDeclaration && v == null) {
+			beingDeclared.notConstant();
+		}
 		if (v != null) {
 			v.addExpr(ctx);
 			if (inDeclaration) {
@@ -282,12 +285,6 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		}
 	}
 
-	private StatContext createSkip() {
-		ParseTree dummy = dummyTree("begin skip end");
-		DummySkipCtx dsc = new DummySkipCtx();
-		return dsc.visit(dummy);
-	}
-
 	private ParseTree dummyTree(String string) {
 		//create a dummy tree to extract parts from
 		ANTLRInputStream input = new ANTLRInputStream(string);
@@ -309,20 +306,6 @@ public class VariableVisitor extends WaccParserBaseVisitor<WaccParser.ProgramCon
 		if (b == null) {System.out.println("wtf");}
 		if (b.expr() == null) {System.out.println("wtf2");}
 		//b.expr().copyFrom(expr);
-		b.removeLastChild();
-		b.removeLastChild();
-		b.addChild(expr);
-		expr.parent = b;
-		return b;
-	}
-
-	private ExprContext createEBrackets(ExprContext expr) {
-		//create a dummy brackets expr context, that brackets this expr
-	    ParseTree dummy = dummyTree("begin int x = (1) end"); // begin parsing at program rule
-	    DummyEBracketCtx dbc = new DummyEBracketCtx();
-	    WaccParser.Expr_bracketsContext b = dbc.visit(dummy);
-		//b.expr().copyFrom(expr);
-	    if (b == null) {System.out.println("wtf");}
 		b.removeLastChild();
 		b.removeLastChild();
 		b.addChild(expr);
