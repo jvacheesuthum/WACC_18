@@ -14,12 +14,9 @@ import backEnd.Instruction;
 import backEnd.Instruction_Return;
 
 
-public class ControlFlowAnalysis extends MyWaccVisitor {
+public class WaccVisitorWithCFA extends MyWaccVisitor {
 
-	private boolean controlFlowTrue= false;
-	private boolean controlFlowFalse = false;
-
-	public ControlFlowAnalysis(String filename) {
+	public WaccVisitorWithCFA(String filename) {
 		super(filename);
 	}
 	
@@ -29,21 +26,21 @@ public class ControlFlowAnalysis extends MyWaccVisitor {
 		//
 
     	if (prints) System.out.println("visitStat_if");
-		visit(ctx.expr());
+		Info boolInfo = visit(ctx.expr());
 		if (prints) System.out.println("expr = "+ ctx.expr().getText());
 		
 		//EXTENSION - short circuiting
-			if (ctx.expr().getText().equals(new String("true"))) {
-				if (prints) System.out.println("control flow true");
-				controlFlowTrue = true;
-			}
-			
-			if (ctx.expr().getText().equals(new String("false"))) {
-				if (prints) System.out.println("control flow false");
-				controlFlowFalse = true;
-			}
-		
-		//---------------------------------------------------
+  		if (ctx.expr().getText().replaceAll("[//(//)]", "").equals(new String("true"))) {
+  			if (prints) System.out.println("control flow true");
+  			controlFlowTrue = true;
+  		}
+  		
+  		if (ctx.expr().getText().replaceAll("[//(//)]", "").equals(new String("false"))) {
+  			if (prints) System.out.println("control flow false");
+  			controlFlowFalse = true;
+  		}
+  	
+  	//---------------------------------------------------
 
 		//backend - after visit expr
 		int currentIfLable = ifCount * 2;
@@ -198,17 +195,17 @@ public class ControlFlowAnalysis extends MyWaccVisitor {
 		if (prints) System.out.println("expr = "+ ctx.expr().toString());
 		
 		//EXTENSION - short circuiting
-		if (ctx.expr().getText().equals(new String("true"))) {
-			if (prints) System.out.println("control flow true");
-			controlFlowTrue = true;
-		}
-		
-		if (ctx.expr().getText().equals(new String("false"))) {
-			if (prints) System.out.println("control flow false");
-			controlFlowFalse = true;
-		}
-	
-	//---------------------------------------------------
+  		if (ctx.expr().getText().replaceAll("[//(//)]", "").equals(new String("true"))) {
+  			if (prints) System.out.println("control flow true");
+  			controlFlowTrue = true;
+  		}
+  		
+  		if (ctx.expr().getText().replaceAll("[//(//)]", "").equals(new String("false"))) {
+  			if (prints) System.out.println("control flow false");
+  			controlFlowFalse = true;
+  		}
+  	
+  	//---------------------------------------------------
 
 		currentTable = new SymbolTable(currentTable);
 
@@ -355,18 +352,17 @@ public class ControlFlowAnalysis extends MyWaccVisitor {
 		if (prints) System.out.println("expr = "+ ctx.expr().toString());
 
 		//EXTENSION - short circuiting
-		if (ctx.expr().getText().equals(new String("true"))) {
-			if (prints) System.out.println("control flow true");
-			controlFlowTrue = true;
-		}
-		
-		if (ctx.expr().getText().equals(new String("false"))) {
-			if (prints) System.out.println("control flow false");
-			controlFlowFalse = true;
-		}
-	
-	//---------------------------------------------------
-
+  		if (ctx.expr().getText().replaceAll("[//(//)]", "").equals(new String("true"))) {
+  			if (prints) System.out.println("control flow true");
+  			controlFlowTrue = true;
+  		}
+  		
+  		if (ctx.expr().getText().replaceAll("[//(//)]", "").equals(new String("false"))) {
+  			if (prints) System.out.println("control flow false");
+  			controlFlowFalse = true;
+  		}
+  	
+  	//---------------------------------------------------
 		//backend - after visit expr
 		int currentIfLable = ifCount * 2;
 		if (!(controlFlowTrue || controlFlowFalse)) {
@@ -505,17 +501,17 @@ public class ControlFlowAnalysis extends MyWaccVisitor {
 		if (prints) System.out.println("expr = "+ ctx.expr().toString());
 
 		//EXTENSION - short circuiting
-		if (ctx.expr().getText().equals(new String("true"))) {
-			if (prints) System.out.println("control flow true");
-			controlFlowTrue = true;
-		}
-		
-		if (ctx.expr().getText().equals(new String("false"))) {
-			if (prints) System.out.println("control flow false");
-			controlFlowFalse = true;
-		}
-	
-	//---------------------------------------------------
+  		if (ctx.expr().getText().replaceAll("[//(//)]", "").equals(new String("true"))) {
+  			if (prints) System.out.println("control flow true");
+  			controlFlowTrue = true;
+  		}
+  		
+  		if (ctx.expr().getText().replaceAll("[//(//)]", "").equals(new String("false"))) {
+  			if (prints) System.out.println("control flow false");
+  			controlFlowFalse = true;
+  		}
+  	
+  	//---------------------------------------------------
 
 		//backend - after visit expr
 		int currentIfLable = ifCount * 2;
@@ -654,17 +650,17 @@ public class ControlFlowAnalysis extends MyWaccVisitor {
 		if (prints) System.out.println("expr = "+ ctx.expr().toString());
 
 		//EXTENSION - short circuiting
-		if (ctx.expr().getText().equals(new String("true"))) {
-			if (prints) System.out.println("control flow true");
-			controlFlowTrue = true;
-		}
-		
-		if (ctx.expr().getText().equals(new String("false"))) {
-			if (prints) System.out.println("control flow false");
-			controlFlowFalse = true;
-		}
-	
-	//---------------------------------------------------
+  		if (ctx.expr().getText().replaceAll("[//(//)]", "").equals(new String("true"))) {
+  			if (prints) System.out.println("control flow true");
+  			controlFlowTrue = true;
+  		}
+  		
+  		if (ctx.expr().getText().replaceAll("[//(//)]", "").equals(new String("false"))) {
+  			if (prints) System.out.println("control flow false");
+  			controlFlowFalse = true;
+  		}
+  	
+  	//---------------------------------------------------
 
 		//backend - after visit expr
 		int currentIfLable = ifCount * 2;
@@ -793,12 +789,12 @@ public class ControlFlowAnalysis extends MyWaccVisitor {
 	   	if (prints) System.out.println("visitStat_while");
 	   	
 	  //EXTENSION - short circuiting
-	  		if (ctx.expr().getText().equals(new String("true"))) {
+	  		if (ctx.expr().getText().replaceAll("[//(//)]", "").equals(new String("true"))) {
 	  			if (prints) System.out.println("control flow true");
 	  			controlFlowTrue = true;
 	  		}
 	  		
-	  		if (ctx.expr().getText().equals(new String("false"))) {
+	  		if (ctx.expr().getText().replaceAll("[//(//)]", "").equals(new String("false"))) {
 	  			if (prints) System.out.println("control flow false");
 	  			controlFlowFalse = true;
 	  		}

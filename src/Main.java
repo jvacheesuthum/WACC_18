@@ -60,14 +60,16 @@ public class Main {
 		    // build and run my custom visitor
 		    
 		    String filename = args[0].substring(args[0].lastIndexOf('/')+1, args[0].length()-5);
-		    System.out.println("====Optimising====");
-		    	WaccParser.ProgramContext ctx = new VariableVisitor().visit(tree);
-		    System.out.println("====Finished First Pass====");
+		 //   System.out.println("====Optimising====");
+		  //  	WaccParser.ProgramContext ctx = new VariableVisitor().visit(tree);
+		   // System.out.println("====Finished First Pass====");
 		    
 		    System.out.println("====");
-		    MyWaccVisitor visitor = new OptimisedWaccVisitor(filename + ".s");
+		    //MyWaccVisitor visitor = new OptimisedWaccVisitor(filename + ".s");
 		  	//MyWaccVisitor visitor = new MyWaccVisitor(filename + ".s");
-		    visitor.visit(ctx);
+		    MyWaccVisitor visitor = new WaccVisitorWithCFA(filename + ".s");
+		    visitor.visit(tree);
+		    //visitor.visit(ctx);
 		    System.out.println("====");
 		    System.exit(0);
 		  }
